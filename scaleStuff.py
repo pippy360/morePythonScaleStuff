@@ -1,8 +1,11 @@
 import math
 import numpy as np
+import cv2
 from scipy.signal import argrelextrema
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons
+
+
 
 def getPTheorm(point):
 	sumOfSqr = (point[0]**2)+(point[1]**2)
@@ -162,6 +165,37 @@ def testIfAngleScalarWorkAndPlot(angle, scalar, baseShape):
 	part1, part2 = strip(final)
 	plt.plot(part1, part2)
 
+def arrayCoordsToPoints(points):
+	ret = []
+	for point in points:
+		ret.append((point[0], point[1]))
+	return ret
+
+def zeroToOneCoordsToImageCoords(zeroToOnePoints, imageWidthHeight, imageScalar, offsetX, offsetY):
+	width, height = imageWidthHeight
+	print imageWidthHeight
+	ret = []
+	for point in zeroToOnePoints:
+		xpoint = point[0]
+		ypoint = point[1]
+		xpoint = xpoint*width
+		xpoint = xpoint/2
+		print "xpoint"
+		print xpoint
+		ypoint = ypoint*height
+		ypoint = ypoint/2
+
+		xpoint = xpoint/imageScalar
+		ypoint = ypoint/imageScalar
+
+		x = xpoint+(width/2)
+		y = ypoint+(height/2)
+
+		x = x + offsetX
+		y = y + offsetY
+		ret.append((x,y))
+
+	return ret
 
 
 ######################################################################
@@ -175,75 +209,93 @@ dimond = [
 	[0, sqrt2]
 ]
 
+midX = 46.9 -23.1
+midY = 143.1 - 120.5
+
+star = [
+	(( ((35.0		-23.1) - (midX/2))/midX)*2,		(((120.5	-120.5) - (midY/2))/midY)*2 ),
+	(( ((37.9		-23.1) - (midX/2))/midX)*2,		(((129.1	-120.5) - (midY/2))/midY)*2 ),
+	(( ((46.9		-23.1) - (midX/2))/midX)*2,		(((129.1	-120.5) - (midY/2))/midY)*2 ),
+	(( ((39.7		-23.1) - (midX/2))/midX)*2,		(((134.5	-120.5) - (midY/2))/midY)*2 ),
+	(( ((42.3		-23.1) - (midX/2))/midX)*2,		(((143.1	-120.5) - (midY/2))/midY)*2 ),
+	(( ((35.0		-23.1) - (midX/2))/midX)*2,		(((139.0	-120.5) - (midY/2))/midY)*2 ),
+	(( ((27.7		-23.1) - (midX/2))/midX)*2,		(((143.1	-120.5) - (midY/2))/midY)*2 ),
+	(( ((30.3		-23.1) - (midX/2))/midX)*2,		(((134.5	-120.5) - (midY/2))/midY)*2 ),
+	(( ((23.1		-23.1) - (midX/2))/midX)*2,		(((129.1	-120.5) - (midY/2))/midY)*2 ),
+	(( ((32.1		-23.1) - (midX/2))/midX)*2,		(((129.1	-120.5) - (midY/2))/midY)*2 )
+]
+
+star = [
+	(0.0, -1.0), 
+	(0.24369747899159655, -0.23893805309734545), 
+	(1.0, -0.23893805309734545), 
+	(0.3949579831932776, 0.23893805309734545), 
+	(0.6134453781512603, 1.0), 
+	(0.0, 0.6371681415929208), 
+	(-0.6134453781512607, 1.0), 
+	(-0.3949579831932773, 0.23893805309734545), 
+	(-1.0, -0.23893805309734545), 
+	(-0.24369747899159655, -0.23893805309734545)
+]
+
+
+print "star"
+print star
+
+dimond = [
+	(sqrt2, 0),
+	(0, -sqrt2),
+	(-sqrt2, 0),
+	(0, sqrt2)
+]
+
 triangle = [
-	[-1,-1],
-	[1,1],
-	[-1,1]
+	(-1,		-1),
+	(0,1),
+	(1,-1)
 ]
 
-shape = [
-	[-1,-1],
-	[-1,1],
-	[1,1],
-	[1,-1]
-]
-
-shape2 = [
-	[-0.7071067811865476, -1.4142135623730954], 
-	[-0.7071067811865472, 1.4142135623730947], 
-	[0.7071067811865476, 1.4142135623730954], 
-	[0.7071067811865472, -1.4142135623730947]
-]
-
-shape3 = [
-	[-1.4142135623730951, -1.414213562373095], 
-	[-0.7071067811865475, 0.7071067811865474], 
-	[1.4142135623730951, 1.414213562373095], 
-	[0.7071067811865475, -0.7071067811865474]
-]
-
-baseShape2 = [
-	[0,4],
-	[1,0],
-	[0,-2],
-	[-3,0]
-]
+total_scalar_for_the_image_coords = 2
 
 
+#[(10,10), (300,300), (10,300)]
 
-plt.ylim([-5,5])
-plt.xlim([-5,5])
+#so get an image and crop the bit we want, 
+image = cv2.imread("./g.jpg")
+height, width, channels = image.shape
+mask = np.zeros(image.shape, dtype=np.uint8)
+
+print "#############"
+val = zeroToOneCoordsToImageCoords(star, (width, height), 1, 0, 0)
+print val
+print "#############"
 
 
-#newShape = dimond
-#newShape = applyTransformToAllPointsNorm(0, 3, newShape)
-#newShape = applyTransformToAllPointsNorm(45, 2, newShape)
-#newShape = applyTransformToAllPointsNorm(60, 4, newShape)
-#newShape = applyTransformToAllPointsNorm(79, 1, newShape)
-#newShape = applyTransformToAllPointsNorm(30, 1, newShape)
-##part1, part2 = strip(newShape)
-##plt.plot(part1, part2)
-##final = normaliseShape(newShape);
-##part1, part2 = strip(final)
-##plt.plot(part1, part2)
-##plt.show()
-#
-#
-testIfAngleScalarWorkAndPlot(0, 8, triangle)
-plt.show()
+roi_corners = np.array(  [ val ], dtype=np.int32)
 
-testIfAngleScalarWorkAndPlot(25, 5.2, triangle)
-plt.show()
+ignore_mask_color = (255,)*3
+cv2.fillPoly(mask, roi_corners, ignore_mask_color)
 
-testIfAngleScalarWorkAndPlot(25, 5.2, triangle)
-plt.show()
+# apply the mask
+masked_image = cv2.bitwise_and(image, mask)
 
-testIfAngleScalarWorkAndPlot(60, 2, triangle)
-plt.show()
+#img = cv2.imread('messi5.jpg')
+img = masked_image
+rows,cols = (height,width)
+M = cv2.getRotationMatrix2D((cols/2,rows/2),90,1)
+#img = cv2.warpAffine(img,M,(cols,rows))
+#res = cv2.resize(img,None,fx=2, fy=1, interpolation = cv2.INTER_CUBIC)
+res = img
 
-testIfAngleScalarWorkAndPlot(78, 5.2, triangle)
-plt.show()
 
+cv2.imshow("img", res)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+
+#then rotate and crop and rasterise
+
+#then undo everything we just did
 
 
 
