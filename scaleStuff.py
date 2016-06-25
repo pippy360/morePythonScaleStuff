@@ -167,13 +167,17 @@ def getValuesBetween(x1,x2,y1,y2,inShape):
 
 	return ret
 
-
-def normaliseShape(shape):
+def getLeast(shape):
 	vals = getValuesBetween(1,40,0,359,shape)
 	vals.sort(key=lambda tup: tup[0])  # sorts in place
 	#print calcDiffSquared(135, 2, shape3)
 	scalar = vals[0][1][1]
 	angle = vals[0][2][1]
+	return angle, scalar
+
+def normaliseShape(shape):
+	angle, scalar = getLeast(shape)
+	getLeast
 	normX, normY = turnXIntoSqrtX(scalar)
 	normShape = applyTransformToAllPoints(angle, normX, normY, shape)
 	return np.around(normShape, decimals=1)
@@ -266,7 +270,6 @@ def copyImageToCenter(smallImage, width, height):
 	bigHeight, bigWidth, channels = imageBig.shape
 	posX = ((bigWidth/2) - (segWidth/2))
 	posY = ((height/2) - (segHeight/2))
-	print segWidth
 
 	smallPosX = (smaWidth/2) - (segWidth/2)
 	smallPosY = (smaHeight/2) - (segHeight/2)
@@ -280,10 +283,12 @@ def scaleImgInPlace(img, scale):
 	resizeImg = cv2.resize(img,None,fx=normalisedScale[0], fy=normalisedScale[1], interpolation = cv2.INTER_CUBIC)
 	return copyImageToCenter(resizeImg, width, height)
 
+def rotateAndScaleByNumbersWrapInBlack(rotate, scale, img):
+	blkimg = wrapInBlack(img)
+	return rotateAndScaleByNumbers(rotate, scale, blkimg)
 
 def rotateAndScaleByNumbers(rotate, scale, img):
-	blkimg = wrapInBlack(img)
-	res = rotateImg(blkimg, rotate)
+	res = rotateImg(img, rotate)
 	res = scaleImgInPlace(res, scale)
 	return res
 
@@ -294,13 +299,31 @@ def rotateAndScaleByNumbers(rotate, scale, img):
 #so get an image and crop the bit we want, 
 image = cv2.imread("./g.jpg")
 
-
-res = rotateAndScaleByNumbers(43, 5, image)
-#res = copyImageToCenter(image, 100, 1000)
+res = image
+res = cutAShapeOut(star, res)
+res = rotateAndScaleByNumbersWrapInBlack(43, 5, res)
+newShape = applyTransformToAllPointsNorm(43, 5, star)
 
 cv2.imshow("img", res)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+
+#now normalise it
+
+angle, scalar = getLeast(newShape)
+
+print "angle"
+print angle
+
+print "scalar"
+print scalar
+
+res = rotateAndScaleByNumbers(angle, scalar, res)
+
+cv2.imshow("img", res)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
 
 
 #then rotate and crop and rasterise
