@@ -6,6 +6,35 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons
 
 
+#######################################################################
+sqrt2 = 1.41421356237
+
+star = [
+	(0.0, -1.0), 
+	(0.24369747899159655, -0.23893805309734545), 
+	(1.0, -0.23893805309734545), 
+	(0.3949579831932776, 0.23893805309734545), 
+	(0.6134453781512603, 1.0), 
+	(0.0, 0.6371681415929208), 
+	(-0.6134453781512607, 1.0), 
+	(-0.3949579831932773, 0.23893805309734545), 
+	(-1.0, -0.23893805309734545), 
+	(-0.24369747899159655, -0.23893805309734545)
+]
+
+dimond = [
+	(sqrt2, 0),
+	(0, -sqrt2),
+	(-sqrt2, 0),
+	(0, sqrt2)
+]
+
+triangle = [
+	(-1,-1),
+	(0,1),
+	(1,-1)
+]
+#######################################################################
 
 def getPTheorm(point):
 	sumOfSqr = (point[0]**2)+(point[1]**2)
@@ -62,16 +91,14 @@ def applyTransformToAllPointsNorm(tetha, normS, points):
 
 
 def getAngleForOnePoint(point1):
-	print "point1"
-	print point1
+
 	if(point1[0] == 0 and point1[1] >= 0):
 		return 270
 	elif(point1[0] == 0 and point1[1] < 0):
 		return 90 
 	atanVal = math.atan(point1[1]/point1[0])
 	degs = abs(math.degrees(atanVal))
-	print "degs"
-	print degs
+
 	if(point1[1] >= 0 and point1[0] >= 0):
 		degs = 360 - degs
 	elif(point1[1] < 0 and point1[0] >= 0):
@@ -97,9 +124,6 @@ def getTotalDiffSquaredOfAngles(shape):
 			allAnglesForPoint.append(angleBetweenPoints)
 			temp.append(nextPoint)
 
-		print 'allAnglesForPoint'
-		print allAnglesForPoint
-		print temp
 		allAnglesForPoint.sort(key=lambda tup: tup)  # sorts in place
 		retTotal += allAnglesForPoint[0]#**allAnglesForPoint[0]
 
@@ -148,7 +172,6 @@ def normaliseShape(shape):
 	vals = getValuesBetween(1,40,0,359,shape)
 	vals.sort(key=lambda tup: tup[0])  # sorts in place
 	#print calcDiffSquared(135, 2, shape3)
-	print vals[0]
 	scalar = vals[0][1][1]
 	angle = vals[0][2][1]
 	normX, normY = turnXIntoSqrtX(scalar)
@@ -173,15 +196,12 @@ def arrayCoordsToPoints(points):
 
 def zeroToOneCoordsToImageCoords(zeroToOnePoints, imageWidthHeight, imageScalar, offsetX, offsetY):
 	width, height = imageWidthHeight
-	print imageWidthHeight
 	ret = []
 	for point in zeroToOnePoints:
 		xpoint = point[0]
 		ypoint = point[1]
 		xpoint = xpoint*width
 		xpoint = xpoint/2
-		print "xpoint"
-		print xpoint
 		ypoint = ypoint*height
 		ypoint = ypoint/2
 
@@ -197,96 +217,86 @@ def zeroToOneCoordsToImageCoords(zeroToOnePoints, imageWidthHeight, imageScalar,
 
 	return ret
 
+def cutAShapeOut(shape, image):
+
+	height, width, channels = image.shape
+
+	mask = np.zeros(image.shape, dtype=np.uint8)
+	
+	val = zeroToOneCoordsToImageCoords(shape, (width, height), 1, 0, 0)
+
+	roi_corners = np.array(  [ val ], dtype=np.int32)
+
+	ignore_mask_color = (255,)*3
+	cv2.fillPoly(mask, roi_corners, ignore_mask_color)
+
+	# apply the mask
+	masked_image = cv2.bitwise_and(image, mask)
+	return masked_image
+
+def wrapInBlack(imageSmall):
+	smaHeight, smaWidth, channels = imageSmall.shape
+	imageBig = np.zeros((smaHeight*3,smaWidth*3,3), dtype=np.uint8)
+	bigHeight, bigWidth, channels = imageBig.shape
+	posX = ((bigWidth/2) - (smaWidth/2))
+	posY = ((bigHeight/2) - (smaHeight/2))
+	imageBig[posY:(posY+smaHeight), posX:(smaWidth+posX)] = imageSmall
+	return imageBig
+
+def rotateImg(img, rotate):
+	rows,cols,c = img.shape
+
+	M = cv2.getRotationMatrix2D((cols/2,rows/2),rotate,1)
+	dst = cv2.warpAffine(img,M,(cols,rows))
+	return dst
+
+def copyImageToCenter(smallImage, width, height):
+	smaHeight, smaWidth, channels = smallImage.shape
+	if smaWidth > width:
+		segWidth = width
+	else:
+		segWidth = smaWidth
+
+	if smaHeight > height:
+		segHeight = height
+	else:
+		segHeight = smaHeight
+
+	imageBig = np.zeros((height,width,3), dtype=np.uint8)
+	bigHeight, bigWidth, channels = imageBig.shape
+	posX = ((bigWidth/2) - (segWidth/2))
+	posY = ((height/2) - (segHeight/2))
+	print segWidth
+
+	smallPosX = (smaWidth/2) - (segWidth/2)
+	smallPosY = (smaHeight/2) - (segHeight/2)
+	imageBig[posY:(posY+segHeight), posX:(segWidth+posX)] = smallImage[smallPosY:(smallPosY+segHeight), smallPosX:(smallPosX+segWidth)]
+	return imageBig
+
+def scaleImgInPlace(img, scale):
+	height, width, channels = img.shape
+	#always do our weird scale
+	normalisedScale = turnXIntoSqrtX(scale)
+	resizeImg = cv2.resize(img,None,fx=normalisedScale[0], fy=normalisedScale[1], interpolation = cv2.INTER_CUBIC)
+	return copyImageToCenter(resizeImg, width, height)
+
+
+def rotateAndScaleByNumbers(rotate, scale, img):
+	blkimg = wrapInBlack(img)
+	res = rotateImg(blkimg, rotate)
+	res = scaleImgInPlace(res, scale)
+	return res
+
 
 ######################################################################
 
-sqrt2 = 1.41421356237
-
-dimond = [
-	[sqrt2, 0],
-	[0, -sqrt2],
-	[-sqrt2, 0],
-	[0, sqrt2]
-]
-
-midX = 46.9 -23.1
-midY = 143.1 - 120.5
-
-star = [
-	(( ((35.0		-23.1) - (midX/2))/midX)*2,		(((120.5	-120.5) - (midY/2))/midY)*2 ),
-	(( ((37.9		-23.1) - (midX/2))/midX)*2,		(((129.1	-120.5) - (midY/2))/midY)*2 ),
-	(( ((46.9		-23.1) - (midX/2))/midX)*2,		(((129.1	-120.5) - (midY/2))/midY)*2 ),
-	(( ((39.7		-23.1) - (midX/2))/midX)*2,		(((134.5	-120.5) - (midY/2))/midY)*2 ),
-	(( ((42.3		-23.1) - (midX/2))/midX)*2,		(((143.1	-120.5) - (midY/2))/midY)*2 ),
-	(( ((35.0		-23.1) - (midX/2))/midX)*2,		(((139.0	-120.5) - (midY/2))/midY)*2 ),
-	(( ((27.7		-23.1) - (midX/2))/midX)*2,		(((143.1	-120.5) - (midY/2))/midY)*2 ),
-	(( ((30.3		-23.1) - (midX/2))/midX)*2,		(((134.5	-120.5) - (midY/2))/midY)*2 ),
-	(( ((23.1		-23.1) - (midX/2))/midX)*2,		(((129.1	-120.5) - (midY/2))/midY)*2 ),
-	(( ((32.1		-23.1) - (midX/2))/midX)*2,		(((129.1	-120.5) - (midY/2))/midY)*2 )
-]
-
-star = [
-	(0.0, -1.0), 
-	(0.24369747899159655, -0.23893805309734545), 
-	(1.0, -0.23893805309734545), 
-	(0.3949579831932776, 0.23893805309734545), 
-	(0.6134453781512603, 1.0), 
-	(0.0, 0.6371681415929208), 
-	(-0.6134453781512607, 1.0), 
-	(-0.3949579831932773, 0.23893805309734545), 
-	(-1.0, -0.23893805309734545), 
-	(-0.24369747899159655, -0.23893805309734545)
-]
-
-
-print "star"
-print star
-
-dimond = [
-	(sqrt2, 0),
-	(0, -sqrt2),
-	(-sqrt2, 0),
-	(0, sqrt2)
-]
-
-triangle = [
-	(-1,		-1),
-	(0,1),
-	(1,-1)
-]
-
-total_scalar_for_the_image_coords = 2
-
-
-#[(10,10), (300,300), (10,300)]
 
 #so get an image and crop the bit we want, 
 image = cv2.imread("./g.jpg")
-height, width, channels = image.shape
-mask = np.zeros(image.shape, dtype=np.uint8)
-
-print "#############"
-val = zeroToOneCoordsToImageCoords(star, (width, height), 1, 0, 0)
-print val
-print "#############"
 
 
-roi_corners = np.array(  [ val ], dtype=np.int32)
-
-ignore_mask_color = (255,)*3
-cv2.fillPoly(mask, roi_corners, ignore_mask_color)
-
-# apply the mask
-masked_image = cv2.bitwise_and(image, mask)
-
-#img = cv2.imread('messi5.jpg')
-img = masked_image
-rows,cols = (height,width)
-M = cv2.getRotationMatrix2D((cols/2,rows/2),90,1)
-#img = cv2.warpAffine(img,M,(cols,rows))
-#res = cv2.resize(img,None,fx=2, fy=1, interpolation = cv2.INTER_CUBIC)
-res = img
-
+res = rotateAndScaleByNumbers(43, 5, image)
+#res = copyImageToCenter(image, 100, 1000)
 
 cv2.imshow("img", res)
 cv2.waitKey(0)
