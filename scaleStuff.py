@@ -247,6 +247,14 @@ def wrapInBlack(imageSmall):
 	imageBig[posY:(posY+smaHeight), posX:(smaWidth+posX)] = imageSmall
 	return imageBig
 
+def removeBlk(img):
+	height, width, channels = img.shape
+	res = np.zeros((height/3,width/3,3), dtype=np.uint8)
+	posX = ((width/2) - ((width/3)/2))
+	posY = ((height/2) - ((height/3)/2))
+	res[0:(height/3), 0:(width/3)] = img[posY:(posY+(height/3)), posX:(posX+(width/3))]
+	return res
+
 def rotateImg(img, rotate):
 	rows,cols,c = img.shape
 
@@ -288,9 +296,12 @@ def rotateAndScaleByNumbersWrapInBlack(rotate, scale, img):
 	return rotateAndScaleByNumbers(rotate, scale, blkimg)
 
 def rotateAndScaleByNumbers(rotate, scale, img):
-	res = rotateImg(img, rotate)
+	res = img
+	res = rotateImg(res, rotate)
 	res = scaleImgInPlace(res, scale)
+	res = rotateImg(res, -rotate)
 	return res
+
 
 
 ######################################################################
@@ -301,26 +312,34 @@ image = cv2.imread("./g.jpg")
 
 res = image
 res = cutAShapeOut(star, res)
-res = rotateAndScaleByNumbersWrapInBlack(43, 5, res)
-newShape = applyTransformToAllPointsNorm(43, 5, star)
 
-cv2.imshow("img", res)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+cv2.imshow("imgShape", res)
+
+
+res = rotateAndScaleByNumbersWrapInBlack(43, 3, res)
+newShape = applyTransformToAllPointsNorm(43, 3, star)
+
+cv2.imshow("imgScaled", res)
 
 #now normalise it
 
-angle, scalar = getLeast(newShape)
-
+#angle, scalar = getLeast(newShape)
+angle, scalar = (134, 3)
+angle, scalar = (45, 3)
 print "angle"
 print angle
 
 print "scalar"
 print scalar
 
-res = rotateAndScaleByNumbers(angle, scalar, res)
+angle = angle;
+res = rotateImg(res, 134)
+res = scaleImgInPlace(res, 3)
+res = rotateImg(res, -134)
+res = removeBlk(res)
+#res = rotateAndScaleByNumbers(angle, scalar, res)
 
-cv2.imshow("img", res)
+cv2.imshow("imgFixed", res)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
