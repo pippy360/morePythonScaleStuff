@@ -252,6 +252,10 @@ def removeBlk(img):
 	res = np.zeros((height/3,width/3,3), dtype=np.uint8)
 	posX = ((width/2) - ((width/3)/2))
 	posY = ((height/2) - ((height/3)/2))
+	print "height"
+	print height
+	print "width"
+	print width
 	res[0:(height/3), 0:(width/3)] = img[posY:(posY+(height/3)), posX:(posX+(width/3))]
 	return res
 
@@ -295,6 +299,10 @@ def rotateAndScaleByNumbersWrapInBlack(rotate, scale, img):
 	blkimg = wrapInBlack(img)
 	return rotateAndScaleByNumbers(rotate, scale, blkimg)
 
+def rotateAndScaleByNumbersWithRemoveBlk(rotate, scale, res):
+	res = rotateAndScaleByNumbers(rotate, scale, res)
+	return removeBlk(res)
+
 def rotateAndScaleByNumbers(rotate, scale, img):
 	res = img
 	res = rotateImg(res, rotate)
@@ -311,7 +319,7 @@ def rotateAndScaleByNumbers(rotate, scale, img):
 image = cv2.imread("./g.jpg")
 
 res = image
-res = cutAShapeOut(star, res)
+res = cutAShapeOut(triangle, res)
 
 cv2.imshow("imgShape", res)
 
@@ -325,18 +333,10 @@ cv2.imshow("imgScaled", res)
 
 #angle, scalar = getLeast(newShape)
 angle, scalar = (134, 3)
-angle, scalar = (45, 3)
-print "angle"
-print angle
+print "angle, scalar"
+print str(angle) + ", " + str(scalar)
 
-print "scalar"
-print scalar
-
-angle = angle;
-res = rotateImg(res, 134)
-res = scaleImgInPlace(res, 3)
-res = rotateImg(res, -134)
-res = removeBlk(res)
+res = rotateAndScaleByNumbersWithRemoveBlk(angle, scalar, res)
 #res = rotateAndScaleByNumbers(angle, scalar, res)
 
 cv2.imshow("imgFixed", res)
