@@ -255,12 +255,20 @@ def removeBlk(img):
 	res[0:(height/3), 0:(width/3)] = img[posY:(posY+(height/3)), posX:(posX+(width/3))]
 	return res
 
+def rotateImgBAndW(img, rotate):
+	rows,cols = img.shape
+	return _rotateImg(img, rotate, rows, cols)
+
+
 def rotateImg(img, rotate):
 	rows,cols,c = img.shape
+	return _rotateImg(img, rotate, rows, cols)
 
+def _rotateImg(img, rotate, rows, cols):
 	M = cv2.getRotationMatrix2D((cols/2,rows/2),rotate,1)
 	dst = cv2.warpAffine(img,M,(cols,rows))
 	return dst
+	
 
 def copyImageToCenter(smallImage, width, height):
 	smaHeight, smaWidth, channels = smallImage.shape
@@ -322,6 +330,34 @@ def normaliseImage(img, shape):
 	res = rotateAndScaleByNumbersWithRemoveBlk(angle, scalar, res)
 	return res
 
+def getCount(img):
+	countLeft = 0
+	countRight = 0
+	height, width = img.shape
+	for i in range(0, height):             #looping at python speed...
+		for j in range(0, width):     #...
+			if j < (width/2):
+				countLeft 	+= img[i,j]
+			else:
+				countRight 	+= img[i,j]
+	return countLeft, countRight
+
+def getMinimumRotation(img):
+	vals = []
+	for i in range(35):
+		img = rotateImgBAndW(img, 10)
+		left, right = getCount(img)
+		vals.append((abs(left-right),i*10))
+
+	vals.sort(key=lambda tup: tup[0])  # sorts in place
+	#print calcDiffSquared(135, 2, shape3)
+	print "vals"
+	print vals
+	scalar = vals[0][1]
+	print "scalar"
+	print scalar
+	return scalar
+
 ######################################################################
 
 
@@ -332,16 +368,22 @@ shape = triangle
 #so get an image and crop the bit we want, 
 image = cv2.imread("./g.jpg")
 
-res = image
+rotate = 54
+res = image 
+res = wrapInBlack(res)
 
-tempRes = cutAShapeOut(shape, res)
-cv2.imshow("imgShape", tempRes)
+res = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
+res = rotateImgBAndW(res, rotate)
 
-res, shape = getRandomlyDistortedImageAndShape(res, shape)
+#res = np.zeros((100*3,100*3,3), dtype=np.uint8)
+#res = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
 
-cv2.imshow("imgScaled", res)
+minRot = getMinimumRotation(res)
 
-res = normaliseImage(res, shape)
+print "minRot"
+print minRot
+
+res = rotateImg(image, minRot)
 
 cv2.imshow("imgFixed", res)
 
