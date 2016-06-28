@@ -252,10 +252,6 @@ def removeBlk(img):
 	res = np.zeros((height/3,width/3,3), dtype=np.uint8)
 	posX = ((width/2) - ((width/3)/2))
 	posY = ((height/2) - ((height/3)/2))
-	print "height"
-	print height
-	print "width"
-	print width
 	res[0:(height/3), 0:(width/3)] = img[posY:(posY+(height/3)), posX:(posX+(width/3))]
 	return res
 
@@ -310,36 +306,45 @@ def rotateAndScaleByNumbers(rotate, scale, img):
 	res = rotateImg(res, -rotate)
 	return res
 
+def getRandomlyDistortedImageAndShape(img, shapeToCut):
+	return getDistortedImageAndShape(43, 3, img, shapeToCut)
+
+def getDistortedImageAndShape(angle, scale, img, shapeToCut):
+	res = img
+	res = cutAShapeOut(shapeToCut, res)
+	res = rotateAndScaleByNumbersWrapInBlack(angle, scale, res)
+	newShape = applyTransformToAllPointsNorm(angle, scale, shapeToCut)
+	return res, newShape
+
+def normaliseImage(img, shape):
+	res = img
+	angle, scalar = getLeast(shape)
+	res = rotateAndScaleByNumbersWithRemoveBlk(angle, scalar, res)
+	return res
+
+######################################################################
 
 
 ######################################################################
 
+shape = triangle
 
 #so get an image and crop the bit we want, 
 image = cv2.imread("./g.jpg")
 
 res = image
-res = cutAShapeOut(triangle, res)
 
-cv2.imshow("imgShape", res)
+tempRes = cutAShapeOut(shape, res)
+cv2.imshow("imgShape", tempRes)
 
-
-res = rotateAndScaleByNumbersWrapInBlack(43, 3, res)
-newShape = applyTransformToAllPointsNorm(43, 3, star)
+res, shape = getRandomlyDistortedImageAndShape(res, shape)
 
 cv2.imshow("imgScaled", res)
 
-#now normalise it
-
-#angle, scalar = getLeast(newShape)
-angle, scalar = (134, 3)
-print "angle, scalar"
-print str(angle) + ", " + str(scalar)
-
-res = rotateAndScaleByNumbersWithRemoveBlk(angle, scalar, res)
-#res = rotateAndScaleByNumbers(angle, scalar, res)
+res = normaliseImage(res, shape)
 
 cv2.imshow("imgFixed", res)
+
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
