@@ -423,12 +423,12 @@ def relativePoints_getThePositionOfGreenPoints(img):
 shape = triangle
 
 #so get an image and crop the bit we want, 
-image = cv2.imread("./lennaWithGreenDots.jpg")
+image = cv2.imread("./testImage2.jpg")
 
 res = image
 
 print relativePoints_getThePositionOfGreenPoints(res)
-
+res = getTheGreenPointsImage(res)
 
 
 cv2.imshow("imgFixed", res)
