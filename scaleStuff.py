@@ -358,6 +358,63 @@ def getMinimumRotation(img):
 	print scalar
 	return scalar
 
+#################
+
+#green points stuff
+
+#################
+
+
+def getTheGreenPointsImage(img):
+	res = img
+	b, g, r = cv2.split(res)
+	res = g
+	junk,g2mask = cv2.threshold(g,225,255,cv2.THRESH_BINARY)
+	junk,bImask = cv2.threshold(b,100,255,cv2.THRESH_BINARY)
+	bImask = cv2.bitwise_not(bImask)
+	junk,rImask = cv2.threshold(r,100,255,cv2.THRESH_BINARY)
+	rImask = cv2.bitwise_not(rImask)
+	temp = cv2.bitwise_and(bImask, rImask)
+	temp = cv2.bitwise_and(temp, g2mask)
+	return temp
+
+def getTheGreenPointPositions(mask):
+	res = mask
+	contours,hierarchy = cv2.findContours(res, 1, 2)
+
+	pnts = []
+	for cnt in contours:
+		pnts.append((cnt[0][0][0],cnt[0][0][1]))
+
+	return pnts
+
+def getThePositionOfGreenPoints(img):
+	res = img
+	res = getTheGreenPointsImage(res)
+	return getTheGreenPointPositions(res)
+
+def getRelativePoint(pnt, width, height):
+	relW = float(pnt[0])/width
+	relH = float(pnt[1])/height
+	return (relW, relH)
+
+def getRelativePointWithMinusOne(pnt, width, height):
+	pnt = getRelativePoint(pnt, width, height)
+	relW = (float(pnt[0])*2) - 1
+	relH = (float(pnt[1])*2) - 1
+	return (relW, relH)
+
+
+def relativePoints_getThePositionOfGreenPoints(img):
+	pnts = getThePositionOfGreenPoints(img)
+	width, height, c = img.shape
+	ret = []
+	for pnt in pnts:
+		ret.append(getRelativePointWithMinusOne(pnt, width, height))
+
+	return ret
+
+
 ######################################################################
 
 
@@ -366,24 +423,13 @@ def getMinimumRotation(img):
 shape = triangle
 
 #so get an image and crop the bit we want, 
-image = cv2.imread("./g.jpg")
+image = cv2.imread("./lennaWithGreenDots.jpg")
 
-rotate = 54
-res = image 
-res = wrapInBlack(res)
+res = image
 
-res = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
-res = rotateImgBAndW(res, rotate)
+print relativePoints_getThePositionOfGreenPoints(res)
 
-#res = np.zeros((100*3,100*3,3), dtype=np.uint8)
-#res = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
 
-minRot = getMinimumRotation(res)
-
-print "minRot"
-print minRot
-
-res = rotateImg(image, minRot)
 
 cv2.imshow("imgFixed", res)
 
