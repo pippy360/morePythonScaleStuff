@@ -159,21 +159,24 @@ def strip(shape):
 
 ################now lets minimize it##############
 
-def getValuesBetween(x1,x2,y1,y2,inShape):
+def getValuesBetween(x1,x2,y1,y2,inShape, divForTheScaler):
 	ret = []
 	for i in xrange(x1,x2):
 		for j in xrange(y1,y2):
-			val = calcDiffSquared(j, i, inShape)
-			ret.append([val,['scaler',i],['angle',j]])
+			ival = float((i*1.0)/divForTheScaler)
+			val = calcDiffSquared(j, ival, inShape)
+			ret.append([val,['scaler',ival],['angle',j]])
 
 	return ret
 
 def getLeast(shape):
-	vals = getValuesBetween(1,20,0,359,shape)
+	divForTheScaler = 16
+	vals = getValuesBetween(1,60,0,359,shape, divForTheScaler)
 	vals.sort(key=lambda tup: tup[0])  # sorts in place
 	print "vals"
 #	print vals
-#	for i in range(100):#
+	for i in range(10):#
+		print vals[i]
 #	for val in vals:
 #		print val
 	#print calcDiffSquared(135, 2, shape3)
@@ -348,7 +351,8 @@ def getCount(img):
 				countRight 	+= img[i,j]
 	return countLeft, countRight
 
-def getMinimumRotation(img):
+def getMinimumRotation(imgIn):
+	img = imgIn
 	vals = []
 	for i in range(35):
 		img = rotateImgBAndW(img, 10)
@@ -357,12 +361,20 @@ def getMinimumRotation(img):
 
 	vals.sort(key=lambda tup: tup[0])  # sorts in place
 	#print calcDiffSquared(135, 2, shape3)
-	print "vals"
-	print vals
-	scalar = vals[0][1]
-	print "scalar"
-	print scalar
-	return scalar
+	minRot = vals[0][1]
+	
+	temp1 = rotateImgBAndW(imgIn, minRot)
+	left1, right1 = getCount(temp1)
+	val1 = abs(left1-right1)
+
+	temp2 = rotateImgBAndW(temp1, 180)
+	left2, right2 = getCount(temp2)
+	val2 = abs(left2-right2)
+
+	if(val1<val2):
+		return minRot
+	else:
+		return (minRot+180)%360
 
 def centeroidnp(arr):
     length = arr.shape[0]
@@ -445,51 +457,55 @@ def drawLines(points, img):
 		cv2.line(img, points[i], points[i+1], (255,0,0), 3)
 	cv2.line(img, points[len(points)-1], points[0], (255,0,0), 3)
 
+def main(imgName):
+	shape = triangle
+
+	#so get an image and crop the bit we want,
+	name = imgName#"testImage2" 
+	image = cv2.imread("./"+name+".jpg")
+
+	res = image
+
+	shape = relativePoints_getThePositionOfGreenPoints(res)
+
+	centerPnt = centeroidnp(np.asarray(getThePositionOfGreenPoints(res)))
+	res = movePointToMiddle(image, centerPnt[0], centerPnt[1])
+
+	shape = relativePoints_getThePositionOfGreenPoints(res)
+	res = cutAShapeOut(shape, res)
+
+	cv2.imshow("imgShape", res)
+
+
+	#now normalise it
+
+	angle, scalar = getLeast(shape)
+	print "angle, scalar"
+	print str(angle) + ", " + str(scalar)
+
+	res = rotateAndScaleByNumbers(angle, scalar, res)
+
+	resBAW = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
+	minRot = getMinimumRotation(resBAW)
+
+	print "minRot"
+	print minRot
+
+	res = rotateImg(res, minRot)
+	#res = removeBlk(res)
+	#cv2.imshow("imgFixed", res)
+	cv2.imwrite("./Output"+name+"Output.jpg", res)
+	res = rotateImg(res, 180)
+
+	cv2.destroyAllWindows()
+
 
 ######################################################################
 
 
 ######################################################################
 
-shape = triangle
-
-#so get an image and crop the bit we want,
-name = "testImage1" 
-image = cv2.imread("./"+name+".jpg")
-
-res = image
-
-shape = relativePoints_getThePositionOfGreenPoints(res)
-
-centerPnt = centeroidnp(np.asarray(getThePositionOfGreenPoints(res)))
-res = movePointToMiddle(image, centerPnt[0], centerPnt[1])
-
-shape = relativePoints_getThePositionOfGreenPoints(res)
-res = cutAShapeOut(shape, res)
-
-cv2.imshow("imgShape", res)
-
-
-#now normalise it
-
-angle, scalar = getLeast(shape)
-print "angle, scalar"
-print str(angle) + ", " + str(scalar)
-
-res = rotateAndScaleByNumbers(angle, scalar, res)
-
-
-cv2.imshow("imgFixed", res)
-cv2.imwrite("./Output"+name+"Output.jpg", res)
-
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-
-
-
-#then rotate and crop and rasterise
-
-#then undo everything we just did
-
+main("testImage1")
+main("testImage2")
 
 
