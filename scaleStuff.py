@@ -168,11 +168,14 @@ def getValuesBetween(x1,x2,y1,y2,inShape):
 	return ret
 
 def getLeast(shape):
-	vals = getValuesBetween(1,40,0,359,shape)
+	vals = getValuesBetween(1,10,0,359,shape)
 	vals.sort(key=lambda tup: tup[0])  # sorts in place
+	print "vals"
+	for i in range(10):
+		print vals[i]
 	#print calcDiffSquared(135, 2, shape3)
-	scalar = vals[0][1][1]
-	angle = vals[0][2][1]
+	scalar = vals[1][1][1]
+	angle = vals[1][2][1]
 	return angle, scalar
 
 def normaliseShape(shape):
@@ -358,6 +361,13 @@ def getMinimumRotation(img):
 	print scalar
 	return scalar
 
+def centeroidnp(arr):
+    length = arr.shape[0]
+    sum_x = np.sum(arr[:, 0])
+    sum_y = np.sum(arr[:, 1])
+    return sum_x/length, sum_y/length
+
+
 #################
 
 #green points stuff
@@ -407,13 +417,23 @@ def getRelativePointWithMinusOne(pnt, width, height):
 
 def relativePoints_getThePositionOfGreenPoints(img):
 	pnts = getThePositionOfGreenPoints(img)
-	width, height, c = img.shape
+	height, width, c = img.shape
 	ret = []
 	for pnt in pnts:
 		ret.append(getRelativePointWithMinusOne(pnt, width, height))
 
 	return ret
 
+def moveImage(img, x, y):
+	height, width, c = img.shape
+	M = np.float32([[1,0,x],[0,1,y]])
+	return cv2.warpAffine(img,M,(width,height))
+
+def movePointToMiddel(img, x, y):
+	height, width, c = img.shape
+	midX = width/2
+	midY = height/2
+	return moveImage(img, midX-x, midY-y)
 
 ######################################################################
 
@@ -422,16 +442,35 @@ def relativePoints_getThePositionOfGreenPoints(img):
 
 shape = triangle
 
-#so get an image and crop the bit we want, 
-image = cv2.imread("./testImage2.jpg")
+#so get an image and crop the bit we want,
+name = "testImage1" 
+image = cv2.imread("./"+name+".jpg")
 
 res = image
 
-print relativePoints_getThePositionOfGreenPoints(res)
-res = getTheGreenPointsImage(res)
+shape = relativePoints_getThePositionOfGreenPoints(res)
+
+centerPnt = centeroidnp(np.asarray(getThePositionOfGreenPoints(res)))
+res = movePointToMiddel(image, centerPnt[0], centerPnt[1])
+
+shape = relativePoints_getThePositionOfGreenPoints(res)
+res = cutAShapeOut(shape, res)
+
+cv2.imshow("imgShape", res)
+
+newShape = applyTransformToAllPointsNorm(43, 3, shape)
+
+#now normalise it
+
+angle, scalar = getLeast(newShape)
+print "angle, scalar"
+print str(angle) + ", " + str(scalar)
+
+res = rotateAndScaleByNumbers(angle, scalar, res)
 
 
 cv2.imshow("imgFixed", res)
+cv2.imwrite("./Output"+name+"Output.jpg", res)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
