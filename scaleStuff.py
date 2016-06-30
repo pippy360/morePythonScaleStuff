@@ -1,3 +1,4 @@
+import sys
 import math
 import numpy as np
 import cv2
@@ -168,11 +169,13 @@ def getValuesBetween(x1,x2,y1,y2,inShape):
 	return ret
 
 def getLeast(shape):
-	vals = getValuesBetween(1,10,0,359,shape)
+	vals = getValuesBetween(1,20,0,359,shape)
 	vals.sort(key=lambda tup: tup[0])  # sorts in place
 	print "vals"
-	for i in range(10):
-		print vals[i]
+#	print vals
+#	for i in range(100):#
+#	for val in vals:
+#		print val
 	#print calcDiffSquared(135, 2, shape3)
 	scalar = vals[1][1][1]
 	angle = vals[1][2][1]
@@ -429,11 +432,19 @@ def moveImage(img, x, y):
 	M = np.float32([[1,0,x],[0,1,y]])
 	return cv2.warpAffine(img,M,(width,height))
 
-def movePointToMiddel(img, x, y):
+def movePointToMiddle(img, x, y):
 	height, width, c = img.shape
 	midX = width/2
 	midY = height/2
 	return moveImage(img, midX-x, midY-y)
+
+def drawLines(points, img):
+	print points
+	for i in range(len(points)-1):
+		print str(points[i]) +","+str(points[i+1])
+		cv2.line(img, points[i], points[i+1], (255,0,0), 3)
+	cv2.line(img, points[len(points)-1], points[0], (255,0,0), 3)
+
 
 ######################################################################
 
@@ -451,18 +462,17 @@ res = image
 shape = relativePoints_getThePositionOfGreenPoints(res)
 
 centerPnt = centeroidnp(np.asarray(getThePositionOfGreenPoints(res)))
-res = movePointToMiddel(image, centerPnt[0], centerPnt[1])
+res = movePointToMiddle(image, centerPnt[0], centerPnt[1])
 
 shape = relativePoints_getThePositionOfGreenPoints(res)
 res = cutAShapeOut(shape, res)
 
 cv2.imshow("imgShape", res)
 
-newShape = applyTransformToAllPointsNorm(43, 3, shape)
 
 #now normalise it
 
-angle, scalar = getLeast(newShape)
+angle, scalar = getLeast(shape)
 print "angle, scalar"
 print str(angle) + ", " + str(scalar)
 
