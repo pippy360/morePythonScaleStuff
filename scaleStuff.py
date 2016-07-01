@@ -394,9 +394,15 @@ def getTheGreenPointsImage(img):
 	res = img
 	b, g, r = cv2.split(res)
 	res = g
-	junk,g2mask = cv2.threshold(g,225,255,cv2.THRESH_BINARY)
+	junk,g2mask = cv2.threshold(g,210,255,cv2.THRESH_BINARY)
+	
+	cv2.imshow("greenPoints", g2mask)
+	cv2.waitKey(0)	
+
 	junk,bImask = cv2.threshold(b,100,255,cv2.THRESH_BINARY)
 	bImask = cv2.bitwise_not(bImask)
+
+
 	junk,rImask = cv2.threshold(r,100,255,cv2.THRESH_BINARY)
 	rImask = cv2.bitwise_not(rImask)
 	temp = cv2.bitwise_and(bImask, rImask)
@@ -465,6 +471,9 @@ def main(imgName):
 	image = cv2.imread("./"+name+".jpg")
 
 	res = image
+	tempRes = getTheGreenPointsImage(res)
+	cv2.imshow("greenPoints", tempRes)
+	cv2.waitKey(0)	
 
 	shape = relativePoints_getThePositionOfGreenPoints(res)
 
@@ -505,8 +514,8 @@ def main(imgName):
 
 ######################################################################
 
-main("testImage1")
-main("testImage2")
+#main("testImage1")
+#main("testImage2")
 main("extreme")
 
 
