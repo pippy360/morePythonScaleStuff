@@ -159,19 +159,22 @@ def strip(shape):
 
 ################now lets minimize it##############
 
-def getValuesBetween(x1,x2,y1,y2,inShape, divForTheScaler):
+def getValuesBetween(x1,x2,y1,y2,inShape, divForTheScaler, divForTheDegs):
 	ret = []
 	for i in xrange(x1,x2):
 		for j in xrange(y1,y2):
 			ival = float((i*1.0)/divForTheScaler)
-			val = calcDiffSquared(j, ival, inShape)
-			ret.append([val,['scaler',ival],['angle',j]])
+			jval = float((j*1.0)/divForTheDegs)
+#			print jval
+			val = calcDiffSquared(jval, ival, inShape)
+			ret.append([val,['scaler',ival],['angle',jval]])
 
 	return ret
 
 def getLeast(shape):
-	divForTheScaler = 16
-	vals = getValuesBetween(1,60,0,359,shape, divForTheScaler)
+	divForTheDegs = 8
+	divForTheScaler = 64
+	vals = getValuesBetween(200,300,0,1440,shape, divForTheScaler, divForTheDegs)
 	vals.sort(key=lambda tup: tup[0])  # sorts in place
 	print "vals"
 #	print vals
@@ -180,8 +183,8 @@ def getLeast(shape):
 #	for val in vals:
 #		print val
 	#print calcDiffSquared(135, 2, shape3)
-	scalar = vals[1][1][1]
-	angle = vals[1][2][1]
+	scalar = vals[0][1][1]
+	angle = vals[0][2][1]
 	return angle, scalar
 
 def normaliseShape(shape):
@@ -396,8 +399,8 @@ def getTheGreenPointsImage(img):
 	res = g
 	junk,g2mask = cv2.threshold(g,210,255,cv2.THRESH_BINARY)
 	
-	cv2.imshow("greenPoints", g2mask)
-	cv2.waitKey(0)	
+	#cv2.imshow("greenPoints", g2mask)
+	#cv2.waitKey(0)	
 
 	junk,bImask = cv2.threshold(b,100,255,cv2.THRESH_BINARY)
 	bImask = cv2.bitwise_not(bImask)
@@ -471,9 +474,10 @@ def main(imgName):
 	image = cv2.imread("./"+name+".jpg")
 
 	res = image
-	tempRes = getTheGreenPointsImage(res)
-	cv2.imshow("greenPoints", tempRes)
-	cv2.waitKey(0)	
+	
+	#tempRes = getTheGreenPointsImage(res)
+	#cv2.imshow("greenPoints", tempRes)
+	#cv2.waitKey(0)	
 
 	shape = relativePoints_getThePositionOfGreenPoints(res)
 
@@ -514,8 +518,8 @@ def main(imgName):
 
 ######################################################################
 
-#main("testImage1")
-#main("testImage2")
+main("testImage1")
+main("testImage2")
 main("extreme")
 
 
