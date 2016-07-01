@@ -507,5 +507,6 @@ def main(imgName):
 
 main("testImage1")
 main("testImage2")
+main("extreme")
 
 
