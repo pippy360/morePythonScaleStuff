@@ -6,6 +6,8 @@ from scipy.signal import argrelextrema
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons
 
+import getMinimumScaleForShape as g
+import shapeDrawerWithDebug as d
 
 
 
@@ -232,6 +234,15 @@ def zeroToOneCoordsToImageCoords(zeroToOnePoints, imageWidthHeight, imageScalar,
 
 	return ret
 
+def cutAShapeWithImageCoords(shape, img):
+
+	mask = np.zeros(img.shape, dtype=np.uint8)
+	roi_corners = np.array(  [ val ], dtype=np.int32)
+	cv2.fillPoly(mask, roi_corners, ignore_mask_color)
+	masked_image = cv2.bitwise_and(img, mask)
+	return ma
+
+
 def cutAShapeOut(shape, image):
 
 	height, width, channels = image.shape
@@ -352,6 +363,20 @@ def getCount(img):
 			else:
 				countRight 	+= img[i,j]
 	return countLeft, countRight
+
+def rotateImgBAndW(img, rotate):
+	rows,cols = img.shape
+	return _rotateImg(img, rotate, rows, cols)
+
+
+def rotateImg(img, rotate):
+	rows,cols,c = img.shape
+	return _rotateImg(img, rotate, rows, cols)
+
+def _rotateImg(img, rotate, rows, cols):
+	M = cv2.getRotationMatrix2D((cols/2,rows/2),rotate,1)
+	dst = cv2.warpAffine(img,M,(cols,rows))
+	return dst
 
 def getMinimumRotation(imgIn):
 	img = imgIn
@@ -507,11 +532,9 @@ def main(imgName):
 	shape = relativePoints_getThePositionOfGreenPoints(res)
 	res = cutAShapeOut(shape, res)
 
-
-
 	#now normalise it
-
-	angle, scalar = getLeast(shape)
+	tempShape = getThePositionOfGreenPoints(image)
+	angle, scalar = g.getValuesToNormaliseScale(tempShape)
 	print "angle, scalar"
 	print str(angle) + ", " + str(scalar)
 
@@ -601,8 +624,8 @@ def debugGetLeast():
 
 ######################################################################
 
-debugGetLeast()
-#main("testImage1")
-#main("testImage2")
-#main("testImage2")
+#debugGetLeast()
+main("testImage1")
+main("testImage2")
+main("extreme")
 
