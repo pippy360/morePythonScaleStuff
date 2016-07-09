@@ -7,6 +7,8 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider, Button, RadioButtons
 
 
+
+
 #######################################################################
 sqrt2 = 1.41421356237
 
@@ -142,7 +144,7 @@ def calcDiffSquared(tetha, x, shape):
 	newShape = applyTransformToAllPoints(tetha, normX, normY, shape)
 
 	totalDiff = getTotalDiffSquaredOfPoints(newShape)
-	#totalDiff += getTotalDiffSquaredOfAngles(newShape)
+	totalDiff += getTotalDiffSquaredOfAngles(newShape)
 
 	return totalDiff
 
@@ -394,7 +396,7 @@ def getTheGreenPointsImage(img):
 	res = img
 	b, g, r = cv2.split(res)
 	res = g
-	junk,g2mask = cv2.threshold(g,225,255,cv2.THRESH_BINARY)
+	junk,g2mask = cv2.threshold(g,215,255,cv2.THRESH_BINARY)
 	junk,bImask = cv2.threshold(b,100,255,cv2.THRESH_BINARY)
 	bImask = cv2.bitwise_not(bImask)
 	junk,rImask = cv2.threshold(r,100,255,cv2.THRESH_BINARY)
@@ -430,6 +432,27 @@ def getRelativePointWithMinusOne(pnt, width, height):
 	return (relW, relH)
 
 
+def getRelativePointsWithMinusOne(pnts, width, height):
+	ret = []
+	for pnt in pnts:
+		ret.append(getRelativePointWithMinusOne(pnt, width, height))
+
+	return ret
+
+def undo_getRelativePointsWithMinusOne_single_pnt(pnt, width, height):
+	relW = float(pnt[0]+1)/2
+	relH = float(pnt[1]+1)/2
+	return (relW*width, relH*height)
+	
+
+def undo_getRelativePointsWithMinusOne(pnts, width, height):
+	ret = []
+	for pnt in pnts:
+		ret.append(undo_getRelativePointsWithMinusOne_single_pnt(pnt, width, height))
+
+	return ret
+
+
 def relativePoints_getThePositionOfGreenPoints(img):
 	pnts = getThePositionOfGreenPoints(img)
 	height, width, c = img.shape
@@ -450,12 +473,24 @@ def movePointToMiddle(img, x, y):
 	midY = height/2
 	return moveImage(img, midX-x, midY-y)
 
+def drawLinesWithBlank(points):
+	mask = np.zeros((1000,1000,3), dtype=np.uint8)
+	drawLines(points, mask)
+	return mask
+
 def drawLines(points, img):
-	print points
+	drawLinesColour(points, img, (255,0,0))
+
+def drawLinesColour(points, img, col):
+	newPoints = []
+	for point in points:
+		newPoints.append( (int(point[0]), int(point[1])) )
+
+	points = newPoints
 	for i in range(len(points)-1):
-		print str(points[i]) +","+str(points[i+1])
-		cv2.line(img, points[i], points[i+1], (255,0,0), 3)
-	cv2.line(img, points[len(points)-1], points[0], (255,0,0), 3)
+		#print str(points[i]) +","+str(points[i+1])
+		cv2.line(img, points[i], points[i+1], col, 3)
+	cv2.line(img, points[len(points)-1], points[0], col, 3)
 
 def main(imgName):
 	shape = triangle
@@ -466,15 +501,12 @@ def main(imgName):
 
 	res = image
 
-	shape = relativePoints_getThePositionOfGreenPoints(res)
-
 	centerPnt = centeroidnp(np.asarray(getThePositionOfGreenPoints(res)))
 	res = movePointToMiddle(image, centerPnt[0], centerPnt[1])
 
 	shape = relativePoints_getThePositionOfGreenPoints(res)
 	res = cutAShapeOut(shape, res)
 
-	cv2.imshow("imgShape", res)
 
 
 	#now normalise it
@@ -499,13 +531,78 @@ def main(imgName):
 
 	cv2.destroyAllWindows()
 
+def movePointsToMiddle(shape, centerPnt):
+	centerPnt2 = centeroidnp(np.asarray(shape))
+	changeX = centerPnt[0] - centerPnt2[0]
+	changeY = centerPnt[1] - centerPnt2[1]
+	newShape = []
+	for point in shape:
+		newPoint = (point[0] + changeX, point[1] + changeY)
+		newShape.append(newPoint)
+	return newShape
+
+def debugGetLeast():
+
+	######################################################	
+	img = cv2.imread("./extreme.jpg")
+	shape = triangle
+	######################################################
+
+	#################### draw the bad shape
+	shape = getThePositionOfGreenPoints(img)
+	shapeImg = drawLinesWithBlank(shape)
+	######################################################
+
+	################### draw centers
+	centerPnt = centeroidnp(np.asarray(shape))
+	drawLinesColour([centerPnt, (centerPnt[0]+3,centerPnt[1])], shapeImg, (0,255,0))
+	drawLinesColour([(500,500), (503,500)], shapeImg, (0,0,255))
+	###################
+
+	################### now move the centers to the same position
+	resShape = movePointsToMiddle(shape, (500,500))
+	#resShape = shape
+	shapeImg = drawLinesWithBlank(resShape)
+	##################################################
+
+	########drawCenters again
+	centerPnt = centeroidnp(np.asarray(resShape))
+	drawLinesColour([centerPnt, (centerPnt[0]+3,centerPnt[1])], shapeImg, (0,255,0))
+	drawLinesColour([(500,500), (503,500)], shapeImg, (0,0,255))
+	#############
+
+	#angle, scale = getLeast(resShape)
+
+	resShape = getRelativePointsWithMinusOne(resShape, 1000, 1000)
+	resShape = applyTransformToAllPointsNorm(90, 2, resShape)
+	resShape = undo_getRelativePointsWithMinusOne(resShape, 1000, 1000)
+
+	###########################convert it to the () format for the points
+	resShapeNew = []
+	for point in resShape:
+		resShapeNew.append((point[0],point[1]))
+	resShape = resShapeNew
+	############################
+
+	##########################now draw again
+	shapeImg = drawLinesWithBlank(resShape)
+	centerPnt = centeroidnp(np.asarray(resShape))
+	drawLinesColour([centerPnt, (centerPnt[0]+3,centerPnt[1])], shapeImg, (0,255,0))
+	drawLinesColour([(500,500), (503,500)], shapeImg, (0,0,255))
+	#############################
+
+
+	cv2.imshow("imgFixed", shapeImg)
+	cv2.waitKey(0)
+
 
 ######################################################################
 
 
 ######################################################################
 
-main("testImage1")
-main("testImage2")
-
+debugGetLeast()
+#main("testImage1")
+#main("testImage2")
+#main("testImage2")
 
