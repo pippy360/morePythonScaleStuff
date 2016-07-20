@@ -2,6 +2,21 @@ import numpy as np
 import cv2
 import math 
 
+def getTheGreenPointsImage_easy(img):
+	res = img
+	b, g, r = cv2.split(res)
+	res = g
+	junk,g2mask = cv2.threshold(g,160,255,cv2.THRESH_BINARY)
+	junk,bImask = cv2.threshold(b,130,255,cv2.THRESH_BINARY)
+	bImask = cv2.bitwise_not(bImask)
+	junk,rImask = cv2.threshold(r,130,255,cv2.THRESH_BINARY)
+	rImask = cv2.bitwise_not(rImask)
+	temp = cv2.bitwise_and(bImask, rImask)
+	temp = cv2.bitwise_and(temp, g2mask)
+	return temp
+
+
+
 def getTheGreenPointsImage(img):
 	res = img
 	b, g, r = cv2.split(res)

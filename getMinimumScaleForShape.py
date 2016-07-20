@@ -4,6 +4,8 @@ import numpy as np
 from scipy.signal import argrelextrema
 import basicShapeOperations as BSO
 import cv2
+from scipy.optimize import minimize, rosen, rosen_der
+from scipy import optimize
 
 def getPTheorm(point):
 	sumOfSqr = (point[0]**2)+(point[1]**2)
@@ -123,11 +125,18 @@ def scaleInDirection(shape, angle, scale):
 	return ret
 
 def calcDiffSquaredOfEveryPoint(shape, angle, scale):
-
+	if(scale < 0):
+		scale = scale*-1
+	
 	newShape = scaleInDirection(shape, angle, scale)
 	totalDiff = getTotalDiffSquaredOfPoints(newShape)
 	#totalDiff += getTotalDiffSquaredOfAngles(newShape)
 	return totalDiff
+
+def f(variables, params):
+	shape = params
+	angle, scale = variables
+	return calcDiffSquaredOfEveryPoint(shape, angle, scale)
 
 def frange(x, y, jump):
   while x < y:
@@ -149,13 +158,22 @@ def getAllRotationAndScaleValuesForShape_withOrder(shape):
 	return vals
 
 ########## public
-def getValuesToNormaliseScale(shape):
+def getValuesToNormaliseScale1(shape):
 	finalShape = BSO.centerShapeUsingPoint(shape, (0,0))
 	vals = getAllRotationAndScaleValuesForShape_withOrder(finalShape)
 	for i in range(10):
 		print vals[i]
 	#return the local minimum
 	return (vals[0][2][1], vals[0][1][1])
+
+def getValuesToNormaliseScale(shape):
+	minimizer_kwargs = {"args": shape}
+	val = optimize.basinhopping(f, [1,1], minimizer_kwargs=minimizer_kwargs)
+	print val
+	scale = val['x'][1]
+	if scale < 0:
+		scale = scale*-1
+	return val['x'][0], scale 
 
 ##################################################################
 

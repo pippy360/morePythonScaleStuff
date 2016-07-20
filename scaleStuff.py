@@ -483,36 +483,37 @@ def main(imgName):
 
 	shape = relativePoints_getThePositionOfGreenPoints(res)
 
-	centerPnt = centeroidnp(np.asarray(getThePositionOfGreenPoints(res)))
-	res = movePointToMiddle(image, centerPnt[0], centerPnt[1])
+	for shape in fragments:
+		centerPnt = centeroidnp(np.asarray(getThePositionOfGreenPoints(res)))
+		res = movePointToMiddle(image, centerPnt[0], centerPnt[1])
 
-	shape = relativePoints_getThePositionOfGreenPoints(res)
-	res = cutAShapeOut(shape, res)
+		shape = relativePoints_getThePositionOfGreenPoints(res)
+		res = cutAShapeOut(shape, res)
 
-	cv2.imshow("imgShape", res)
+		cv2.imshow("imgShape", res)
 
 
-	#now normalise it
+		#now normalise it
 
-	angle, scalar = getLeast(shape)
-	print "angle, scalar"
-	print str(angle) + ", " + str(scalar)
+		angle, scalar = getLeast(shape)
+		print "angle, scalar"
+		print str(angle) + ", " + str(scalar)
 
-	res = rotateAndScaleByNumbers(angle, scalar, res)
+		res = rotateAndScaleByNumbers(angle, scalar, res)
 
-	resBAW = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
-	minRot = getMinimumRotation(resBAW)
+		resBAW = cv2.cvtColor(res, cv2.COLOR_BGR2GRAY)
+		minRot = getMinimumRotation(resBAW)
 
-	print "minRot"
-	print minRot
+		print "minRot"
+		print minRot
 
-	res = rotateImg(res, minRot)
-	#res = removeBlk(res)
-	#cv2.imshow("imgFixed", res)
-	cv2.imwrite("./Output"+name+"Output.jpg", res)
-	res = rotateImg(res, 180)
+		res = rotateImg(res, minRot)
+		#res = removeBlk(res)
+		#cv2.imshow("imgFixed", res)
+		cv2.imwrite("./Output"+name+"Output.jpg", res)
+		res = rotateImg(res, 180)
 
-	cv2.destroyAllWindows()
+		cv2.destroyAllWindows()
 
 
 ######################################################################

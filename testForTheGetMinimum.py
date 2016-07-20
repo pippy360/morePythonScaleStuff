@@ -4,7 +4,7 @@ import getMinimumScaleForShape as g
 import shapeDrawerWithDebug as d
 import basicImageOperations as BIO
 import basicShapeOperations as BSO
-
+import itertools
 
 
 #######################################################################
@@ -72,13 +72,37 @@ def newTest():
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 
-def getTheFragment(imgName):
+def fromPointsToFramenets_justTriangles(points):
+	ret = []
+	x = itertools.combinations(points, 3)
+	for i in x:
+		ret.append(i)
+	return ret
+
+def getAllTheFragments_justPoints(imgName):
 	img = cv2.imread("./"+imgName+".jpg")
-	shape = BIO.getThePositionOfGreenPoints(img)
+	points = BIO.getThePositionOfGreenPoints(img)
+	frags = fromPointsToFramenets_justTriangles(points)
+	return frags
+
+def getTheFragment(imgName):
+	############just take the first frag
+	ret = getAllTheFragments_justPoints(imgName)
+	print "ret"
+	print ret
+
+	tempShape = ret[0]
+	shape = []
+	for p in tempShape:
+		shape.append(p)
+	####################################
+
+	img = cv2.imread("./"+imgName+".jpg")
 	c_point = BSO.getCenterPointOfShape(shape)
 	ret = BIO.moveImageToPoint(img, c_point[0], c_point[1])
-	shape = BIO.getThePositionOfGreenPoints(ret)
-	return shape, BIO.cutAShapeWithImageCoords(shape, ret)
+	h, w, c = ret.shape
+	newShape = BSO.centerShapeUsingPoint(shape, (w/2, h/2))
+	return shape, BIO.cutAShapeWithImageCoords(newShape, ret)
 
 def getMinXInShape(shape):
 	ret = shape[0][0]
@@ -131,11 +155,22 @@ def expandShapeToTakeUpAllImage(shape, img):
 	return shape, cv2.resize(retImg, (1000,1000))
 
 
-def newTest2(imgName):
+###THIS FUNCTION WON'T WORK ANYMORE, NOT WITH THE NEW FRAG STUFF
+def drawOrgFrag(imgName):
 	##########draw the frag with lines########
 	shape, ret = getTheFragment(imgName)
 	orginalFrag = d.drawShapeWithAllTheDistances_withBaseImage(ret, shape, (255,0,0))
 	cv2.imwrite("./orginalFrag_"+imgName+".jpg", orginalFrag)
+	##########################################
+
+#the shape should be coords in the image (100,100) -> (600,800)
+def doNewTest2ForAFragement(shape, img):
+	pass
+
+def newTest2(imgName):
+
+	##########draw the frag with lines########
+	drawOrgFrag(imgName)
 	##########################################
 		
 	###########draw the new frag############# 
@@ -143,6 +178,7 @@ def newTest2(imgName):
 	shape, ret = getTheFragment(imgName)
 	angle, scalar = g.getValuesToNormaliseScale(shape)
 	#angle, scalar = 1, 1
+	print "the chosen angle: " + str(angle) + " and scalar: "+str(scalar)
 	resShape = BSO.scaleAndRotateShape(shape, angle, scalar)
 	ret = BIO.rotateAndScaleByNumbers(ret, angle, scalar)
 
@@ -163,6 +199,11 @@ def newTest2(imgName):
 	######################################### 	
 
 
+def testingGettingTheLocalMinimum():
+	pass
+
 newTest2("extreme")
 newTest2("testImage1")
 newTest2("testImage2")
+
+newTest2("lennaWithMoreGreenDots")
