@@ -166,14 +166,27 @@ def getValuesToNormaliseScale1(shape):
 	#return the local minimum
 	return (vals[0][2][1], vals[0][1][1])
 
-def getValuesToNormaliseScale(shape):
-	minimizer_kwargs = {"args": shape}
+def getValuesToNormaliseScale2(shape, inputRange):
+	bounds = [(low, high) for low, high in zip(inputRange[0], inputRange[1])]
+	minimizer_kwargs = {"args": shape, "bounds": bounds}
 	val = optimize.basinhopping(f, [1,1], minimizer_kwargs=minimizer_kwargs)
 	print val
 	scale = val['x'][1]
 	if scale < 0:
 		scale = scale*-1
 	return val['x'][0], scale 
+
+def getValuesToNormaliseScale(shape, inputRange):
+	bounds = inputRange
+	
+	val = optimize.differential_evolution(f, bounds, args=(1,2))
+	
+	print val
+	scale = val['x'][1]
+	if scale < 0:
+		scale = scale*-1
+	return val['x'][0], scale 
+
 
 ##################################################################
 

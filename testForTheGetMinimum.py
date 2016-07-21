@@ -167,8 +167,7 @@ def drawOrgFrag(imgName):
 def doNewTest2ForAFragement(shape, img):
 	pass
 
-def newTest2(imgName):
-
+def newTest2(imgName, rangeInput):
 	##########draw the frag with lines########
 	drawOrgFrag(imgName)
 	##########################################
@@ -176,7 +175,7 @@ def newTest2(imgName):
 	###########draw the new frag############# 
 	img = cv2.imread("./"+imgName+".jpg")
 	shape, ret = getTheFragment(imgName)
-	angle, scalar = g.getValuesToNormaliseScale(shape)
+	angle, scalar = g.getValuesToNormaliseScale(shape, rangeInput)
 	#angle, scalar = 1, 1
 	print "the chosen angle: " + str(angle) + " and scalar: "+str(scalar)
 	resShape = BSO.scaleAndRotateShape(shape, angle, scalar)
@@ -202,8 +201,15 @@ def newTest2(imgName):
 def testingGettingTheLocalMinimum():
 	pass
 
-newTest2("extreme")
-newTest2("testImage1")
-newTest2("testImage2")
 
-newTest2("lennaWithMoreGreenDots")
+xmin = [90., 4.]
+xmax = [100., 5.]
+newTest2("extreme", (xmin, xmax))
+xmin = [138., 1.]
+xmax = [149., 2.]
+newTest2("testImage1", (xmin, xmax))
+xmin = [30., 1.]
+xmax = [40., 2.]
+newTest2("testImage2", (xmin, xmax))
+
+#newTest2("lennaWithMoreGreenDots")
