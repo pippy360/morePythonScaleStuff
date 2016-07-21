@@ -202,14 +202,14 @@ def testingGettingTheLocalMinimum():
 	pass
 
 
-xmin = [90., 4.]
-xmax = [100., 5.]
-newTest2("extreme", (xmin, xmax))
+xmin = [93., 4.]
+xmax = [98., 5.]
+newTest2("extreme", [(97.5,97.8), (4.,5.)] )
 xmin = [138., 1.]
 xmax = [149., 2.]
-newTest2("testImage1", (xmin, xmax))
+newTest2("testImage1", [(138.,149.), (1.,2.)] )
 xmin = [30., 1.]
 xmax = [40., 2.]
-newTest2("testImage2", (xmin, xmax))
+newTest2("testImage2", [(30.,40.), (1.,2.)] )
 
 #newTest2("lennaWithMoreGreenDots")
