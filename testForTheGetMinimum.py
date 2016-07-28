@@ -72,15 +72,23 @@ def newTest():
 	cv2.waitKey(0)
 	cv2.destroyAllWindows()
 
+def containsNoPoints(tri, points):
+	for pt in points:
+		if PointInTriangle(pt, tri):
+			return False
+
+	return True
+
 def fromPointsToFramenets_justTriangles(points):
 	ret = []
 	x = itertools.combinations(points, 3)
 	for i in x:
-		ret.append(i)
+		if containsNoPoints(i, points):
+			ret.append(i)
 	return ret
 
 def getAllTheFragments_justPoints(imgName):
-	img = cv2.imread("./"+imgName+".jpg")
+	img = cv2.imread("./input/"+imgName+".jpg")
 	points = BIO.getThePositionOfGreenPoints(img)
 	frags = fromPointsToFramenets_justTriangles(points)
 	return frags
@@ -91,7 +99,22 @@ def cutOutTheFrag(shape, img):
 	h, w, c = ret.shape
 	newShape = BSO.centerShapeUsingPoint(shape, (w/2, h/2))
 	return BIO.cutAShapeWithImageCoords(newShape, ret)
-	
+
+def sign(p1, p2, p3):
+	return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1])
+
+def PointInAABB(pt, c1, c2):
+	return c2[0] <= pt[0] <= c1[0] and \
+		c2[1] <= pt[1] <= c1[1]
+
+def PointInTriangle(pt, tri):
+	v1, v2, v3 = tri
+	b1 = sign(pt, v1, v2) <= 0
+	b2 = sign(pt, v2, v3) <= 0
+	b3 = sign(pt, v3, v1) <= 0
+
+	return ((b1 == b2) and (b2 == b3)) and \
+		PointInAABB(pt, map(max, v1, v2, v3), map(min, v1, v2, v3))
 
 def getTheFrageForShape(shape):
 	pass
@@ -101,17 +124,15 @@ def getTheFragments(imgName):
 	ret = getAllTheFragments_justPoints(imgName)
 	print "len(ret)"
 	print len(ret)
-	return None
 	finalRet = []
-	img = cv2.imread("./"+imgName+".jpg")
+	img = cv2.imread("./input/"+imgName+".jpg")
 	for tempShape in ret:
 		shape = []
 		for p in tempShape:
 			shape.append(p)
 		####################################
-		finalRet.append( (shape, cutOutTheFrag(shape, img)) )
-	
-	return finalRet
+		yield shape, cutOutTheFrag(shape, img)
+
 	
 
 def getTheFragment(imgName):
@@ -124,7 +145,7 @@ def getTheFragment(imgName):
 		shape.append(p)
 	####################################
 
-	img = cv2.imread("./"+imgName+".jpg")
+	img = cv2.imread("./input/"+imgName+".jpg")
 	return shape, cutOutTheFrag(shape, img)
 	
 
@@ -205,9 +226,8 @@ def weNeedToAdd180(rot, shape):
 		return False
 
 
-def hanldeFragment(shape, frag, rangeInput, imgName):
+def handleFragment(shape, frag, rangeInput, imgName):
 	##########draw the frag with lines########
-	drawOrgFrag(imgName)
 	##########################################
 		
 	###########draw the new frag############# 
@@ -246,10 +266,11 @@ def hanldeFragment(shape, frag, rangeInput, imgName):
 
 def newTest2(imgName):
 	rangeInput = [(0.,359.0), (1.,8.)]
-	img = cv2.imread("./"+imgName+".jpg")
-	temp = getTheFragments(imgName)
-	for shape, ret in temp:
-		hanldeFragment(shape, ret, rangeInput, imgName)
+	img = cv2.imread("./input/"+imgName+".jpg")
+	
+	for shape, ret in getTheFragments(imgName):
+		handleFragment(shape, ret, rangeInput, imgName)
+		print 'done one'
 	######################################### 	
 
 
@@ -261,4 +282,4 @@ def testingGettingTheLocalMinimum():
 #newTest2("testImage1")
 #newTest2("testImage2")
 
-newTest2("lennaWithMoreGreenDots")
+newTest2("simpsons_orginal_green_dots")
