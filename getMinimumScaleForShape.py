@@ -136,15 +136,8 @@ def calcDiffSquaredOfEveryPoint(shape, angle, scale):
 global_shape = []
 def f(variables, *params):
 	shape = global_shape
-	print "shape"
-	print shape
-	print "variables"
-	print variables
 	angle, scale = variables
-	val = calcDiffSquaredOfEveryPoint(shape, angle, scale)
-	print "val"
-	print val
-	return val 
+	return calcDiffSquaredOfEveryPoint(shape, angle, scale)
 
 def frange(x, y, jump):
   while x < y:
@@ -179,7 +172,6 @@ def getValuesToNormaliseScale2(shape, inputRange):
 	bounds = [(low, high) for low, high in zip(inputRange[0], inputRange[1])]
 	minimizer_kwargs = {"args": shape, "bounds": bounds}
 	val = optimize.basinhopping(f, [1,1], minimizer_kwargs=minimizer_kwargs)
-	print val
 	scale = val['x'][1]
 	if scale < 0:
 		scale = scale*-1
@@ -191,7 +183,7 @@ def getValuesToNormaliseScale(shape, inputRange):
 	
 	global global_shape 
 	global_shape = shape
-	val = optimize.differential_evolution(f, bounds, maxiter=2000, popsize=2000)
+	val = optimize.differential_evolution(f, bounds)
 	
 	print val
 	scale = val['x'][1]

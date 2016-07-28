@@ -88,8 +88,6 @@ def getAllTheFragments_justPoints(imgName):
 def getTheFragment(imgName):
 	############just take the first frag
 	ret = getAllTheFragments_justPoints(imgName)
-	print "ret"
-	print ret
 
 	tempShape = ret[0]
 	shape = []
@@ -160,12 +158,25 @@ def drawOrgFrag(imgName):
 	##########draw the frag with lines########
 	shape, ret = getTheFragment(imgName)
 	orginalFrag = d.drawShapeWithAllTheDistances_withBaseImage(ret, shape, (255,0,0))
-	cv2.imwrite("./orginalFrag_"+imgName+".jpg", orginalFrag)
+	cv2.imwrite("./frags/orginalFrag_"+imgName+".jpg", orginalFrag)
 	##########################################
 
 #the shape should be coords in the image (100,100) -> (600,800)
 def doNewTest2ForAFragement(shape, img):
 	pass
+
+def weNeedToAdd180(rot, shape):
+	resShape = BSO.rotateShape(shape, rot)
+	resShape = BSO.centerShapeUsingPoint(resShape, (0,0))
+	count = 0
+	for pt in resShape:
+		if pt[1] < 0:
+			count = count+1
+
+	if count > 1:
+		return True
+	else: 
+		return False
 
 def newTest2(imgName, rangeInput):
 	##########draw the frag with lines########
@@ -185,16 +196,28 @@ def newTest2(imgName, rangeInput):
 	temp = cv2.imread("./temp.jpg", 0)
 
 	###fix rotation for image and shape
-	minRot = g._getMinimumRotation(temp)
-	#minRot = 0
-	resShape = BSO.rotateShape(resShape, minRot)
-	ret = BIO.rotateImg(ret, minRot)
-	resShape, newRet = expandShapeToTakeUpAllImage(resShape, ret);
-	#######rotation fixed 
+	#minRot = g._getMinimumRotation(temp)
+	minRots = BSO.getFlatRotations(resShape)
+	print minRots
+	########################################
+	backUpRet = ret
+	backUpShape = resShape
+	for minRot in minRots:
+		ret = backUpRet
+		resShape = backUpShape
 
-	cv2.imwrite("./output_"+ imgName +".jpg", newRet);
-	ret = d.drawShapeWithAllTheDistances_withBaseImage(ret, resShape, (255,0,0))
-	cv2.imwrite("./debug_output_"+ imgName +".jpg", ret);
+		if weNeedToAdd180(minRot, resShape):
+			minRot = minRot + 180
+
+		resShape = BSO.rotateShape(resShape, minRot)
+		ret = BIO.rotateImg(ret, minRot)
+		resShape, newRet = expandShapeToTakeUpAllImage(resShape, ret);
+		#######rotation fixed 
+		tempName1 = "./output/output_"+ imgName + str(minRot)+".jpg"
+		print tempName1 + " : " + str(minRot)
+		cv2.imwrite(tempName1, newRet);
+		ret = d.drawShapeWithAllTheDistances_withBaseImage(ret, resShape, (255,0,0))
+		cv2.imwrite("./output/debug_output_"+ imgName +str(minRot)+".jpg", ret);
 	######################################### 	
 
 
@@ -202,14 +225,8 @@ def testingGettingTheLocalMinimum():
 	pass
 
 
-xmin = [93., 4.]
-xmax = [98., 5.]
-newTest2("extreme", [(97.5,97.8), (4.,5.)] )
-xmin = [138., 1.]
-xmax = [149., 2.]
-newTest2("testImage1", [(138.,149.), (1.,2.)] )
-xmin = [30., 1.]
-xmax = [40., 2.]
-newTest2("testImage2", [(30.,40.), (1.,2.)] )
+newTest2("extreme", [(0.,359.0), (1.,8.)] )
+newTest2("testImage1", [(0.,359.0), (1.,8.)] )
+newTest2("testImage2", [(0.,359.0), (1.,8.)] )
 
 #newTest2("lennaWithMoreGreenDots")

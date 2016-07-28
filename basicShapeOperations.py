@@ -79,6 +79,29 @@ def applyTransformToAllPoints(tetha, normX, normY, points):
 	
 	return ret
 
+
+def getTheRotationWeNeedToMakeTheLineFlat(line):
+	P1_x, P1_y = line[0]
+	P2_x, P2_y = line[1]
+	deltaY = P2_y - P1_y
+	deltaX = P2_x - P1_x
+	rads = math.atan2(deltaY, deltaX)
+	return math.degrees(rads)
+
+def getFlatRotations(shape):
+	#center the shape, actually there's no need to center the shape?
+	#results will always be the same?
+	lines = []
+	lines.append((shape[0], shape[1]))
+	lines.append((shape[1], shape[2]))
+	lines.append((shape[2], shape[0]))
+	rotations = []
+	for line in lines:
+		rot = getTheRotationWeNeedToMakeTheLineFlat(line)
+		rotations.append(rot)
+	return rotations
+
+
 def rotateShape(shape, angle):
 	ret = []
 	for point in shape:
@@ -86,7 +109,7 @@ def rotateShape(shape, angle):
 		ret.append(newPoint)
 
 	return ret
-	
+
 
 def scaleAndRotateShape(shape, angle, scale):
 	normX, normY = turnXIntoSqrtX(scale)
