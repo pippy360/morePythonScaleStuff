@@ -99,7 +99,9 @@ def getTheFrageForShape(shape):
 def getTheFragments(imgName):
 	############just take the first frag
 	ret = getAllTheFragments_justPoints(imgName)
-
+	print "len(ret)"
+	print len(ret)
+	return None
 	finalRet = []
 	img = cv2.imread("./"+imgName+".jpg")
 	for tempShape in ret:
