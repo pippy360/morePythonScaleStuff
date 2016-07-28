@@ -85,6 +85,33 @@ def getAllTheFragments_justPoints(imgName):
 	frags = fromPointsToFramenets_justTriangles(points)
 	return frags
 
+def cutOutTheFrag(shape, img):
+	c_point = BSO.getCenterPointOfShape(shape)
+	ret = BIO.moveImageToPoint(img, c_point[0], c_point[1])
+	h, w, c = ret.shape
+	newShape = BSO.centerShapeUsingPoint(shape, (w/2, h/2))
+	return BIO.cutAShapeWithImageCoords(newShape, ret)
+	
+
+def getTheFrageForShape(shape):
+	pass
+
+def getTheFragments(imgName):
+	############just take the first frag
+	ret = getAllTheFragments_justPoints(imgName)
+
+	finalRet = []
+	img = cv2.imread("./"+imgName+".jpg")
+	for tempShape in ret:
+		shape = []
+		for p in tempShape:
+			shape.append(p)
+		####################################
+		finalRet.append( (shape, cutOutTheFrag(shape, img)) )
+	
+	return finalRet
+	
+
 def getTheFragment(imgName):
 	############just take the first frag
 	ret = getAllTheFragments_justPoints(imgName)
@@ -96,11 +123,8 @@ def getTheFragment(imgName):
 	####################################
 
 	img = cv2.imread("./"+imgName+".jpg")
-	c_point = BSO.getCenterPointOfShape(shape)
-	ret = BIO.moveImageToPoint(img, c_point[0], c_point[1])
-	h, w, c = ret.shape
-	newShape = BSO.centerShapeUsingPoint(shape, (w/2, h/2))
-	return shape, BIO.cutAShapeWithImageCoords(newShape, ret)
+	return shape, cutOutTheFrag(shape, img)
+	
 
 def getMinXInShape(shape):
 	ret = shape[0][0]
@@ -178,19 +202,18 @@ def weNeedToAdd180(rot, shape):
 	else: 
 		return False
 
-def newTest2(imgName, rangeInput):
+
+def hanldeFragment(shape, frag, rangeInput, imgName):
 	##########draw the frag with lines########
 	drawOrgFrag(imgName)
 	##########################################
 		
 	###########draw the new frag############# 
-	img = cv2.imread("./"+imgName+".jpg")
-	shape, ret = getTheFragment(imgName)
 	angle, scalar = g.getValuesToNormaliseScale(shape, rangeInput)
 	#angle, scalar = 1, 1
 	print "the chosen angle: " + str(angle) + " and scalar: "+str(scalar)
 	resShape = BSO.scaleAndRotateShape(shape, angle, scalar)
-	ret = BIO.rotateAndScaleByNumbers(ret, angle, scalar)
+	ret = BIO.rotateAndScaleByNumbers(frag, angle, scalar)
 
 	cv2.imwrite("./temp.jpg", ret)
 	temp = cv2.imread("./temp.jpg", 0)
@@ -218,6 +241,13 @@ def newTest2(imgName, rangeInput):
 		cv2.imwrite(tempName1, newRet);
 		ret = d.drawShapeWithAllTheDistances_withBaseImage(ret, resShape, (255,0,0))
 		cv2.imwrite("./output/debug_output_"+ imgName +str(minRot)+".jpg", ret);
+
+def newTest2(imgName):
+	rangeInput = [(0.,359.0), (1.,8.)]
+	img = cv2.imread("./"+imgName+".jpg")
+	temp = getTheFragments(imgName)
+	for shape, ret in temp:
+		hanldeFragment(shape, ret, rangeInput, imgName)
 	######################################### 	
 
 
@@ -225,8 +255,8 @@ def testingGettingTheLocalMinimum():
 	pass
 
 
-newTest2("extreme", [(0.,359.0), (1.,8.)] )
-newTest2("testImage1", [(0.,359.0), (1.,8.)] )
-newTest2("testImage2", [(0.,359.0), (1.,8.)] )
+#newTest2("extreme")
+#newTest2("testImage1")
+#newTest2("testImage2")
 
-#newTest2("lennaWithMoreGreenDots")
+newTest2("lennaWithMoreGreenDots")
