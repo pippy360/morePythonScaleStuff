@@ -6,6 +6,8 @@ import basicImageOperations as BIO
 import basicShapeOperations as BSO
 import itertools
 import math
+from PIL import Image
+import imagehash as ih
 
 #######################################################################
 
@@ -159,8 +161,7 @@ def getTheFrageForShape(shape):
 def getTheFragments(imgName):
 	############just take the first frag
 	ret = getAllTheFragments_justPoints(imgName)
-	print "len(ret)"
-	print len(ret)
+	print "len(ret): " + str(len(ret))
 	finalRet = []
 	img = cv2.imread("./input/"+imgName+".jpg")
 	for tempShape in ret:
@@ -270,7 +271,7 @@ def handleFragment(shape, frag, rangeInput, imgName):
 	###########draw the new frag############# 
 	angle, scalar = g.getValuesToNormaliseScale(shape, rangeInput)
 	#angle, scalar = 1, 1
-	print "the chosen angle: " + str(angle) + " and scalar: "+str(scalar)
+	#print "the chosen angle: " + str(angle) + " and scalar: "+str(scalar)
 	resShape = BSO.scaleAndRotateShape(shape, angle, scalar)
 	ret = BIO.rotateAndScaleByNumbers(frag, angle, scalar)
 
@@ -280,7 +281,7 @@ def handleFragment(shape, frag, rangeInput, imgName):
 	###fix rotation for image and shape
 	#minRot = g._getMinimumRotation(temp)
 	minRots = BSO.getFlatRotations(resShape)
-	print minRots
+	#print minRots
 	########################################
 	backUpRet = ret
 	backUpShape = resShape
@@ -296,9 +297,11 @@ def handleFragment(shape, frag, rangeInput, imgName):
 		resShape, newRet = expandShapeToTakeUpAllImage(resShape, ret);
 		#######rotation fixed 
 		tempName1 = "./output/output_"+ imgName + str(minRot)+".jpg"
-		print tempName1 + " : " + str(minRot)
-		cv2.imwrite(tempName1, newRet);
-		ret = d.drawShapeWithAllTheDistances_withBaseImage(ret, resShape, (255,0,0))
+		#print tempName1 + " : " + str(minRot)
+		cv2.imwrite("temp2.jpg", newRet);
+		hash1 = ih.average_hash(Image.open('temp2.jpg'))
+		print hash1
+		#ret = d.drawShapeWithAllTheDistances_withBaseImage(ret, resShape, (255,0,0))
 		#cv2.imwrite("./output/debug_output_"+ imgName +str(minRot)+".jpg", ret);
 
 def newTest2(imgName):
@@ -307,7 +310,6 @@ def newTest2(imgName):
 	
 	for shape, ret in getTheFragments(imgName):
 		handleFragment(shape, ret, rangeInput, imgName)
-		print 'done one'
 	######################################### 	
 
 
@@ -319,4 +321,4 @@ def testingGettingTheLocalMinimum():
 #newTest2("testImage1")
 #newTest2("testImage2")
 
-newTest2("simpsons_orginal_green_dots")
+newTest2("dots")

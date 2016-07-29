@@ -19,15 +19,23 @@ def getTheGreenPointsImage_easy(img):
 
 def getTheGreenPointsImage(img):
 	res = img
-	b, g, r = cv2.split(res)
-	res = g
-	junk,g2mask = cv2.threshold(g,130,255,cv2.THRESH_BINARY)
-	junk,bImask = cv2.threshold(b,100,255,cv2.THRESH_BINARY)
-	bImask = cv2.bitwise_not(bImask)
-	junk,rImask = cv2.threshold(r,100,255,cv2.THRESH_BINARY)
-	rImask = cv2.bitwise_not(rImask)
-	temp = cv2.bitwise_and(bImask, rImask)
-	temp = cv2.bitwise_and(temp, g2mask)
+	height, width, depth = img.shape
+	temp = img
+	for i in range(0, height):
+		for j in range(0, width):
+			r, g, b = temp[i,j]
+			val = 8
+			if abs(int(r) - int(g)) < val and abs(int(g) - int(b)) < val:
+				temp[i,j, 0] = 0
+				temp[i,j, 1] = 0 
+				temp[i,j, 2] = 0
+			else:
+				temp[i,j, 0] = 255
+				temp[i,j, 1] = 255
+				temp[i,j, 2] = 255
+
+	b, g, r = cv2.split(temp)
+	junk,temp = cv2.threshold(g,0,255,cv2.THRESH_BINARY)	
 	return temp
 
 def getTheGreenPointPositions(mask):

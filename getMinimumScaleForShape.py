@@ -162,8 +162,8 @@ def getAllRotationAndScaleValuesForShape_withOrder(shape):
 def getValuesToNormaliseScale1(shape):
 	finalShape = BSO.centerShapeUsingPoint(shape, (0,0))
 	vals = getAllRotationAndScaleValuesForShape_withOrder(finalShape)
-	for i in range(10):
-		print vals[i]
+	#for i in range(10):
+	#	print vals[i]
 	#return the local minimum
 	return (vals[0][2][1], vals[0][1][1])
 
@@ -185,7 +185,7 @@ def getValuesToNormaliseScale(shape, inputRange):
 	global_shape = shape
 	val = optimize.differential_evolution(f, bounds)
 	
-	print val
+	#print val
 	scale = val['x'][1]
 	if scale < 0:
 		scale = scale*-1
