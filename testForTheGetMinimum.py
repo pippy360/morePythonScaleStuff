@@ -5,7 +5,7 @@ import shapeDrawerWithDebug as d
 import basicImageOperations as BIO
 import basicShapeOperations as BSO
 import itertools
-
+import math
 
 #######################################################################
 
@@ -79,12 +79,49 @@ def containsNoPoints(tri, points):
 
 	return True
 
+def dist(pt1, pt2):
+	x1, y1 = pt1
+	x2, y2 = pt2
+
+	return math.sqrt( (x2 - x1)**2 + (y2 - y1)**2 )
+
+def area(a, b, c):
+	# calculate the sides
+	s = (a + b + c) / 2
+	# calculate the area
+	area = (s*(s-a)*(s-b)*(s-c)) ** 0.5
+	return area
+
+def isGoodFrag(tri):
+	pt1 = tri[0]
+	pt2 = tri[1]
+	pt3 = tri[2]
+	dist1 = dist(pt1, pt2)
+	dist2 = dist(pt2, pt3)
+	dist3 = dist(pt3, pt1)
+	mult = 2
+	if dist1 > (mult*dist2) or dist2 > (mult*dist1):
+		return False
+	
+	if dist2 > (mult*dist3) or dist3 > (mult*dist2):
+		return False
+	
+	if dist1 > (mult*dist3) or dist3 > (mult*dist1):
+		return False
+	
+	if area(dist1, dist2, dist3) < 60:
+		return False
+
+	return True
+
+
 def fromPointsToFramenets_justTriangles(points):
 	ret = []
 	x = itertools.combinations(points, 3)
 	for i in x:
 		if containsNoPoints(i, points):
-			ret.append(i)
+			if isGoodFrag(i):
+				ret.append(i)
 	return ret
 
 def getAllTheFragments_justPoints(imgName):
@@ -205,7 +242,7 @@ def drawOrgFrag(imgName):
 	##########draw the frag with lines########
 	shape, ret = getTheFragment(imgName)
 	orginalFrag = d.drawShapeWithAllTheDistances_withBaseImage(ret, shape, (255,0,0))
-	cv2.imwrite("./frags/orginalFrag_"+imgName+".jpg", orginalFrag)
+	#cv2.imwrite("./frags/orginalFrag_"+imgName+".jpg", orginalFrag)
 	##########################################
 
 #the shape should be coords in the image (100,100) -> (600,800)
@@ -262,7 +299,7 @@ def handleFragment(shape, frag, rangeInput, imgName):
 		print tempName1 + " : " + str(minRot)
 		cv2.imwrite(tempName1, newRet);
 		ret = d.drawShapeWithAllTheDistances_withBaseImage(ret, resShape, (255,0,0))
-		cv2.imwrite("./output/debug_output_"+ imgName +str(minRot)+".jpg", ret);
+		#cv2.imwrite("./output/debug_output_"+ imgName +str(minRot)+".jpg", ret);
 
 def newTest2(imgName):
 	rangeInput = [(0.,359.0), (1.,8.)]
