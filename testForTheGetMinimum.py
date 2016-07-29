@@ -321,4 +321,4 @@ def testingGettingTheLocalMinimum():
 #newTest2("testImage1")
 #newTest2("testImage2")
 
-newTest2("dots")
+newTest2("upload02")
