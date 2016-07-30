@@ -20,6 +20,10 @@ def getCenterPointOfImage(image):
 	return (x/2, y/2)
 
 def drawLinesColour(points, img, col):
+	drawLinesColourAlsoWidth(points, img, col, 3)
+
+
+def drawLinesColourAlsoWidth(points, img, col, wid):
 	newPoints = []
 	for point in points:
 		newPoints.append( (int(point[0]), int(point[1])) )
@@ -27,8 +31,8 @@ def drawLinesColour(points, img, col):
 	points = newPoints
 	for i in range(len(points)-1):
 		#print str(points[i]) +","+str(points[i+1])
-		cv2.line(img, points[i], points[i+1], col, 3)
-	cv2.line(img, points[len(points)-1], points[0], col, 3)
+		cv2.line(img, points[i], points[i+1], col, wid)
+	cv2.line(img, points[len(points)-1], points[0], col, wid)
 	
 def drawLines(points, img, colour):
 	drawLinesColour(points, img, colour)

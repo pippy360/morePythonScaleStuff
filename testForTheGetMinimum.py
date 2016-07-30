@@ -8,7 +8,8 @@ import itertools
 import math
 from PIL import Image
 import imagehash as ih
-
+from random import randint
+import redis
 #######################################################################
 
 #SHAPES
@@ -102,6 +103,7 @@ def isGoodFrag(tri):
 	dist2 = dist(pt2, pt3)
 	dist3 = dist(pt3, pt1)
 	mult = 2
+	minArea = 100
 	if dist1 > (mult*dist2) or dist2 > (mult*dist1):
 		return False
 	
@@ -111,7 +113,7 @@ def isGoodFrag(tri):
 	if dist1 > (mult*dist3) or dist3 > (mult*dist1):
 		return False
 	
-	if area(dist1, dist2, dist3) < 60:
+	if area(dist1, dist2, dist3) < minArea:
 		return False
 
 	return True
@@ -161,9 +163,21 @@ def getTheFrageForShape(shape):
 def getTheFragments(imgName):
 	############just take the first frag
 	ret = getAllTheFragments_justPoints(imgName)
+
+
 	print "len(ret): " + str(len(ret))
 	finalRet = []
 	img = cv2.imread("./input/"+imgName+".jpg")
+
+	########draw the triangles
+	
+	for tempShape in ret:
+		col = (randint(0,255),randint(0,255),randint(0,255))
+		d.drawLinesColourAlsoWidth(tempShape, img, col, 1)
+	cv2.imwrite('temp3.jpg', img)
+	########
+	img = cv2.imread("./input/"+imgName+".jpg")
+
 	for tempShape in ret:
 		shape = []
 		for p in tempShape:
@@ -242,7 +256,8 @@ def expandShapeToTakeUpAllImage(shape, img):
 def drawOrgFrag(imgName):
 	##########draw the frag with lines########
 	shape, ret = getTheFragment(imgName)
-	orginalFrag = d.drawShapeWithAllTheDistances_withBaseImage(ret, shape, (255,0,0))
+	col = (randint(0,255),randint(0,255),randint(0,255))
+	orginalFrag = d.drawShapeWithAllTheDistances_withBaseImage(ret, shape, col)
 	#cv2.imwrite("./frags/orginalFrag_"+imgName+".jpg", orginalFrag)
 	##########################################
 
@@ -321,4 +336,4 @@ def testingGettingTheLocalMinimum():
 #newTest2("testImage1")
 #newTest2("testImage2")
 
-newTest2("upload02")
+newTest2("dots")
