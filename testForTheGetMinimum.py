@@ -129,19 +129,25 @@ def isGoodFrag(tri):
 	return True
 
 
-def fromPointsToFramenets_justTriangles(points):
+def fromPointsToFramenets_justTriangles(points, imgName, isDebug):
 	ret = []
 	x = itertools.combinations(points, 3)
+
+	
+	if isDebug:
+		thefile = open('./output_debug/'+imgName+'/FULL_points_output_test.txt', 'w')
 	for i in x:
+		if isDebug:
+			thefile.write("%s\n" % str(i))
 		if containsNoPoints(i, points):
 			if isGoodFrag(i):
 				ret.append(i)
 	return ret
 
-def getAllTheFragments_justPoints(imgName):
+def getAllTheFragments_justPoints(imgName, isDebug):
 	img = cv2.imread("./input/"+imgName+".jpg")
 	points = BIO.getThePositionOfGreenPoints(img)
-	frags = fromPointsToFramenets_justTriangles(points)
+	frags = fromPointsToFramenets_justTriangles(points, imgName, isDebug)
 	return frags
 
 def cutOutTheFrag(shape, img):
@@ -170,10 +176,14 @@ def PointInTriangle(pt, tri):
 def getTheFrageForShape(shape):
 	pass
 
-def getTheFragments(imgName):
+def getTheFragments(imgName, isDebug):
 	############just take the first frag
-	ret = getAllTheFragments_justPoints(imgName)
+	ret = getAllTheFragments_justPoints(imgName, isDebug)
 
+	if isDebug:
+		thefile = open('./output_debug/'+imgName+'/FILTERED_points_output_test.txt', 'w')
+		for item in ret:
+		  thefile.write("%s\n" % str(item))
 
 	print "len(ret): " + str(len(ret))
 	finalRet = []
@@ -197,9 +207,9 @@ def getTheFragments(imgName):
 
 	
 
-def getTheFragment(imgName):
+def getTheFragment(imgName, isDebug):
 	############just take the first frag
-	ret = getAllTheFragments_justPoints(imgName)
+	ret = getAllTheFragments_justPoints(imgName, isDebug)
 
 	tempShape = ret[0]
 	shape = []
@@ -304,7 +314,7 @@ def getTheJsonString(imgName, hash1, area, tri):
 
 	return tempString 
 
-def handleFragment(shape, frag, rangeInput, imgName):
+def handleFragment(shape, frag, rangeInput, imgName, isDebug):
 	inShape = shape
 	area = getArea(inShape)
 	##########draw the frag with lines########
@@ -342,7 +352,10 @@ def handleFragment(shape, frag, rangeInput, imgName):
 		tempName1 = "./output/output_"+ imgName + str(minRot)+".jpg"
 		#print tempName1 + " : " + str(minRot)
 		cv2.imwrite("temp2.jpg", newRet);
-		hash1 = ih.average_hash(Image.open('temp2.jpg'))
+		hash1 = ih.phash(Image.open('temp2.jpg'))
+		if isDebug:
+			cv2.imwrite('./output_debug/'+imgName+'/frag_'+str(hash1)+'_'+str(shape)+'_norm.jpg', newRet);
+			cv2.imwrite('./output_debug/'+imgName+'/frag_'+str(hash1)+'_'+str(shape)+'_org.jpg', newRet);
 		final3 = getTheJsonString(imgName, hash1, area, inShape)
 		finalfinalret.append( (str(hash1),final3, inShape) )
 		#ret = d.drawShapeWithAllTheDistances_withBaseImage(ret, resShape, (255,0,0))
@@ -350,12 +363,15 @@ def handleFragment(shape, frag, rangeInput, imgName):
 	return finalfinalret
 
 def newTest2(imgName):
+	return newTest_inner(imgName, False)
+
+def newTest_inner(imgName, isDebug):
 	rangeInput = [(0.,359.0), (1.,8.)]
 	img = cv2.imread("./input/"+imgName+".jpg")
 	
 	finalret = []
-	for shape, ret in getTheFragments(imgName):
-		finalret.append( handleFragment(shape, ret, rangeInput, imgName) )
+	for shape, ret in getTheFragments(imgName, isDebug):
+		finalret.append( handleFragment(shape, ret, rangeInput, imgName, isDebug) )
 
 	return finalret
 	######################################### 	
@@ -364,13 +380,13 @@ def testingGettingTheLocalMinimum():
 	pass
 
 
-def fill(imgName):
-	values = newTest2(imgName)
+def fill(imgName, isDebug):
+	values = newTest_inner(imgName, isDebug)
 
 	r = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 	for val in values:
-		r.set(val[0][0], val[0][1])
+		r.lpush(val[0][0], val[0][1])
 
 	print "added: "+ str(len(values))
 
@@ -380,11 +396,7 @@ def match(imgName):
 	for val in final:
 		print val
 
-def getTheJsonObj(thehash, redisVar):
-	tempString = redisVar.get(thehash)
-	if tempString == None:
-		return None
-
+def getTheJsonObjString(tempString):
 	tempString = tempString.replace("'", "\\\"")
 	jsonObj = json.loads(tempString)
 	xCoords = jsonObj['xcoords']
@@ -399,8 +411,17 @@ def getTheJsonObj(thehash, redisVar):
 		finCoords.append( c )
 
 	jsonObj['coords'] = finCoords
-
 	return jsonObj
+
+def getTheJsonObj(thehash, redisVar):
+	theList = redisVar.lrange(thehash, 0, -1)
+	if theList == []:
+		return None
+
+	ret = []
+	for theString in theList:
+		ret.append(getTheJsonObjString(theString))
+	return ret
 
 def match_without_print(imgName):
 	inputImageValues = newTest2(imgName)
@@ -418,8 +439,6 @@ def match_without_print(imgName):
 def showMatches(imgName):
 	matchedValues, inputImageValues = match_without_print(imgName)
 
-	print inputImageValues[0][0][2]
-
 	img = cv2.imread("./input/"+imgName+".jpg")
 	#take the first image name and load it 
 	matchedImg = cv2.imread("./input/"+matchedValues[0]['imageName']+".jpg")
@@ -433,8 +452,8 @@ def showMatches(imgName):
 		cv2.imshow('found', matchedImg)
 		cv2.waitKey(0)
 
-def showMatches2(imgName):
-	inputImageValues = newTest2(imgName)
+def showMatches2(imgName, isDebug):
+	inputImageValues = newTest_inner(imgName, isDebug)
 
 	r = redis.StrictRedis(host='localhost', port=6379, db=0)
 	inImg = cv2.imread("./input/"+imgName+".jpg")
@@ -442,23 +461,32 @@ def showMatches2(imgName):
 	#take the first image name and load it 
 	inhash = inputImageValues[0][0][0]
 	theMatchedJsonObj_g = getTheJsonObj(inhash, r)
-	matchedImg = cv2.imread("./input/"+theMatchedJsonObj_g['imageName']+".jpg")
-
+	matchedImg = cv2.imread("./input/"+theMatchedJsonObj_g[0]['imageName']+".jpg")
 	for inputImageVal in inputImageValues:
 		inhash = inputImageVal[0][0]
 		inCoords = inputImageVal[0][2]
-		theMatchedJsonObj = getTheJsonObj(inhash, r)
-		if theMatchedJsonObj == None:
-			print "one tri didn't match"
-			continue
+		theMatchedJsonObjs = getTheJsonObj(inhash, r)
+		if theMatchedJsonObjs == None:
+			print "one tri didn't match " + str(inhash) + ' ' + str(inCoords)
+			col = (0,0,255)
+			d.drawLinesColourAlsoWidth(inCoords, inImg, col, 1)
+			cv2.imshow('input', inImg)
+			cv2.imwrite('output/NO_MATCH_'+str(inhash)+'_'+str(inCoords)+'.jpg', inImg)
+			cv2.waitKey(0)
+		else:
+			for theMatchedJsonObj in theMatchedJsonObjs:
+				
+				matchedCoords = theMatchedJsonObj['coords']
 
-		matchedCoords = theMatchedJsonObj['coords']
-		col = (randint(0,255),randint(0,255),randint(0,255))
-		d.drawLinesColourAlsoWidth(matchedCoords, matchedImg, col, 1)
-		d.drawLinesColourAlsoWidth(inCoords, inImg, col, 1)
-		cv2.imshow('input', inImg)
-		cv2.imshow('found', matchedImg)
-		cv2.waitKey(0)
+				col = (randint(0,255),randint(0,255),randint(0,255))
+
+				#d.drawLinesColourAlsoWidth(matchedCoords, matchedImg, col, 1)
+				#cv2.imshow('found', matchedImg)
+				
+				#d.drawLinesColourAlsoWidth(inCoords, inImg, col, 1)
+				#cv2.imshow('input', inImg)
+
+				#cv2.waitKey(0)
 
 
 
@@ -466,4 +494,6 @@ def showMatches2(imgName):
 #newTest2("testImage1")
 #newTest2("testImage2")
 
-showMatches2("dots")
+#showMatches2("dots")
+fill("costanza_orginal_dots", True)
+#showMatches2("costanza_orginal_dots", False)
