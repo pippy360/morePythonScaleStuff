@@ -10,6 +10,7 @@ from PIL import Image
 import imagehash as ih
 from random import randint
 import redis
+import json
 #######################################################################
 
 #SHAPES
@@ -94,6 +95,15 @@ def area(a, b, c):
 	# calculate the area
 	area = (s*(s-a)*(s-b)*(s-c)) ** 0.5
 	return area
+
+def getArea(tri):
+	pt1 = tri[0]
+	pt2 = tri[1]
+	pt3 = tri[2]
+	dist1 = dist(pt1, pt2)
+	dist2 = dist(pt2, pt3)
+	dist3 = dist(pt3, pt1)
+	return	area(dist1, dist2, dist3)
 
 def isGoodFrag(tri):
 	pt1 = tri[0]
@@ -278,8 +288,25 @@ def weNeedToAdd180(rot, shape):
 	else: 
 		return False
 
+def getTheJsonString(imgName, hash1, area, tri):
+	xCoords = []
+	yCoords = []
+	for coord in tri:
+		xCoords.append(str(coord[0]))
+		yCoords.append(str(coord[1]))
+
+	tempString =  '{ "imageName" : "'+imgName+\
+				'", "hash":"' + str(hash1) + \
+				'", "area":'+ str(area) + \
+				', "xcoords":"'+json.dumps(xCoords).replace('"', "'")+\
+				'", "ycoords":"'+json.dumps(yCoords).replace('"', "'")+\
+				'" }'
+
+	return tempString 
 
 def handleFragment(shape, frag, rangeInput, imgName):
+	inShape = shape
+	area = getArea(inShape)
 	##########draw the frag with lines########
 	##########################################
 		
@@ -300,6 +327,7 @@ def handleFragment(shape, frag, rangeInput, imgName):
 	########################################
 	backUpRet = ret
 	backUpShape = resShape
+	finalfinalret = []
 	for minRot in minRots:
 		ret = backUpRet
 		resShape = backUpShape
@@ -315,25 +343,127 @@ def handleFragment(shape, frag, rangeInput, imgName):
 		#print tempName1 + " : " + str(minRot)
 		cv2.imwrite("temp2.jpg", newRet);
 		hash1 = ih.average_hash(Image.open('temp2.jpg'))
-		print hash1
+		final3 = getTheJsonString(imgName, hash1, area, inShape)
+		finalfinalret.append( (str(hash1),final3, inShape) )
 		#ret = d.drawShapeWithAllTheDistances_withBaseImage(ret, resShape, (255,0,0))
 		#cv2.imwrite("./output/debug_output_"+ imgName +str(minRot)+".jpg", ret);
+	return finalfinalret
 
 def newTest2(imgName):
 	rangeInput = [(0.,359.0), (1.,8.)]
 	img = cv2.imread("./input/"+imgName+".jpg")
 	
+	finalret = []
 	for shape, ret in getTheFragments(imgName):
-		handleFragment(shape, ret, rangeInput, imgName)
-	######################################### 	
+		finalret.append( handleFragment(shape, ret, rangeInput, imgName) )
 
+	return finalret
+	######################################### 	
 
 def testingGettingTheLocalMinimum():
 	pass
+
+
+def fill(imgName):
+	values = newTest2(imgName)
+
+	r = redis.StrictRedis(host='localhost', port=6379, db=0)
+
+	for val in values:
+		r.set(val[0][0], val[0][1])
+
+	print "added: "+ str(len(values))
+
+def match(imgName):
+	final = match_without_print(imgName)
+	print "found: "+ str(len(final))
+	for val in final:
+		print val
+
+def getTheJsonObj(thehash, redisVar):
+	tempString = redisVar.get(thehash)
+	if tempString == None:
+		return None
+
+	tempString = tempString.replace("'", "\\\"")
+	jsonObj = json.loads(tempString)
+	xCoords = jsonObj['xcoords']
+	yCoords = jsonObj['ycoords']
+
+	xCoords = json.loads(xCoords)
+	yCoords = json.loads(yCoords)
+
+	finCoords = []
+	for i in range(len(xCoords)):
+		c = (int(xCoords[i]), int(yCoords[i]))
+		finCoords.append( c )
+
+	jsonObj['coords'] = finCoords
+
+	return jsonObj
+
+def match_without_print(imgName):
+	inputImageValues = newTest2(imgName)
+
+	r = redis.StrictRedis(host='localhost', port=6379, db=0)
+	
+	matchedValues = []
+	for val in inputImageValues:
+		theJsonObj = getTheJsonObj(val[0][0], r)
+		if theJsonObj != None:
+			matchedValues.append( theJsonObj)
+
+	return matchedValues, inputImageValues
+
+def showMatches(imgName):
+	matchedValues, inputImageValues = match_without_print(imgName)
+
+	print inputImageValues[0][0][2]
+
+	img = cv2.imread("./input/"+imgName+".jpg")
+	#take the first image name and load it 
+	matchedImg = cv2.imread("./input/"+matchedValues[0]['imageName']+".jpg")
+	for matchedObj in matchedValues:
+		#print "obj"
+		#print obj
+		matchedCoords = matchedObj['coords']
+		col = (randint(0,255),randint(0,255),randint(0,255))
+		d.drawLinesColourAlsoWidth(matchedCoords, matchedImg, col, 1)
+		cv2.imshow('input', img)
+		cv2.imshow('found', matchedImg)
+		cv2.waitKey(0)
+
+def showMatches2(imgName):
+	inputImageValues = newTest2(imgName)
+
+	r = redis.StrictRedis(host='localhost', port=6379, db=0)
+	inImg = cv2.imread("./input/"+imgName+".jpg")
+
+	#take the first image name and load it 
+	inhash = inputImageValues[0][0][0]
+	theMatchedJsonObj_g = getTheJsonObj(inhash, r)
+	matchedImg = cv2.imread("./input/"+theMatchedJsonObj_g['imageName']+".jpg")
+
+	for inputImageVal in inputImageValues:
+		inhash = inputImageVal[0][0]
+		inCoords = inputImageVal[0][2]
+		theMatchedJsonObj = getTheJsonObj(inhash, r)
+		if theMatchedJsonObj == None:
+			print "one tri didn't match"
+			continue
+
+		matchedCoords = theMatchedJsonObj['coords']
+		col = (randint(0,255),randint(0,255),randint(0,255))
+		d.drawLinesColourAlsoWidth(matchedCoords, matchedImg, col, 1)
+		d.drawLinesColourAlsoWidth(inCoords, inImg, col, 1)
+		cv2.imshow('input', inImg)
+		cv2.imshow('found', matchedImg)
+		cv2.waitKey(0)
+
 
 
 #newTest2("extreme")
 #newTest2("testImage1")
 #newTest2("testImage2")
 
-newTest2("dots")
+showMatches2("dots")
