@@ -115,11 +115,14 @@ def findMatchesForHash(inputImageFragmentHash, r, threshold=4):
 	ret = []
 	for akey in listKeys:
 		diff = ih.hex_to_hash(akey) - ih.hex_to_hash(inputImageFragmentHash)
-		print akey+" with diff: " + str(diff)
+		#print akey+" with diff: " + str(diff)
 		if(diff < threshold):
 			ret.extend(jh.getTheJsonObjs(akey, r))
 
-	return ret
+	if ret == []:
+		return None
+	else:
+		return ret
 
 def showMatches(imgName, theImageWeWillMatchName):
 	inputImageValues = processImage(imgName)
@@ -141,6 +144,8 @@ def showMatches(imgName, theImageWeWillMatchName):
 			handleMatchedFragments(inputImage, matchedJsonObjs, matchedImg, inputImageFragmentShape)
 
 	cv2.imwrite('./matched.jpg', inputImage)
+	while True:
+		cv2.waitKey(0)
 
 
 ######################################################################################
