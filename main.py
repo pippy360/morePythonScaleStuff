@@ -82,20 +82,6 @@ def addImageToDB(imgName):
 	print "added: "+ str(len(values))
 
 
-def findMatches(imgName):
-	inputImageValues = processImage(imgName, False)
-
-	r = redis.StrictRedis(host='localhost', port=6379, db=0)
-	
-	matchedValues = []
-	for val in inputImageValues:
-		theJsonObj = getTheJsonObj(val[0][0], r)
-		if theJsonObj != None:
-			matchedValues.append( theJsonObj)
-
-	return matchedValues, inputImageValues
-
-
 def handleMatchedFragment(inputImage, matchedJsonObj, matchedImg, inputImageFragmentShape):
 	
 	matchedCoords = matchedJsonObj['coords']
@@ -124,31 +110,47 @@ def handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFrag
 	cv2.imwrite('output/NO_MATCH_'+str(inputImageFragmentHash)+'_'+str(inputImageFragmentShape)+'.jpg', inputImage)
 	cv2.waitKey(0)
 
+def findMatchesForHash(inputImageFragmentHash, r, threshold=4):
+	listKeys = r.keys()
+	ret = []
+	for akey in listKeys:
+		diff = ih.hex_to_hash(akey) - ih.hex_to_hash(inputImageFragmentHash)
+		print akey+" with diff: " + str(diff)
+		if(diff < threshold):
+			ret.extend(jh.getTheJsonObjs(akey, r))
 
-def showMatches(imgName, theImageWeWillMatch):
+	return ret
+
+def showMatches(imgName, theImageWeWillMatchName):
 	inputImageValues = processImage(imgName)
 
 	r = redis.StrictRedis(host='localhost', port=6379, db=0)
 	inputImage = cv2.imread("./input/"+imgName+".jpg")
 	
-	matchedImg = cv2.imread("./input/"+ theImageWeWillMatch +".jpg")
+	matchedImg = cv2.imread("./input/"+ theImageWeWillMatchName +".jpg")
 	
 	for inputImageVal in inputImageValues:
 
 		inputImageFragmentHash = inputImageVal[0][0]
 		inputImageFragmentShape = inputImageVal[0][2]
-		matchedJsonObjs = jh.getTheJsonObj(inputImageFragmentHash, r)
+		matchedJsonObjs = findMatchesForHash(inputImageFragmentHash, r)
 
 		if matchedJsonObjs == None:
 			handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFragmentHash)
 		else:
 			handleMatchedFragments(inputImage, matchedJsonObjs, matchedImg, inputImageFragmentShape)
 
+	cv2.imwrite('./matched.jpg', inputImage)
+
 
 ######################################################################################
 
 
-showMatches("costanza_orginal_dots", "costanza_orginal_dots")
+
+
+
+
+showMatches("dots", "costanza_orginal_dots")
 
 
 

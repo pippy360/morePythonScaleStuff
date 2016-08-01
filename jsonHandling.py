@@ -1,6 +1,6 @@
 import json
 
-def getTheJsonObjString(tempString):
+def getTheJsonObjFromString(tempString):
 	tempString = tempString.replace("'", "\\\"")
 	jsonObj = json.loads(tempString)
 	xCoords = jsonObj['xcoords']
@@ -18,14 +18,14 @@ def getTheJsonObjString(tempString):
 	return jsonObj
 
 
-def getTheJsonObj(thehash, redisVar):
+def getTheJsonObjs(thehash, redisVar):
 	theList = redisVar.lrange(thehash, 0, -1)
 	if theList == []:
 		return None
 
 	ret = []
 	for theString in theList:
-		ret.append(getTheJsonObjString(theString))
+		ret.append(getTheJsonObjFromString(theString))
 	return ret
 
 def getTheJsonString(imgName, hash1, area, tri):
