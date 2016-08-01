@@ -1,3 +1,12 @@
+import numpy as np
+import cv2
+import getMinimumScaleForShape as g
+import shapeDrawerWithDebug as d
+import basicImageOperations as BIO
+import basicShapeOperations as BSO
+from random import randint
+import itertools
+import math
 import fragProcessing as fs
 #####rules
 
@@ -14,9 +23,9 @@ def isGoodFrag(tri):
 	pt1 = tri[0]
 	pt2 = tri[1]
 	pt3 = tri[2]
-	dist1 = dist(pt1, pt2)
-	dist2 = dist(pt2, pt3)
-	dist3 = dist(pt3, pt1)
+	dist1 = BSO.dist(pt1, pt2)
+	dist2 = BSO.dist(pt2, pt3)
+	dist3 = BSO.dist(pt3, pt1)
 	mult = 2
 	minArea = 100
 	if dist1 > (mult*dist2) or dist2 > (mult*dist1):

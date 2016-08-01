@@ -5,6 +5,7 @@ import shapeDrawerWithDebug as d
 import basicImageOperations as BIO
 import basicShapeOperations as BSO
 import fragProcessing as fp
+import getTheFragments as gf
 import itertools
 import math
 from PIL import Image
@@ -15,30 +16,32 @@ import json
 import jsonHandling as jh
 
 
-def getFragmentDataForRotation(fragImageWithScaleFix, originalShape):
+isDebug = False
 
-	if fs.weNeedToAdd180(minRot, resShape):
-		minRot = minRot + 180
+def getFragmentDataForRotation(fragImageWithScaleFix, originalShape, shapeWithScaleFix, rotation, imgName, area):
 
-	resShape = BSO.rotateShape(resShape, minRot)
-	ret = BIO.rotateImg(ret, minRot)
+	if fp.weNeedToAdd180(rotation, shapeWithScaleFix):
+		rotation = rotation + 180
 
-	junk, fragImageWithScaleAndRotationFix = expandShapeToTakeUpAllImage(resShape, fragImageWithScaleFix);
+	shapeWithScaleFix = BSO.rotateShape(shapeWithScaleFix, rotation)
+	fragImageWithScaleAndRotationFix = BIO.rotateImg(fragImageWithScaleFix, rotation)
+
+	junk, fragImageWithScaleAndRotationFix = fp.expandShapeToTakeUpAllImage(shapeWithScaleFix, fragImageWithScaleAndRotationFix);
 
 	cv2.imwrite("./temp/temp2.jpg", fragImageWithScaleAndRotationFix);
 	fragHash = ih.phash(Image.open('./temp/temp2.jpg'))
 	
 	if isDebug:
-		cv2.imwrite('./output_debug/'+imgName+'/frag_'+str(fragHash)+'_'+str(shape)+'_norm.jpg', fragImageWithScaleAndRotationFix);
-		cv2.imwrite('./output_debug/'+imgName+'/frag_'+str(fragHash)+'_'+str(shape)+'_org.jpg', fragImageWithScaleAndRotationFix);
+		cv2.imwrite('./output_debug/'+imgName+'/frag_'+str(fragHash)+'_'+str(originalShape)+'_norm.jpg', fragImageWithScaleAndRotationFix);
+		cv2.imwrite('./output_debug/'+imgName+'/frag_'+str(fragHash)+'_'+str(originalShape)+'_org.jpg', fragImageWithScaleAndRotationFix);
 
-	serializedFragment = jh.getTheJsonString(imgName, fragHash, area, inShape)
-	return str(fragHash), serializedFragment, inShape
+	serializedFragment = jh.getTheJsonString(imgName, fragHash, area, originalShape)
+	return str(fragHash), serializedFragment, originalShape
 	
 
-def handleFragment(shape, frag, rangeInput, imgName, isDebug):
-	inShape = shape
-	area = getArea(inShape)
+def handleFragment(shape, frag, rangeInput, imgName):
+	originalShape = shape
+	area = BSO.getAreaOfTriangle(originalShape)
 	angle, scalar = g.getValuesToNormaliseScale(shape, rangeInput)
 
 	resShape = BSO.scaleAndRotateShape(shape, angle, scalar)
@@ -47,29 +50,29 @@ def handleFragment(shape, frag, rangeInput, imgName, isDebug):
 	cv2.imwrite("./temp/temp.jpg", fragImageWithScaleFix)
 	temp = cv2.imread("./temp/temp.jpg", 0)
 
-	minRots = BSO.getFlatRotations(resShape)
+	rotations = BSO.getFlatRotations(resShape)
 
-	finalfinalret = []
-	for minRot in minRots:
-		finalfinalret.append( getFragmentDataForRotation(fragImageWithScaleFix, originalShape ) )
+	fragmentData = []
+	for rotation in rotations:
+		fragmentData.append( getFragmentDataForRotation(fragImageWithScaleFix, originalShape, resShape, rotation, imgName, area) )
 
-	return finalfinalret
+	return fragmentData
 
 
-def processImage(imgName, isDebug):
+def processImage(imgName):
 	rangeInput = [(0.,359.0), (1.,8.)]
 	img = cv2.imread("./input/"+imgName+".jpg")
 	
 	finalret = []
-	for shape, ret in getTheFragments(imgName, isDebug):
-		finalret.append( handleFragment(shape, ret, rangeInput, imgName, isDebug) )
+	for shape, ret in gf.getTheFragments(imgName, isDebug):
+		finalret.append( handleFragment(shape, ret, rangeInput, imgName) )
 
 	return finalret
 	######################################### 	
 
 
-def addImageToDB(imgName, isDebug):
-	values = processImage(imgName, isDebug)
+def addImageToDB(imgName):
+	values = processImage(imgName)
 
 	r = redis.StrictRedis(host='localhost', port=6379, db=0)
 
@@ -93,34 +96,37 @@ def findMatches(imgName):
 	return matchedValues, inputImageValues
 
 
-def handleMatchedFragment(inputImage):
+def handleMatchedFragment(inputImage, matchedJsonObj, matchedImg, inputImageFragmentShape):
 	
-	matchedCoords = theMatchedJsonObj['coords']
+	matchedCoords = matchedJsonObj['coords']
 
 	col = (randint(0,255),randint(0,255),randint(0,255))
 
-	#d.drawLinesColourAlsoWidth(matchedCoords, matchedImg, col, 1)
-	#cv2.imshow('found', matchedImg)
+	d.drawLinesColourAlsoWidth(matchedCoords, matchedImg, col, 1)
+	cv2.imshow('found', matchedImg)
 	
-	#d.drawLinesColourAlsoWidth(inCoords, inputImage, col, 1)
-	#cv2.imshow('input', inputImage)
-
-	#cv2.waitKey(0)
-
-def handleMatchedFragments(inputImage, matchedJsonObjs):
-	for matchedJsonObj in matchedJsonObjs:
-
-def handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFragmentHash):
-	print "one tri didn't match " + str(inhash) + ' ' + str(inCoords)
-	col = (0,0,255)
-	d.drawLinesColourAlsoWidth(inCoords, inputImage, col, 1)
+	d.drawLinesColourAlsoWidth(inputImageFragmentShape, inputImage, col, 1)
 	cv2.imshow('input', inputImage)
-	cv2.imwrite('output/NO_MATCH_'+str(inhash)+'_'+str(inCoords)+'.jpg', inputImage)
+
 	cv2.waitKey(0)
 
 
-def showMatches(imgName, isDebug, theImageWeWillMatch):
-	inputImageValues = processImage(imgName, isDebug)
+def handleMatchedFragments(inputImage, matchedJsonObjs, matchedImg, inputImageFragmentShape):
+	for matchedJsonObj in matchedJsonObjs:
+		handleMatchedFragment(inputImage, matchedJsonObj, matchedImg, inputImageFragmentShape)
+
+
+def handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFragmentHash):
+	print "one tri didn't match " + str(inputImageFragmentHash) + ' ' + str(inputImageFragmentShape)
+	col = (0,0,255)
+	d.drawLinesColourAlsoWidth(inputImageFragmentShape, inputImage, col, 1)
+	cv2.imshow('input', inputImage)
+	cv2.imwrite('output/NO_MATCH_'+str(inputImageFragmentHash)+'_'+str(inputImageFragmentShape)+'.jpg', inputImage)
+	cv2.waitKey(0)
+
+
+def showMatches(imgName, theImageWeWillMatch):
+	inputImageValues = processImage(imgName)
 
 	r = redis.StrictRedis(host='localhost', port=6379, db=0)
 	inputImage = cv2.imread("./input/"+imgName+".jpg")
@@ -128,21 +134,63 @@ def showMatches(imgName, isDebug, theImageWeWillMatch):
 	matchedImg = cv2.imread("./input/"+ theImageWeWillMatch +".jpg")
 	
 	for inputImageVal in inputImageValues:
-		
+
 		inputImageFragmentHash = inputImageVal[0][0]
 		inputImageFragmentShape = inputImageVal[0][2]
-		theMatchedJsonObjs = jh.getTheJsonObj(inhash, r)
+		matchedJsonObjs = jh.getTheJsonObj(inputImageFragmentHash, r)
 
-		if theMatchedJsonObjs == None:
+		if matchedJsonObjs == None:
 			handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFragmentHash)
 		else:
-			handleMatchedFragments(inputImage, matchedJsonObjs)
+			handleMatchedFragments(inputImage, matchedJsonObjs, matchedImg, inputImageFragmentShape)
+
+
+######################################################################################
+
+
+showMatches("costanza_orginal_dots", "costanza_orginal_dots")
+
 
 
 #newTest2("extreme")
 #newTest2("testImage1")
 #newTest2("testImage2")
-
 #showMatches("dots")
 #fill("costanza_orginal_dots", True)
-showMatches("costanza_orginal_dots", True, "costanza_orginal_dots")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

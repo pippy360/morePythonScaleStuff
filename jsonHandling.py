@@ -1,3 +1,5 @@
+import json
+
 def getTheJsonObjString(tempString):
 	tempString = tempString.replace("'", "\\\"")
 	jsonObj = json.loads(tempString)
