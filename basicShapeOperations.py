@@ -116,3 +116,46 @@ def scaleAndRotateShape(shape, angle, scale):
 	return applyTransformToAllPoints(angle, normX, normY, shape)
 
 
+
+####################################################
+#area of triangle
+####################################################
+
+def dist(pt1, pt2):
+	x1, y1 = pt1
+	x2, y2 = pt2
+
+	return math.sqrt( (x2 - x1)**2 + (y2 - y1)**2 )
+
+def get_area_of_triangle_using_dists(a, b, c):
+	# calculate the sides
+	s = (a + b + c) / 2
+	# calculate the area
+	area = (s*(s-a)*(s-b)*(s-c)) ** 0.5
+	return area
+
+def getAreaOfTriangle(tri):
+	pt1 = tri[0]
+	pt2 = tri[1]
+	pt3 = tri[2]
+	dist1 = dist(pt1, pt2)
+	dist2 = dist(pt2, pt3)
+	dist3 = dist(pt3, pt1)
+	return	get_area_of_triangle_using_dists(dist1, dist2, dist3)
+
+
+def sign(p1, p2, p3):
+	return (p1[0] - p3[0]) * (p2[1] - p3[1]) - (p2[0] - p3[0]) * (p1[1] - p3[1])
+
+def PointInAABB(pt, c1, c2):
+	return c2[0] <= pt[0] <= c1[0] and \
+		c2[1] <= pt[1] <= c1[1]
+
+def isPointInTriangle(pt, tri):
+	v1, v2, v3 = tri
+	b1 = sign(pt, v1, v2) <= 0
+	b2 = sign(pt, v2, v3) <= 0
+	b3 = sign(pt, v3, v1) <= 0
+
+	return ((b1 == b2) and (b2 == b3)) and \
+		PointInAABB(pt, map(max, v1, v2, v3), map(min, v1, v2, v3))
