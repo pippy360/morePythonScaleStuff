@@ -110,7 +110,7 @@ def handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFrag
 	cv2.imwrite('output/NO_MATCH_'+str(inputImageFragmentHash)+'_'+str(inputImageFragmentShape)+'.jpg', inputImage)
 	cv2.waitKey(0)
 
-def findMatchesForHash(inputImageFragmentHash, r, threshold=4):
+def findMatchesForHash(inputImageFragmentHash, r, threshold=8):
 	listKeys = r.keys()
 	ret = []
 	for akey in listKeys:
@@ -155,7 +155,7 @@ def showMatches(imgName, theImageWeWillMatchName):
 
 
 
-showMatches("dots", "costanza_orginal_dots")
+showMatches("simpsons_orginal_green_dots", "costanza_orginal_dots")
 
 
 
