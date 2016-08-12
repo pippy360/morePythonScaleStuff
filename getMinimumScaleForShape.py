@@ -177,6 +177,7 @@ def getValuesToNormaliseScale2(shape, inputRange):
 		scale = scale*-1
 	return val['x'][0], scale 
 
+
 def getValuesToNormaliseScale(shape, inputRange):
 	shape = BSO.centerShapeUsingPoint(shape, (0,0))
 	bounds = inputRange
@@ -191,6 +192,9 @@ def getValuesToNormaliseScale(shape, inputRange):
 		scale = scale*-1
 	return val['x'][0], scale 
 
+def getValuesToNormaliseScaleNoInputRange(shape):
+	rangeInput = [(0.,359.0), (1.,8.)]
+	return getValuesToNormaliseScale(shape, rangeInput)
 
 ##################################################################
 
