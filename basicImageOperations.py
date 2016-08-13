@@ -3,6 +3,7 @@ import cv2
 import math 
 import fragProcessing as fp
 import basicShapeOperations as BSO
+import shapeDrawerWithDebug as d
 
 def getTheGreenPointsImage_easy(img):
 	res = img
@@ -56,14 +57,13 @@ def getThePositionOfGreenPoints(img):
 	return getTheGreenPointPositions(res)
 
 
-antiAliasing = 8
-def cutAShapeWithImageCoords(shape, img):
 
+def cutAShapeWithImageCoords(shape, img, antiAliasing):
 	resizeImg = cv2.resize(img,None,fx=antiAliasing, fy=antiAliasing, interpolation = cv2.INTER_CUBIC)
 	shape = BSO.simpleScale(shape, (antiAliasing, antiAliasing) )
-	ret=  cutAShapeWithImageCoordsWithoutResize(shape, resizeImg)
-	junk, fin = fp.expandShapeToTakeUpAllImage(shape, ret)
-	return fin
+	ret = cutAShapeWithImageCoordsWithoutResize(shape, resizeImg)
+	shape, fin = fp.expandShapeToTakeUpAllImage(shape, ret)
+	return shape, fin
 
 
 
@@ -135,9 +135,80 @@ def rotateImg(img, rotate):
 	rows,cols,c = img.shape
 	return _rotateImg(img, rotate, rows, cols)
 
-def rotateAndScaleByNumbers(img, angle, scale):
-	res = img
+def resizeImgSoThatItHasEnoughRoomForRotatedShape():
+	#remember the rotation is an "in place" algo so you CAN'T decrease any widths/height, only increase if necessary 
+	pass
+
+def getTheNewVals(inshape, width, height):
+	sPnt, ePnt = fp.getMinMaxValues(inshape)
+
+	overlap1x = 0
+	if sPnt[0] < 0:
+		overlap1x = sPnt[0]
+
+	overlap1y = 0
+	if sPnt[1] < 0:
+		overlap1y = sPnt[1]
+
+	overlap2x = 0
+	if ePnt[0] > width:
+		overlap2x = ePnt[0] - width
+
+	overlap2y = 0
+	if ePnt[1] > height:
+		overlap2y = ePnt[1] - height
+
+	finOverlapX = abs(overlap1x)
+	if abs(overlap2x) > abs(overlap1x):
+		print 'true'
+		finOverlapX = abs(overlap2x)
+
+	finOverlapY = abs(overlap1y)
+	if abs(overlap2y) > abs(overlap1y):
+		finOverlapY = abs(overlap2y)
+
+	return finOverlapX, finOverlapY
+
+def rotateAndScaleByNumbers(shape, img, angle, scale):
+
+	height, width, c = img.shape
+	print "img.shape"
+	print img.shape
+
+	rotatedShape = BSO.moveEachPoint(shape, -width/2, -height/2)
+	rotatedShape = BSO.rotateShape(rotatedShape, angle)
+	rotatedShape = BSO.moveEachPoint(rotatedShape, width/2, height/2)
+
+	finX, finY = getTheNewVals(rotatedShape, width, height)
+	print getTheNewVals(rotatedShape, width, height)
+
+	imageBig = np.zeros((height+ (finY*2), width+ (finX*2),3), dtype=np.uint8)
+	f_h, f_w, f_c = imageBig.shape
+	startX = (f_w/2) - (width/2)
+	startY = (f_h/2) - (height/2) 
+	imageBig[startY:startY+height, startX:startX+width] = img[0:height, 0:width]
+
+#	tempShape = BSO.moveEachPoint(shape, startX, startY)
+#	fin2 = d.drawShapeWithAllTheDistances_withBaseImage(imageBig, tempShape, (0,255,0))
+#	fin2 = d.drawShapeWithAllTheDistances_withBaseImage(fin2, rotatedShape, (0,255,0))
+#	cv2.imshow('i', fin2)
+#	cv2.waitKey()
+
+	print startX
+	print startY
+	print imageBig.shape
+
+	res = imageBig
+
 	res = rotateImg(res, angle)
+
+	rotatedShape = BSO.moveEachPoint(rotatedShape, startX, startY)
+	fin = d.drawShapeWithAllTheDistances_withBaseImage(res, rotatedShape, (0,255,0))
+	cv2.imshow('h', fin)
+	cv2.waitKey()
+
 	res = scaleImgInPlace(res, scale)
+
 	res = rotateImg(res, -angle)
+
 	return res

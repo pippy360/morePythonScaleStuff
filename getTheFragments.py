@@ -37,7 +37,7 @@ def isGoodFrag(tri):
 	if dist1 > (mult*dist3) or dist3 > (mult*dist1):
 		return False
 
-	nextMult = 1.2
+	nextMult = 1.4
 	if float(dist1)*nextMult > dist2 + dist3:
 		return False
 	
@@ -103,4 +103,5 @@ def getTheFragments(imgName, isDebug):
 		for p in tempShape:
 			shape.append(p)
 		####################################
-		yield shape, fs.cutOutTheFrag(shape, img)
+		shape, xfrag = fs.cutOutTheFrag(shape, img)
+		yield shape, xfrag

@@ -65,22 +65,24 @@ def expandShapeToTakeUpAllImage(shape, img):
 
 	#def moveImage(img, x, y):
 	img = BIO.moveImage(img, -1*deltaX, -1*deltaY)
+	shape = BSO.centerShapeUsingPoint(shape, (width/2, height/2))
+	shape = BSO.moveEachPoint(shape, -1*deltaX, -1*deltaY)
 
-	#print str(width) + " : " + str(height)
+	print str(shape) + " shape  : "
 	retImg = BIO.cropImageAroundCenter(img, width, height)
 
 	#expand it
 	return shape, retImg
 
 def cutOutTheFrag(shape, img):
+	antiAliasing = 4
 	c_point = BSO.getCenterPointOfShape(shape)
 	ret = BIO.moveImageToPoint(img, c_point[0], c_point[1])
 
 	h, w, c = ret.shape
 	newShape = BSO.centerShapeUsingPoint(shape, (w/2, h/2))
-	test = BIO.cutAShapeWithImageCoords(newShape, ret)
-
-	return test
+	finShape, test = BIO.cutAShapeWithImageCoords(newShape, ret, antiAliasing)
+	return finShape, test
 
 def weNeedToAdd180(rot, shape):
 	resShape = BSO.rotateShape(shape, rot)

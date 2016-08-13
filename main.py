@@ -39,13 +39,22 @@ def getFragmentDataForRotation(fragImageWithScaleFix, originalShape, shapeWithSc
 	return str(fragHash), serializedFragment, originalShape
 	
 
+def rotateAndScaleFragAndShape(shape, frag, angle, scalar):
+	resShape = BSO.scaleAndRotateShape(shape, angle, scalar)
+	fragImageWithScaleFix = BIO.rotateAndScaleByNumbers(shape, frag, angle, scalar)
+	return resShape, fragImageWithScaleFix
+
 def handleFragment(shape, frag, rangeInput, imgName):
 	originalShape = shape
 	area = BSO.getAreaOfTriangle(originalShape)
 	angle, scalar = g.getValuesToNormaliseScale(shape, rangeInput)
 
-	resShape = BSO.scaleAndRotateShape(shape, angle, scalar)
-	fragImageWithScaleFix = BIO.rotateAndScaleByNumbers(frag, angle, scalar)
+#	cv2.imshow('before frag 1', frag)
+
+	resShape, fragImageWithScaleFix = rotateAndScaleFragAndShape(shape, frag, angle, scalar)
+
+#	cv2.imshow('after frag 1', fragImageWithScaleFix)
+	cv2.waitKey()
 
 	cv2.imwrite("./temp/temp.jpg", fragImageWithScaleFix)
 	temp = cv2.imread("./temp/temp.jpg", 0)
@@ -155,7 +164,7 @@ def showMatches(imgName, theImageWeWillMatchName):
 
 
 
-showMatches("simpsons_orginal_green_dots", "costanza_orginal_dots")
+showMatches("costanza_orginal_dots", "costanza_orginal_dots")
 
 
 
