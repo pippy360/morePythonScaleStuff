@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 import math 
+import fragProcessing as fp
+import basicShapeOperations as BSO
 
 def getTheGreenPointsImage_easy(img):
 	res = img
@@ -53,7 +55,19 @@ def getThePositionOfGreenPoints(img):
 	res = getTheGreenPointsImage(res)
 	return getTheGreenPointPositions(res)
 
+
+antiAliasing = 8
 def cutAShapeWithImageCoords(shape, img):
+
+	resizeImg = cv2.resize(img,None,fx=antiAliasing, fy=antiAliasing, interpolation = cv2.INTER_CUBIC)
+	shape = BSO.simpleScale(shape, (antiAliasing, antiAliasing) )
+	ret=  cutAShapeWithImageCoordsWithoutResize(shape, resizeImg)
+	junk, fin = fp.expandShapeToTakeUpAllImage(shape, ret)
+	return fin
+
+
+
+def cutAShapeWithImageCoordsWithoutResize(shape, img):
 	mask = np.zeros(img.shape, dtype=np.uint8)
 	roi_corners = np.array(  [ shape ], dtype=np.int32)
 	cv2.fillPoly(mask, roi_corners, (255,255,255))

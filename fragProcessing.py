@@ -47,23 +47,40 @@ def getMinMaxValues(shape):
 	maxY = getMaxYInShape(shape)
 	return (minX, minY), (maxX, maxY)
 
+
 def expandShapeToTakeUpAllImage(shape, img):
 	sPoint, ePoint = getMinMaxValues(shape)
 	#crop it
 	width = int( ePoint[0]-(sPoint[0]) )
 	height = int( ePoint[1]-(sPoint[1]) )
+
+	#where the middle should be
+	midx, midy = sPoint[0] + (width/2), sPoint[1] + (height/2)
+
+	#where the middle is
+	centerPnt = BSO.getCenterPointOfShape(shape)
+
+	#fix the position of the image
+	deltaX, deltaY = midx - centerPnt[0], midy - centerPnt[1]
+
+	#def moveImage(img, x, y):
+	img = BIO.moveImage(img, -1*deltaX, -1*deltaY)
+
 	#print str(width) + " : " + str(height)
-	retImg = BIO.cropImageAroundCenter(img, width+10, height+10)
+	retImg = BIO.cropImageAroundCenter(img, width, height)
 
 	#expand it
-	return shape, cv2.resize(retImg, (1000,1000))
+	return shape, retImg
 
 def cutOutTheFrag(shape, img):
 	c_point = BSO.getCenterPointOfShape(shape)
 	ret = BIO.moveImageToPoint(img, c_point[0], c_point[1])
+
 	h, w, c = ret.shape
 	newShape = BSO.centerShapeUsingPoint(shape, (w/2, h/2))
-	return BIO.cutAShapeWithImageCoords(newShape, ret)
+	test = BIO.cutAShapeWithImageCoords(newShape, ret)
+
+	return test
 
 def weNeedToAdd180(rot, shape):
 	resShape = BSO.rotateShape(shape, rot)
@@ -77,3 +94,5 @@ def weNeedToAdd180(rot, shape):
 		return True
 	else: 
 		return False
+
+

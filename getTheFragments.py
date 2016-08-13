@@ -26,7 +26,7 @@ def isGoodFrag(tri):
 	dist1 = BSO.dist(pt1, pt2)
 	dist2 = BSO.dist(pt2, pt3)
 	dist3 = BSO.dist(pt3, pt1)
-	mult = 2
+	mult = 1.6
 	minArea = 100
 	if dist1 > (mult*dist2) or dist2 > (mult*dist1):
 		return False
@@ -35,6 +35,16 @@ def isGoodFrag(tri):
 		return False
 	
 	if dist1 > (mult*dist3) or dist3 > (mult*dist1):
+		return False
+
+	nextMult = 1.2
+	if float(dist1)*nextMult > dist2 + dist3:
+		return False
+	
+	if float(dist2)*nextMult > dist1 + dist2:
+		return False
+	
+	if float(dist3)*nextMult > dist1 + dist2:
 		return False
 	
 	if BSO.getAreaOfTriangle(tri) < minArea:

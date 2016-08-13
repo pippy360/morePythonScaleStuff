@@ -39,7 +39,7 @@ def main(imgName):
 	# Fundamental Parts
 	# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 	# alternative detectors, descriptors, matchers, parameters ==> different results
-	detector = cv2.BRISK(thresh=20, octaves=1)
+	detector = cv2.BRISK(thresh=45, octaves=1)
 	extractor = cv2.DescriptorExtractor_create('BRISK')  # non-patented. Thank you!
 	matcher = cv2.BFMatcher(cv2.NORM_L2SQR)
 
@@ -49,7 +49,8 @@ def main(imgName):
 	print "shape: " + str(shape)
 	rot, scale = g.getValuesToNormaliseScaleNoInputRange(shape)
 
-	rot, scale = int(round(rot)), int(round(scale))
+	scaleDiv = 8
+	rot, scale = int(round(rot)), (round(scale*scaleDiv)/scaleDiv)
 	
 	print "rot: " + str(rot) + " scale:" + str(scale)
 	######get scale and rot#############
@@ -73,7 +74,7 @@ def main(imgName):
 
 
 	# Show blobs
-	cv2.imshow("Keypoints for "+ imgName, im_with_keypoints)
+	cv2.imshow("Keypoints for "+ imgName+".jpg", im_with_keypoints)
 
 
 main("./input/lennaWithGreenDotsInTriangle.jpg")

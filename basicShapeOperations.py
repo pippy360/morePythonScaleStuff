@@ -159,3 +159,16 @@ def isPointInTriangle(pt, tri):
 
 	return ((b1 == b2) and (b2 == b3)) and \
 		PointInAABB(pt, map(max, v1, v2, v3), map(min, v1, v2, v3))
+
+
+
+####
+
+def simpleScale(shape, vals):
+	scalex, scaley = vals
+	ret = []
+	for pt in shape:
+		newpt = (pt[0]*scalex, pt[1]*scaley)
+		ret.append( newpt )
+
+	return ret
