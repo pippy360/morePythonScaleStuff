@@ -5,6 +5,8 @@ import fragProcessing as fp
 import basicShapeOperations as BSO
 import shapeDrawerWithDebug as d
 
+g_green = (0,255,0)
+
 def getTheGreenPointsImage_easy(img):
 	res = img
 	b, g, r = cv2.split(res)
@@ -59,7 +61,7 @@ def getThePositionOfGreenPoints(img):
 def cutAShapeWithImageCoordsWithAA(shape, img, antiAliasing):
 	resizedImg = cv2.resize(img,None,fx=antiAliasing, fy=antiAliasing, interpolation=cv2.INTER_CUBIC)
 	resizedShape = BSO.simpleScale(shape, (antiAliasing, antiAliasing) )
-	return resizedShape, cutAShapeWithImageCoords(resizedImg, antiAliasing):
+	return resizedShape, cutAShapeWithImageCoords(resizedShape, resizedImg)
 
 def cutAShapeWithImageCoords(shape, img):
 	mask = np.zeros(img.shape, dtype=np.uint8)
@@ -90,6 +92,38 @@ def moveImageToPoint(img, x, y):
 def turnXIntoSqrtX(x):
 	return [math.sqrt(x), 1/(math.sqrt(x))]
 
+def centerTheFragmentAndShape(shape, frag):
+	c_pnt = BSO.getCenterPointOfShape(shape)
+
+	h, w, c = frag.shape
+	frag = moveImageToPoint(frag, c_pnt[0], c_pnt[1])
+
+	shape = BSO.centerShapeUsingPoint(shape, (w/2, h/2))
+	return shape, frag
+
+def getTheDistanceOfTheFurthestPointFromTheCenterOfAShape(shape):
+	c_pnt = BSO.getCenterPointOfShape(shape)
+	maxDist = 0
+	for pnt in shape:
+		dist = BSO.getDistanceOfPoint(pnt, c_pnt)
+		if dist > maxDist:
+			maxDist = dist
+
+	return maxDist 
+
+
+def cropImageAroundShape(shape, frag):
+	shape, frag = centerTheFragmentAndShape(shape, frag)
+
+	dist = getTheDistanceOfTheFurthestPointFromTheCenterOfAShape(shape)
+	finX = int(dist*2+1)
+	finY = int(dist*2+1)
+	frag = cropImageAroundCenter(frag, finX, finY)
+	h, w, c = frag.shape
+	shape = BSO.centerShapeUsingPoint(shape, (w/2, h/2))
+
+	return shape, frag
+
 
 def cropImageAroundCenter(smallImage, width, height):
 	smaHeight, smaWidth, channels = smallImage.shape
@@ -113,9 +147,6 @@ def cropImageAroundCenter(smallImage, width, height):
 	imageBig[posY:(posY+segHeight), posX:(segWidth+posX)] = smallImage[smallPosY:(smallPosY+segHeight), smallPosX:(smallPosX+segWidth)]
 	return imageBig
 
-
-
-
 def scaleImgInPlace(img, scale):
 	height, width, channels = img.shape
 	#always do our weird scale
@@ -136,79 +167,25 @@ def resizeImgSoThatItHasEnoughRoomForRotatedShape():
 	#remember the rotation is an "in place" algo so you CAN'T decrease any widths/height, only increase if necessary 
 	pass
 
-def getTheNewVals(inshape, width, height):
-	sPnt, ePnt = fp.getMinMaxValues(inshape)
-
-	overlap1x = 0
-	if sPnt[0] < 0:
-		overlap1x = sPnt[0]
-
-	overlap1y = 0
-	if sPnt[1] < 0:
-		overlap1y = sPnt[1]
-
-	overlap2x = 0
-	if ePnt[0] > width:
-		overlap2x = ePnt[0] - width
-
-	overlap2y = 0
-	if ePnt[1] > height:
-		overlap2y = ePnt[1] - height
-
-	finOverlapX = abs(overlap1x)
-	if abs(overlap2x) > abs(overlap1x):
-		print 'true'
-		finOverlapX = abs(overlap2x)
-
-	finOverlapY = abs(overlap1y)
-	if abs(overlap2y) > abs(overlap1y):
-		finOverlapY = abs(overlap2y)
-
-	return finOverlapX, finOverlapY
-
 def rotateAndScaleByNumbers(shape, img, angle, scale):
 
-	height, width, c = img.shape
-
-	rotatedShape = BSO.moveEachPoint(shape, -width/2, -height/2)
-	rotatedShape = BSO.rotateShape(rotatedShape, angle)
-	rotatedShape = BSO.moveEachPoint(rotatedShape, width/2, height/2)
-
-	finX, finY = getTheNewVals(rotatedShape, width, height)
-
-	imageBig = np.zeros((height+ (finY*2), width+ (finX*2),3), dtype=np.uint8)
-	f_h, f_w, f_c = imageBig.shape
-	startX = (f_w/2) - (width/2)
-	startY = (f_h/2) - (height/2) 
-	imageBig[startY:startY+height, startX:startX+width] = img[0:height, 0:width]
-
-	res = imageBig
+	res = img
 
 	res = rotateImg(res, angle)
 
-	rotatedShape = BSO.moveEachPoint(rotatedShape, startX, startY)
-
-	res = scaleImgInPlace_replacement(rotatedShape, res, scale)
-
-	cv2.waitKey()
+	shape, res = scaleImg_replacement(shape, res, scale)
 
 	res = rotateImg(res, -angle)
 
-
 	return res
 
-def scaleImgInPlace_replacement(rotatedShape, res, scale):
+def scaleImg_replacement(shape, img, scale):
 	height, width, channels = img.shape
 	#always do our weird scale
 	normalisedScale = turnXIntoSqrtX(scale)
 	resizeImg = cv2.resize(img,None,fx=normalisedScale[0], fy=normalisedScale[1], interpolation = cv2.INTER_CUBIC)
-	newShape = BSO.simpleScale(rotatedShape, normalisedScale)
-	return cropImageAroundShape(resizeImg, newShape)
-
-def cropImageAroundShape(resizeImg, rotatedShape):
-	BSO.moveEachPoint
-
-	sPnt, ePnt = fp.getMinMaxValues(inshape)
+	newShape = BSO.simpleScale(shape, normalisedScale)
+	return cropImageAroundShape(newShape, resizeImg)
 
 
 

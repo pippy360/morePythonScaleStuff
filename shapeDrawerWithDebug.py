@@ -20,7 +20,7 @@ def getCenterPointOfImage(image):
 	return (x/2, y/2)
 
 def drawLinesColour(points, img, col):
-	drawLinesColourAlsoWidth(points, img, col, 3)
+	drawLinesColourAlsoWidth(points, img, col, 1)
 
 
 def drawLinesColourAlsoWidth(points, img, col, wid):

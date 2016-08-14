@@ -40,6 +40,9 @@ def getMaxYInShape(shape):
 
 	return ret
 
+def getTheBoundingBoxOfShape(shape):
+	return getMinMaxValues(shape)
+
 def getMinMaxValues(shape):
 	minX = getMinXInShape(shape)
 	maxX = getMaxXInShape(shape)
@@ -47,20 +50,45 @@ def getMinMaxValues(shape):
 	maxY = getMaxYInShape(shape)
 	return (minX, minY), (maxX, maxY)
 
+
 def cropImageAroundShape(shape, frag):
-	#center the fragment around the shapes center
+	return BIO.cropImageAroundShape(shape, frag)
+
+def fitFragTightToImage(shape, frag):
+	h, w, c = frag.shape
+	s_pnt, e_pnt = getTheBoundingBoxOfShape(shape)
 	c_pnt = BSO.getCenterPointOfShape(shape)
 
-	#crop the image
-	
+	#move the shape to the actual center
+	s_w = int(e_pnt[0] - s_pnt[0])+1
+	s_h = int(e_pnt[1] - s_pnt[1])+1
+	bb_c_pnt = s_pnt[0] + (s_w/2), s_pnt[1] + (s_h/2)
+	diff = int(bb_c_pnt[0] - c_pnt[0]), int(bb_c_pnt[1] - c_pnt[1])
+	shape = BSO.moveEachPoint(shape, diff[0], diff[1])
 
-	return None
+	frag = BIO.moveImage(frag, -diff[0], -diff[1])
+
+	#ok now that they're centered lets start cropping/moving the shape over
+	s_pnt, e_pnt = getTheBoundingBoxOfShape(shape)
+	shape = BSO.moveEachPoint(shape, -s_pnt[0], -s_pnt[1])
+
+	frag = BIO.cropImageAroundCenter(frag, s_w, s_h)
+
+	d.drawShapeWithAllTheDistances_withBaseImage(frag, shape, BIO.g_green)
+	cv2.imshow('dd', frag)
+	cv2.waitKey()
+
+	return shape, frag	
 
 def cutOutTheFrag(shape, img):
 	#the shape is the position of the fragment!!!
-	antiAliasing = 4
-	shape, frag = BIO.cutAShapeWithImageCoordsWithAA(movedShape, movedImage, antiAliasing)
+	antiAliasing = 8
+	frag = img
+
+	shape, frag = BIO.cutAShapeWithImageCoordsWithAA(shape, img, antiAliasing)
+
 	shape, frag = cropImageAroundShape(shape, frag)
+
 	return shape, frag
 
 def weNeedToAdd180(rot, shape):

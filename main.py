@@ -26,7 +26,7 @@ def getFragmentDataForRotation(fragImageWithScaleFix, originalShape, shapeWithSc
 	shapeWithScaleFix = BSO.rotateShape(shapeWithScaleFix, rotation)
 	fragImageWithScaleAndRotationFix = BIO.rotateImg(fragImageWithScaleFix, rotation)
 
-	junk, fragImageWithScaleAndRotationFix = fp.expandShapeToTakeUpAllImage(shapeWithScaleFix, fragImageWithScaleAndRotationFix);
+	fittedShape_junk, fragImageWithScaleAndRotationFix = fp.fitFragTightToImage(shapeWithScaleFix, fragImageWithScaleAndRotationFix);
 
 	cv2.imwrite("./temp/temp2.jpg", fragImageWithScaleAndRotationFix);
 	fragHash = ih.phash(Image.open('./temp/temp2.jpg'))
@@ -49,12 +49,7 @@ def handleFragment(shape, frag, rangeInput, imgName):
 	area = BSO.getAreaOfTriangle(originalShape)
 	angle, scalar = g.getValuesToNormaliseScale(shape, rangeInput)
 
-#	cv2.imshow('before frag 1', frag)
-
 	resShape, fragImageWithScaleFix = rotateAndScaleFragAndShape(shape, frag, angle, scalar)
-
-#	cv2.imshow('after frag 1', fragImageWithScaleFix)
-	cv2.waitKey()
 
 	cv2.imwrite("./temp/temp.jpg", fragImageWithScaleFix)
 	temp = cv2.imread("./temp/temp.jpg", 0)
