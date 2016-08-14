@@ -47,42 +47,21 @@ def getMinMaxValues(shape):
 	maxY = getMaxYInShape(shape)
 	return (minX, minY), (maxX, maxY)
 
+def cropImageAroundShape(shape, frag):
+	#center the fragment around the shapes center
+	c_pnt = BSO.getCenterPointOfShape(shape)
 
-def expandShapeToTakeUpAllImage(shape, img):
-	sPoint, ePoint = getMinMaxValues(shape)
-	#crop it
-	width = int( ePoint[0]-(sPoint[0]) )
-	height = int( ePoint[1]-(sPoint[1]) )
+	#crop the image
+	
 
-	#where the middle should be
-	midx, midy = sPoint[0] + (width/2), sPoint[1] + (height/2)
-
-	#where the middle is
-	centerPnt = BSO.getCenterPointOfShape(shape)
-
-	#fix the position of the image
-	deltaX, deltaY = midx - centerPnt[0], midy - centerPnt[1]
-
-	#def moveImage(img, x, y):
-	img = BIO.moveImage(img, -1*deltaX, -1*deltaY)
-	shape = BSO.centerShapeUsingPoint(shape, (width/2, height/2))
-	shape = BSO.moveEachPoint(shape, -1*deltaX, -1*deltaY)
-
-	print str(shape) + " shape  : "
-	retImg = BIO.cropImageAroundCenter(img, width, height)
-
-	#expand it
-	return shape, retImg
+	return None
 
 def cutOutTheFrag(shape, img):
+	#the shape is the position of the fragment!!!
 	antiAliasing = 4
-	c_point = BSO.getCenterPointOfShape(shape)
-	ret = BIO.moveImageToPoint(img, c_point[0], c_point[1])
-
-	h, w, c = ret.shape
-	newShape = BSO.centerShapeUsingPoint(shape, (w/2, h/2))
-	finShape, test = BIO.cutAShapeWithImageCoords(newShape, ret, antiAliasing)
-	return finShape, test
+	shape, frag = BIO.cutAShapeWithImageCoordsWithAA(movedShape, movedImage, antiAliasing)
+	shape, frag = cropImageAroundShape(shape, frag)
+	return shape, frag
 
 def weNeedToAdd180(rot, shape):
 	resShape = BSO.rotateShape(shape, rot)

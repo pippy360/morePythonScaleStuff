@@ -104,4 +104,7 @@ def getTheFragments(imgName, isDebug):
 			shape.append(p)
 		####################################
 		shape, xfrag = fs.cutOutTheFrag(shape, img)
+
+		cv2.imshow('here', xfrag)
+		cv2.waitKey()
 		yield shape, xfrag

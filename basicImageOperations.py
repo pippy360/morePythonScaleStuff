@@ -56,18 +56,12 @@ def getThePositionOfGreenPoints(img):
 	res = getTheGreenPointsImage(res)
 	return getTheGreenPointPositions(res)
 
+def cutAShapeWithImageCoordsWithAA(shape, img, antiAliasing):
+	resizedImg = cv2.resize(img,None,fx=antiAliasing, fy=antiAliasing, interpolation=cv2.INTER_CUBIC)
+	resizedShape = BSO.simpleScale(shape, (antiAliasing, antiAliasing) )
+	return resizedShape, cutAShapeWithImageCoords(resizedImg, antiAliasing):
 
-
-def cutAShapeWithImageCoords(shape, img, antiAliasing):
-	resizeImg = cv2.resize(img,None,fx=antiAliasing, fy=antiAliasing, interpolation = cv2.INTER_CUBIC)
-	shape = BSO.simpleScale(shape, (antiAliasing, antiAliasing) )
-	ret = cutAShapeWithImageCoordsWithoutResize(shape, resizeImg)
-	shape, fin = fp.expandShapeToTakeUpAllImage(shape, ret)
-	return shape, fin
-
-
-
-def cutAShapeWithImageCoordsWithoutResize(shape, img):
+def cutAShapeWithImageCoords(shape, img):
 	mask = np.zeros(img.shape, dtype=np.uint8)
 	roi_corners = np.array(  [ shape ], dtype=np.int32)
 	cv2.fillPoly(mask, roi_corners, (255,255,255))
@@ -118,6 +112,9 @@ def cropImageAroundCenter(smallImage, width, height):
 	smallPosY = (smaHeight/2) - (segHeight/2)
 	imageBig[posY:(posY+segHeight), posX:(segWidth+posX)] = smallImage[smallPosY:(smallPosY+segHeight), smallPosX:(smallPosX+segWidth)]
 	return imageBig
+
+
+
 
 def scaleImgInPlace(img, scale):
 	height, width, channels = img.shape
@@ -172,15 +169,12 @@ def getTheNewVals(inshape, width, height):
 def rotateAndScaleByNumbers(shape, img, angle, scale):
 
 	height, width, c = img.shape
-	print "img.shape"
-	print img.shape
 
 	rotatedShape = BSO.moveEachPoint(shape, -width/2, -height/2)
 	rotatedShape = BSO.rotateShape(rotatedShape, angle)
 	rotatedShape = BSO.moveEachPoint(rotatedShape, width/2, height/2)
 
 	finX, finY = getTheNewVals(rotatedShape, width, height)
-	print getTheNewVals(rotatedShape, width, height)
 
 	imageBig = np.zeros((height+ (finY*2), width+ (finX*2),3), dtype=np.uint8)
 	f_h, f_w, f_c = imageBig.shape
@@ -188,27 +182,33 @@ def rotateAndScaleByNumbers(shape, img, angle, scale):
 	startY = (f_h/2) - (height/2) 
 	imageBig[startY:startY+height, startX:startX+width] = img[0:height, 0:width]
 
-#	tempShape = BSO.moveEachPoint(shape, startX, startY)
-#	fin2 = d.drawShapeWithAllTheDistances_withBaseImage(imageBig, tempShape, (0,255,0))
-#	fin2 = d.drawShapeWithAllTheDistances_withBaseImage(fin2, rotatedShape, (0,255,0))
-#	cv2.imshow('i', fin2)
-#	cv2.waitKey()
-
-	print startX
-	print startY
-	print imageBig.shape
-
 	res = imageBig
 
 	res = rotateImg(res, angle)
 
 	rotatedShape = BSO.moveEachPoint(rotatedShape, startX, startY)
-	fin = d.drawShapeWithAllTheDistances_withBaseImage(res, rotatedShape, (0,255,0))
-	cv2.imshow('h', fin)
-	cv2.waitKey()
 
-	res = scaleImgInPlace(res, scale)
+	res = scaleImgInPlace_replacement(rotatedShape, res, scale)
+
+	cv2.waitKey()
 
 	res = rotateImg(res, -angle)
 
+
 	return res
+
+def scaleImgInPlace_replacement(rotatedShape, res, scale):
+	height, width, channels = img.shape
+	#always do our weird scale
+	normalisedScale = turnXIntoSqrtX(scale)
+	resizeImg = cv2.resize(img,None,fx=normalisedScale[0], fy=normalisedScale[1], interpolation = cv2.INTER_CUBIC)
+	newShape = BSO.simpleScale(rotatedShape, normalisedScale)
+	return cropImageAroundShape(resizeImg, newShape)
+
+def cropImageAroundShape(resizeImg, rotatedShape):
+	BSO.moveEachPoint
+
+	sPnt, ePnt = fp.getMinMaxValues(inshape)
+
+
+
