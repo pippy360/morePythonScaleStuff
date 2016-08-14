@@ -14,9 +14,9 @@ from random import randint
 import redis
 import json	
 import jsonHandling as jh
+import os
 
-
-isDebug = False
+isDebug = True
 
 def getFragmentDataForRotation(fragImageWithScaleFix, originalShape, shapeWithScaleFix, rotation, imgName, area):
 
@@ -44,12 +44,13 @@ def rotateAndScaleFragAndShape(shape, frag, angle, scalar):
 	fragImageWithScaleFix = BIO.rotateAndScaleByNumbers(shape, frag, angle, scalar)
 	return resShape, fragImageWithScaleFix
 
-def handleFragment(shape, frag, rangeInput, imgName):
-	originalShape = shape
-	area = BSO.getAreaOfTriangle(originalShape)
-	angle, scalar = g.getValuesToNormaliseScale(shape, rangeInput)
+def handleFragment(shape, scaledShape, frag, rangeInput, imgName):
 
-	resShape, fragImageWithScaleFix = rotateAndScaleFragAndShape(shape, frag, angle, scalar)
+	originalShape = shape
+	area = BSO.getAreaOfTriangle(shape)
+	angle, scalar = g.getValuesToNormaliseScale(scaledShape, rangeInput)
+
+	resShape, fragImageWithScaleFix = rotateAndScaleFragAndShape(scaledShape, frag, angle, scalar)
 
 	cv2.imwrite("./temp/temp.jpg", fragImageWithScaleFix)
 	temp = cv2.imread("./temp/temp.jpg", 0)
@@ -64,12 +65,16 @@ def handleFragment(shape, frag, rangeInput, imgName):
 
 
 def processImage(imgName):
+	if isDebug:
+		if not os.path.exists('./output_debug/'+imgName+'/'):
+		    os.makedirs('./output_debug/'+imgName+'/')
+
 	rangeInput = [(0.,359.0), (1.,8.)]
 	img = cv2.imread("./input/"+imgName+".jpg")
 	
 	finalret = []
-	for shape, ret in gf.getTheFragments(imgName, isDebug):
-		finalret.append( handleFragment(shape, ret, rangeInput, imgName) )
+	for shape, scaledShape, frag in gf.getTheFragments(imgName, isDebug):
+		finalret.append( handleFragment(shape, scaledShape, frag, rangeInput, imgName) )
 
 	return finalret
 	######################################### 	
@@ -102,6 +107,7 @@ def handleMatchedFragment(inputImage, matchedJsonObj, matchedImg, inputImageFrag
 
 
 def handleMatchedFragments(inputImage, matchedJsonObjs, matchedImg, inputImageFragmentShape):
+	print "matched"
 	for matchedJsonObj in matchedJsonObjs:
 		handleMatchedFragment(inputImage, matchedJsonObj, matchedImg, inputImageFragmentShape)
 
@@ -110,8 +116,9 @@ def handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFrag
 	print "one tri didn't match " + str(inputImageFragmentHash) + ' ' + str(inputImageFragmentShape)
 	col = (0,0,255)
 	d.drawLinesColourAlsoWidth(inputImageFragmentShape, inputImage, col, 1)
+	if isDebug:
+		cv2.imwrite('output/NO_MATCH_'+str(inputImageFragmentHash)+'_'+str(inputImageFragmentShape)+'.jpg', inputImage)
 	cv2.imshow('input', inputImage)
-	cv2.imwrite('output/NO_MATCH_'+str(inputImageFragmentHash)+'_'+str(inputImageFragmentShape)+'.jpg', inputImage)
 	cv2.waitKey(0)
 
 def findMatchesForHash(inputImageFragmentHash, r, threshold=8):
@@ -159,7 +166,7 @@ def showMatches(imgName, theImageWeWillMatchName):
 
 
 
-showMatches("costanza_orginal_dots", "costanza_orginal_dots")
+#showMatches("costanza_changed", "costanza_orginal_dots")
 
 
 
@@ -167,7 +174,8 @@ showMatches("costanza_orginal_dots", "costanza_orginal_dots")
 #newTest2("testImage1")
 #newTest2("testImage2")
 #showMatches("dots")
-#fill("costanza_orginal_dots", True)
+#addImageToDB("costanza_orginal_dots")
+addImageToDB("costanza_changed")
 
 
 

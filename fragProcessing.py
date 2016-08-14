@@ -74,10 +74,6 @@ def fitFragTightToImage(shape, frag):
 
 	frag = BIO.cropImageAroundCenter(frag, s_w, s_h)
 
-	d.drawShapeWithAllTheDistances_withBaseImage(frag, shape, BIO.g_green)
-	cv2.imshow('dd', frag)
-	cv2.waitKey()
-
 	return shape, frag	
 
 def cutOutTheFrag(shape, img):

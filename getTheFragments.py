@@ -103,6 +103,6 @@ def getTheFragments(imgName, isDebug):
 		for p in tempShape:
 			shape.append(p)
 		####################################
-		shape, xfrag = fs.cutOutTheFrag(shape, img)
+		scaledShape, xfrag = fs.cutOutTheFrag(shape, img)
 
-		yield shape, xfrag
+		yield shape, scaledShape, xfrag
