@@ -26,7 +26,7 @@ def isGoodFrag(tri):
 	dist1 = BSO.dist(pt1, pt2)
 	dist2 = BSO.dist(pt2, pt3)
 	dist3 = BSO.dist(pt3, pt1)
-	mult = 1.5
+	mult = 2
 	minArea = 100
 	if dist1 > (mult*dist2) or dist2 > (mult*dist1):
 		return False

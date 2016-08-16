@@ -32,8 +32,7 @@ def getFragmentDataForRotation(fragImageWithScaleFix, originalShape, shapeWithSc
 	fragHash = ih.phash(Image.open('./temp/temp2.jpg'))
 	
 	if isDebug:
-		cv2.imwrite('./output_debug/'+imgName+'/frag_'+str(fragHash)+'_'+str(originalShape)+'_norm.jpg', fragImageWithScaleAndRotationFix);
-		cv2.imwrite('./output_debug/'+imgName+'/frag_'+str(fragHash)+'_'+str(originalShape)+'_org.jpg', fragImageWithScaleAndRotationFix);
+		cv2.imwrite('./output_debug/'+imgName+'/frag_'+str(originalShape)+'_'+str(fragHash)+'_norm.jpg', fragImageWithScaleAndRotationFix);
 
 	serializedFragment = jh.getTheJsonString(imgName, fragHash, area, originalShape)
 	return str(fragHash), serializedFragment, originalShape
@@ -123,7 +122,7 @@ def handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFrag
 	cv2.imshow('input', inputImage)
 	cv2.waitKey(0)
 
-def findMatchesForHash(inputImageFragmentHash, r, threshold=0):
+def findMatchesForHash(inputImageFragmentHash, r, threshold=4):
 	listKeys = r.keys()
 	ret = []
 	for akey in listKeys:
@@ -156,6 +155,7 @@ def showMatches(imgName, theImageWeWillMatchName):
 			print 'not matched'
 			pass
 		else:
+			print 'matched...'
 			handleMatchedFragments(inputImage, matchedJsonObjs, matchedImg, inputImageFragmentShape)
 
 	cv2.imwrite('./matched.jpg', inputImage)
@@ -172,14 +172,14 @@ def showMatches(imgName, theImageWeWillMatchName):
 
 #showMatches("costanza_orginal_dots", "costanza_changed")
 
-addImageToDB("dots")
-showMatches("costanza_orginal_dots", "dots")
+#addImageToDB("dots")
+#showMatches("costanza_orginal_dots", "dots")
 
 #addImageToDB("mountains_orginal_dots")
 #showMatches("costanza_orginal_dots", "mountains_orginal_dots")
 
-#addImageToDB("costanza_orginal_dots")
-#showMatches("mountains_orginal_dots", "costanza_orginal_dots")
+addImageToDB("costanza_orginal_dots")
+showMatches("costanza_changed", "costanza_orginal_dots")
 
 #newTest2("extreme")
 #newTest2("testImage1")
