@@ -72,6 +72,7 @@ def processImage(imgName):
 	rangeInput = [(0.,359.0), (1.,8.)]
 	img = cv2.imread("./input/"+imgName+".jpg")
 	
+
 	finalret = []
 	for shape, scaledShape, frag in gf.getTheFragments(imgName, isDebug):
 		finalret.append( handleFragment(shape, scaledShape, frag, rangeInput, imgName) )
@@ -93,6 +94,8 @@ def addImageToDB(imgName):
 
 def handleMatchedFragment(inputImage, matchedJsonObj, matchedImg, inputImageFragmentShape):
 	
+	print "matched"
+
 	matchedCoords = matchedJsonObj['coords']
 
 	col = (randint(0,255),randint(0,255),randint(0,255))
@@ -107,7 +110,6 @@ def handleMatchedFragment(inputImage, matchedJsonObj, matchedImg, inputImageFrag
 
 
 def handleMatchedFragments(inputImage, matchedJsonObjs, matchedImg, inputImageFragmentShape):
-	print "matched"
 	for matchedJsonObj in matchedJsonObjs:
 		handleMatchedFragment(inputImage, matchedJsonObj, matchedImg, inputImageFragmentShape)
 
@@ -121,7 +123,7 @@ def handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFrag
 	cv2.imshow('input', inputImage)
 	cv2.waitKey(0)
 
-def findMatchesForHash(inputImageFragmentHash, r, threshold=8):
+def findMatchesForHash(inputImageFragmentHash, r, threshold=0):
 	listKeys = r.keys()
 	ret = []
 	for akey in listKeys:
@@ -150,7 +152,9 @@ def showMatches(imgName, theImageWeWillMatchName):
 		matchedJsonObjs = findMatchesForHash(inputImageFragmentHash, r)
 
 		if matchedJsonObjs == None:
-			handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFragmentHash)
+			#handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFragmentHash)
+			print 'not matched'
+			pass
 		else:
 			handleMatchedFragments(inputImage, matchedJsonObjs, matchedImg, inputImageFragmentShape)
 
@@ -166,16 +170,23 @@ def showMatches(imgName, theImageWeWillMatchName):
 
 
 
-#showMatches("costanza_changed", "costanza_orginal_dots")
+#showMatches("costanza_orginal_dots", "costanza_changed")
 
+addImageToDB("dots")
+showMatches("costanza_orginal_dots", "dots")
 
+#addImageToDB("mountains_orginal_dots")
+#showMatches("costanza_orginal_dots", "mountains_orginal_dots")
+
+#addImageToDB("costanza_orginal_dots")
+#showMatches("mountains_orginal_dots", "costanza_orginal_dots")
 
 #newTest2("extreme")
 #newTest2("testImage1")
 #newTest2("testImage2")
 #showMatches("dots")
 #addImageToDB("costanza_orginal_dots")
-addImageToDB("costanza_changed")
+#addImageToDB("costanza_changed")
 
 
 
