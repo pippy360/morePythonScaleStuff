@@ -16,7 +16,7 @@ import json
 import jsonHandling as jh
 import os
 
-isDebug = True
+isDebug = False
 
 def getFragmentDataForRotation(fragImageWithScaleFix, originalShape, shapeWithScaleFix, rotation, imgName, area):
 
@@ -180,9 +180,14 @@ def showMatches(imgName, theImageWeWillMatchName):
 #addImageToDB("costanza_orginal_dots")
 #showMatches("costanza_changed", "costanza_orginal_dots")
 
+#addImageToDB("lennaWithGreenDotsInTriangle3")
+#showMatches("lennaWithGreenDotsInTriangle", "lennaWithGreenDotsInTriangle3")
 
-addImageToDB("lennaWithGreenDotsInTriangle3")
-showMatches("lennaWithGreenDotsInTriangle", "lennaWithGreenDotsInTriangle3")
+#showMatches("lennaWithGreenDotsInTriangle1", "lennaWithGreenDotsInTriangle3")
+
+showMatches("lennaWithGreenDotsInTriangle2", "lennaWithGreenDotsInTriangle3")
+
+#showMatches("costanza_orginal_dots", "lennaWithGreenDotsInTriangle3")
 
 
 #showMatches("lennaWithGreenDotsInTriangle", "lennaWithGreenDotsInTriangle3")
