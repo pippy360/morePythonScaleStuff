@@ -121,7 +121,7 @@ def handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFrag
 	cv2.imshow('input', inputImage)
 	cv2.waitKey(0)
 
-def findMatchesForHash(inputImageFragmentHash, r, threshold=4):
+def findMatchesForHash(inputImageFragmentHash, r, threshold=8):
 	listKeys = r.keys()
 	ret = []
 	for akey in listKeys:
@@ -183,6 +183,9 @@ def showMatches(imgName, theImageWeWillMatchName):
 
 addImageToDB("lennaWithGreenDotsInTriangle3")
 showMatches("lennaWithGreenDotsInTriangle", "lennaWithGreenDotsInTriangle3")
+
+
+#showMatches("lennaWithGreenDotsInTriangle", "lennaWithGreenDotsInTriangle3")
 
 #newTest2("extreme")
 #newTest2("testImage1")

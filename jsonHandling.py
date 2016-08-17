@@ -32,8 +32,8 @@ def getTheJsonString(imgName, hash1, area, tri):
 	xCoords = []
 	yCoords = []
 	for coord in tri:
-		xCoords.append(str(coord[0]))
-		yCoords.append(str(coord[1]))
+		xCoords.append( str(int(coord[0])) )
+		yCoords.append( str(int(coord[1])) )
 
 	tempString =  '{ "imageName" : "'+imgName+\
 				'", "hash":"' + str(hash1) + \

@@ -74,11 +74,11 @@ def fitFragTightToImage(shape, frag):
 
 	frag = BIO.cropImageAroundCenter(frag, s_w, s_h)
 
-	return shape, frag	
+	return shape, frag
 
 def cutOutTheFrag(shape, img):
 	#the shape is the position of the fragment!!!
-	antiAliasing = 8
+	antiAliasing = 1
 	frag = img
 
 	shape, frag = BIO.cutAShapeWithImageCoordsWithAA(shape, img, antiAliasing)

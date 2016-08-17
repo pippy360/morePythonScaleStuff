@@ -13,11 +13,17 @@ import fragProcessing as fs
 
 
 def containsNoPoints(tri, points):
+	count = 0
+	threshold = 7
 	for pt in points:
 		if BSO.isPointInTriangle(pt, tri):
-			return False
+			count += 1
+			#return True
 
-	return True
+	if count == threshold:
+		return True
+
+	return False
 	
 
 def isGoodFrag(tri):
@@ -28,7 +34,7 @@ def isGoodFrag(tri):
 	dist2 = BSO.dist(pt2, pt3)
 	dist3 = BSO.dist(pt3, pt1)
 	mult = 2
-	minArea = 100
+	minArea = 10
 	if dist1 > (mult*dist2) or dist2 > (mult*dist1):
 		return False
 	
@@ -48,8 +54,8 @@ def isGoodFrag(tri):
 #	if float(dist3)*nextMult > dist1 + dist2:
 #		return False
 #	
-	if BSO.getAreaOfTriangle(tri) < minArea:
-		return False
+#	if BSO.getAreaOfTriangle(tri) < minArea:
+#		return False
 #
 	return True
 
@@ -134,9 +140,7 @@ def getAllTheFragments_justPoints(imgName, isDebug):
 
 	img = cv2.imread("./input/"+imgName+".jpg")
 	d.drawLinesColourAlsoWidth(points, img, BIO.g_green, 1)
-	cv2.imshow('s', img)
-	cv2.waitKey()
-
+	
 	frags = fromPointsToFramenets_justTriangles(points, imgName, isDebug)
 	return frags
 
