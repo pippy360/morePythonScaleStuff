@@ -124,6 +124,27 @@ def cropImageAroundShape(shape, frag):
 
 	return shape, frag
 
+def cropImageAroundCenter_ws(smallImage, width, height):
+	smaHeight, smaWidth, channels = smallImage.shape
+	if smaWidth > width:
+		segWidth = width
+	else:
+		segWidth = smaWidth
+
+	if smaHeight > height:
+		segHeight = height
+	else:
+		segHeight = smaHeight
+
+	imageBig = np.zeros((height,width,3), dtype=np.uint8)
+	bigHeight, bigWidth, channels = imageBig.shape
+	posX = ((bigWidth/2) - (segWidth/2))
+	posY = ((height/2) - (segHeight/2))
+
+	smallPosX = (smaWidth/2) - (segWidth/2)
+	smallPosY = (smaHeight/2) - (segHeight/2)
+	imageBig[posY:(posY+segHeight), posX:(segWidth+posX)] = smallImage[0:(segHeight), 0:(segWidth)]
+	return imageBig
 
 def cropImageAroundCenter(smallImage, width, height):
 	smaHeight, smaWidth, channels = smallImage.shape
@@ -146,6 +167,7 @@ def cropImageAroundCenter(smallImage, width, height):
 	smallPosY = (smaHeight/2) - (segHeight/2)
 	imageBig[posY:(posY+segHeight), posX:(segWidth+posX)] = smallImage[smallPosY:(smallPosY+segHeight), smallPosX:(smallPosX+segWidth)]
 	return imageBig
+
 
 def scaleImgInPlace(img, scale):
 	height, width, channels = img.shape
@@ -179,6 +201,20 @@ def rotateAndScaleByNumbers(shape, img, angle, scale):
 
 	return res
 
+def rotateAndScaleByNumbers_weird_simple_one(img, angle, scale):
+	res = img
+
+	print 'shape of the first res'
+	print img.shape
+
+	
+	res = rotateImg(res, angle)
+	res = scaleImgInPlace(res, scale)
+
+	res = rotateImg(res, -angle)
+
+	return res, None
+
 def scaleImg_replacement(shape, img, scale):
 	height, width, channels = img.shape
 	#always do our weird scale
@@ -188,4 +224,16 @@ def scaleImg_replacement(shape, img, scale):
 	return cropImageAroundShape(newShape, resizeImg)
 
 
+def scaleImgInPlace(img, scale):
+	height, width, channels = img.shape
+	#always do our weird scale
+	normalisedScale = turnXIntoSqrtX(scale)
+	resizeImg = cv2.resize(img,None,fx=normalisedScale[0], fy=normalisedScale[1], interpolation = cv2.INTER_CUBIC)
+	return cropImageAroundCenter(resizeImg, width, height)
 
+def scaleImgInPlace_ws(img, scale):
+	height, width, channels = img.shape
+	#always do our weird scale
+	normalisedScale = turnXIntoSqrtX(scale)
+	resizeImg = cv2.resize(img,None,fx=normalisedScale[0], fy=normalisedScale[1], interpolation = cv2.INTER_CUBIC)
+	return cropImageAroundCenter_ws(resizeImg, width, height)

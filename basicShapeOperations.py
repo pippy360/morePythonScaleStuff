@@ -7,6 +7,12 @@ def moveEachPoint(shape, d_x, d_y):
 		ret.append( (point[0]+d_x, point[1]+d_y) )
 	return ret
 
+def multEachPoint(shape, d_x, d_y):
+	ret = []
+	for point in shape:
+		ret.append( (point[0]*d_x, point[1]*d_y) )
+	return ret
+
 def _centeroidnp(arr):
     length = arr.shape[0]
     sum_x = np.sum(arr[:, 0])

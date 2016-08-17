@@ -70,7 +70,6 @@ def processImage(imgName):
 
 	rangeInput = [(0.,359.0), (1.,8.)]
 	img = cv2.imread("./input/"+imgName+".jpg")
-	
 
 	finalret = []
 	for shape, scaledShape, frag in gf.getTheFragments(imgName, isDebug):
@@ -178,8 +177,12 @@ def showMatches(imgName, theImageWeWillMatchName):
 #addImageToDB("mountains_orginal_dots")
 #showMatches("costanza_orginal_dots", "mountains_orginal_dots")
 
-addImageToDB("costanza_orginal_dots")
-showMatches("costanza_changed", "costanza_orginal_dots")
+#addImageToDB("costanza_orginal_dots")
+#showMatches("costanza_changed", "costanza_orginal_dots")
+
+
+addImageToDB("lennaWithGreenDotsInTriangle3")
+showMatches("lennaWithGreenDotsInTriangle", "lennaWithGreenDotsInTriangle3")
 
 #newTest2("extreme")
 #newTest2("testImage1")

@@ -7,6 +7,7 @@ import basicShapeOperations as BSO
 from random import randint
 import itertools
 import math
+import sys
 import fragProcessing as fs
 #####rules
 
@@ -68,10 +69,74 @@ def fromPointsToFramenets_justTriangles(points, imgName, isDebug):
 				ret.append(i)
 	return ret
 
+def fixTheRotationAndScaleOfTheImageForBrisk(img, shape):
+	#so pass in the angle and scale to use, then normalise it using a square as the fragment!
+	#hm.....how are we going to get the actual coords of those points...?
+	angle, scalar = g.getValuesToNormaliseScaleNoInputRange(shape)
+	img, changeFromCenterPosition = BIO.rotateAndScaleByNumbers_weird_simple_one(img, angle, scalar)
+	return img, angle, scalar
+
+def handleBrisk(img, imgName):
+	# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+	# Fundamental Parts
+	# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+	# alternative detectors, descriptors, matchers, parameters ==> different results
+	detector = cv2.BRISK(thresh=45, octaves=1)
+	extractor = cv2.DescriptorExtractor_create('BRISK')  # non-patented. Thank you!
+	matcher = cv2.BFMatcher(cv2.NORM_L2SQR)
+	# Detect blobs.
+
+	img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+	keypoints = detector.detect(img)
+	keypoints, obj_descriptors = extractor.compute(img, keypoints)
+
+	print 'Scene Summary  **' + str(imgName)
+	print '    {} keypoints'.format(len(keypoints))
+
+	ret = []
+	for keypoint in keypoints:
+		ret.append( (int(keypoint.pt[0]), int(keypoint.pt[1])) )
+
+	img = cv2.drawKeypoints(img, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+#	cv2.imshow('s', im_with_keypoints)
+#	cv2.waitKey()
+
+	return ret, img
+
+
+def getTheDifferenceOfTheCenterPoints(cnt_pnt, angle, scalar):
+#	points = BSO.scaleAndRotateShape([cnt_pnt], angle, scalar)
+#	pnt = points[0]
+	return (1,1)
+
 
 def getAllTheFragments_justPoints(imgName, isDebug):
 	img = cv2.imread("./input/"+imgName+".jpg")
 	points = BIO.getThePositionOfGreenPoints(img)
+
+	print 'we just finished getting the green points'
+	print points
+
+	img = cv2.imread("./input/"+imgName+".jpg")
+	imageToPassToBrisk, angle, scalar = fixTheRotationAndScaleOfTheImageForBrisk(img, points)
+
+	points, img = handleBrisk(imageToPassToBrisk, imgName)
+
+	h_d, w_d, c = img.shape
+
+	points = BSO.moveEachPoint(points, -(w_d/2), -(h_d/2))
+	points = BSO.scaleAndRotateShape(points, angle, 1/scalar)
+	points = BSO.moveEachPoint(points, (w_d/2), (h_d/2))
+
+	h, w, c = img.shape
+
+	#now translate those keypoints back
+
+	img = cv2.imread("./input/"+imgName+".jpg")
+	d.drawLinesColourAlsoWidth(points, img, BIO.g_green, 1)
+	cv2.imshow('s', img)
+	cv2.waitKey()
+
 	frags = fromPointsToFramenets_justTriangles(points, imgName, isDebug)
 	return frags
 
