@@ -10,6 +10,7 @@ import itertools
 import math
 from PIL import Image
 import imagehash as ih
+from imagehash import ImageHash
 from random import randint
 import redis
 import json	
@@ -17,6 +18,17 @@ import jsonHandling as jh
 import os
 
 isDebug = False
+
+def hex_to_hash(hexstr):
+
+	l = []
+	if len(hexstr) != 8:
+		raise ValueError('The hex string has the wrong length')
+	for i in range(4):
+		h = hexstr[i*2:i*2+2]
+		v = int("0x" + h, 16)
+		l.append([v & 2**i > 0 for i in range(8)])
+	return ImageHash(np.array(l))
 
 def getFragmentDataForRotation(fragImageWithScaleFix, originalShape, shapeWithScaleFix, rotation, imgName, area):
 
@@ -29,7 +41,7 @@ def getFragmentDataForRotation(fragImageWithScaleFix, originalShape, shapeWithSc
 	fittedShape_junk, fragImageWithScaleAndRotationFix = fp.fitFragTightToImage(shapeWithScaleFix, fragImageWithScaleAndRotationFix);
 
 	cv2.imwrite("./temp/temp2.jpg", fragImageWithScaleAndRotationFix);
-	fragHash = ih.phash(Image.open('./temp/temp2.jpg'))
+	fragHash = ih.phash(Image.open('./temp/temp2.jpg'), hash_size=6)
 	
 	if isDebug:
 		cv2.imwrite('./output_debug/'+imgName+'/frag_'+str(originalShape)+'_'+str(fragHash)+'_norm.jpg', fragImageWithScaleAndRotationFix);
@@ -121,11 +133,11 @@ def handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFrag
 	cv2.imshow('input', inputImage)
 	cv2.waitKey(0)
 
-def findMatchesForHash(inputImageFragmentHash, r, threshold=8):
+def findMatchesForHash(inputImageFragmentHash, r, threshold=1):
 	listKeys = r.keys()
 	ret = []
 	for akey in listKeys:
-		diff = ih.hex_to_hash(akey) - ih.hex_to_hash(inputImageFragmentHash)
+		diff = hex_to_hash(akey) - hex_to_hash(inputImageFragmentHash)
 		#print akey+" with diff: " + str(diff)
 		if(diff < threshold):
 			ret.extend(jh.getTheJsonObjs(akey, r))
@@ -180,12 +192,12 @@ def showMatches(imgName, theImageWeWillMatchName):
 #addImageToDB("costanza_orginal_dots")
 #showMatches("costanza_changed", "costanza_orginal_dots")
 
-#addImageToDB("lennaWithGreenDotsInTriangle3")
+addImageToDB("lennaWithGreenDotsInTriangle3")
 #showMatches("lennaWithGreenDotsInTriangle", "lennaWithGreenDotsInTriangle3")
 
-#showMatches("lennaWithGreenDotsInTriangle1", "lennaWithGreenDotsInTriangle3")
+showMatches("lennaWithGreenDotsInTriangle1", "lennaWithGreenDotsInTriangle3")
 
-showMatches("lennaWithGreenDotsInTriangle2", "lennaWithGreenDotsInTriangle3")
+#showMatches("lennaWithGreenDotsInTriangle2", "lennaWithGreenDotsInTriangle3")
 
 #showMatches("costanza_orginal_dots", "lennaWithGreenDotsInTriangle3")
 
