@@ -14,7 +14,7 @@ import fragProcessing as fs
 
 def containsNoPoints(tri, points):
 	count = 0
-	threshold = 7
+	threshold = 3
 	for pt in points:
 		if BSO.isPointInTriangle(pt, tri):
 			count += 1
@@ -71,8 +71,8 @@ def fromPointsToFramenets_justTriangles(points, imgName, isDebug):
 		if isDebug:
 			thefile.write("%s\n" % str(i))
 		if containsNoPoints(i, points):
-			if isGoodFrag(i):
-				ret.append(i)
+			#if isGoodFrag(i):
+			ret.append(i)
 	return ret
 
 def fixTheRotationAndScaleOfTheImageForBrisk(img, shape):
@@ -116,31 +116,44 @@ def getTheDifferenceOfTheCenterPoints(cnt_pnt, angle, scalar):
 	return (1,1)
 
 
+def getTheKeypoints_justPoints_inner(img):
+	img2 = img
+	img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+	ret,img = cv2.threshold(img,127,255,cv2.THRESH_BINARY)
+
+	contours, hierarchy = cv2.findContours(img,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+	
+	finCnts = []
+	area_here = 400
+	area_here_max = 600
+	for cnt in contours:
+		if cv2.contourArea(cnt) > area_here:
+			finCnts.append(cnt)
+
+	contours = finCnts
+
+	finCnts = []
+	for cnt in contours:
+		M = cv2.moments(cnt)
+		cX = int(M["m10"] / M["m00"])
+		cY = int(M["m01"] / M["m00"])
+		finCnts.append( (cX, cY) )
+
+
+	for i in range(len(contours)):
+		cv2.drawContours(img2, contours, i, (0,0,255), 1)
+		cv2.circle(img2, finCnts[i], 3, (255, 0, 0), -1)
+	
+#	cv2.imshow('t1', img2)
+#	cv2.waitKey()
+
+	print "len(contours):" + str(len(contours))
+	return finCnts
+
 def getAllTheFragments_justPoints(imgName, isDebug):
 	img = cv2.imread("./input/"+imgName+".jpg")
-	points = BIO.getThePositionOfGreenPoints(img)
+	points = getTheKeypoints_justPoints_inner(img)
 
-	print 'we just finished getting the green points'
-	print points
-
-	img = cv2.imread("./input/"+imgName+".jpg")
-	imageToPassToBrisk, angle, scalar = fixTheRotationAndScaleOfTheImageForBrisk(img, points)
-
-	points, img = handleBrisk(imageToPassToBrisk, imgName)
-
-	h_d, w_d, c = img.shape
-
-	points = BSO.moveEachPoint(points, -(w_d/2), -(h_d/2))
-	points = BSO.scaleAndRotateShape(points, angle, 1/scalar)
-	points = BSO.moveEachPoint(points, (w_d/2), (h_d/2))
-
-	h, w, c = img.shape
-
-	#now translate those keypoints back
-
-	img = cv2.imread("./input/"+imgName+".jpg")
-	d.drawLinesColourAlsoWidth(points, img, BIO.g_green, 1)
-	
 	frags = fromPointsToFramenets_justTriangles(points, imgName, isDebug)
 	return frags
 

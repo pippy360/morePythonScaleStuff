@@ -18,10 +18,31 @@ import jsonHandling as jh
 import os
 
 
+def getTheKeypoints(img):
+	img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+	ret,img = cv2.threshold(img,127,255,cv2.THRESH_BINARY)
+
+	contours, hierarchy = cv2.findContours(img,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+	
+	finCnts = []
+	area = 400
+	for cnt in contours:
+		if cv2.contourArea(cnt) > area:
+			finCnts.append(cnt)
+
+	contours = finCnts
+
+	finCnts = []
+	for cnt in contours:
+		M = cv2.moments(cnt)
+		cX = int(M["m10"] / M["m00"])
+		cY = int(M["m01"] / M["m00"])
+		finCnts.append( (cX, cY) )
 
 
-def getTheShapes():
-	pass
+	print "len(contours)"
+	print len(contours)
+	return finCnts
 
 
 
@@ -37,7 +58,7 @@ def main(imgName):
 
 
 	finCnts = []
-	area = 100
+	area = 250
 	for cnt in contours:
 		if cv2.contourArea(cnt) > area:
 			finCnts.append(cnt)
@@ -63,20 +84,20 @@ def main(imgName):
 
 
 
-imgName1 = 'lennaWithGreenDotsInTriangle.jpg'
-imgName2 = 'lennaWithGreenDotsInTriangle1.jpg'
-imgName3 = 'lennaWithGreenDotsInTriangle2.jpg'
-imgName4 = 'lennaWithGreenDotsInTriangle3.jpg'
+imgName1 = 'lenna_big1.jpg'
+imgName2 = 'lenna_big2.jpg'
+imgName3 = 'lenna_big3.jpg'
+imgName4 = 'lenna_big4.jpg'
 finImg1 = main("./input/"+ imgName1 +"")
 finImg2 = main("./input/"+ imgName2 +"")
 finImg3 = main("./input/"+ imgName3 +"")
 finImg4 = main("./input/"+ imgName4 +"")
 
-cv2.imshow('t1', finImg1)
-cv2.imshow('t2', finImg2)
-cv2.imshow('t3', finImg3)
-cv2.imshow('t4', finImg4)
-cv2.waitKey()
+cv2.imwrite('t1.jpg', finImg1)
+cv2.imwrite('t2.jpg', finImg2)
+cv2.imwrite('t3.jpg', finImg3)
+cv2.imwrite('t4.jpg', finImg4)
+#cv2.waitKey()
 
 
 

@@ -192,10 +192,13 @@ def showMatches(imgName, theImageWeWillMatchName):
 #addImageToDB("costanza_orginal_dots")
 #showMatches("costanza_changed", "costanza_orginal_dots")
 
-addImageToDB("lennaWithGreenDotsInTriangle3")
+name1 = "lenna_big2"
+name2 = "lenna_big1"
+
+addImageToDB(name1)
 #showMatches("lennaWithGreenDotsInTriangle", "lennaWithGreenDotsInTriangle3")
 
-showMatches("lennaWithGreenDotsInTriangle1", "lennaWithGreenDotsInTriangle3")
+showMatches(name2, name1)
 
 #showMatches("lennaWithGreenDotsInTriangle2", "lennaWithGreenDotsInTriangle3")
 
