@@ -21,7 +21,23 @@ import os
 g_pixelVals = [16, 124, 115, 68, 98, 176, 225, 55, 50, 53, 129, 19, 57, 160, 143, 237, 75, 164, 206, 167, 103, 140, 90, 112, 244, 240, 107, 202, 185, 72, 71, 109, 74, 183, 205, 46, 121, 180, 142, 126, 38, 247, 166, 144, 67, 134, 194, 198, 23, 186, 33, 163, 24, 117, 37, 76, 147, 47, 52, 42, 70, 108, 30, 54, 89, 59, 73, 91, 151, 6, 173, 86, 182, 178, 10, 207, 171, 13, 77, 88, 159, 125, 11, 188, 238, 41, 92, 118, 201, 132, 48, 28, 195, 17, 119, 64, 25, 45, 114, 80, 187, 105, 204, 158, 20, 169, 83, 191, 199, 234, 136, 81, 252, 141, 242, 219, 138, 161, 154, 135, 63, 153, 239, 130, 223, 249, 122, 93, 216, 127, 111, 15, 12, 8, 44, 193, 245, 0, 235, 120, 31, 165, 3, 155, 43, 26, 152, 94, 29, 232, 35, 218, 230, 233, 214, 217, 7, 156, 189, 228, 137, 209, 145, 226, 97, 215, 170, 51, 224, 100, 61, 69, 250, 4, 34, 56, 255, 60, 84, 110, 203, 222, 133, 248, 106, 212, 87, 253, 208, 101, 116, 251, 190, 99, 32, 113, 157, 27, 79, 82, 146, 149, 5, 210, 65, 22, 181, 131, 62, 36, 184, 196, 231, 192, 66, 213, 2, 254, 174, 211, 236, 229, 58, 221, 21, 150, 123, 175, 177, 179, 246, 96, 227, 1, 18, 241, 49, 128, 78, 40, 14, 162, 85, 39, 172, 104, 9, 200, 220, 139, 168, 95, 243, 197, 148, 102]
 
 def getTheKeypoints(img):
-	img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+	chan = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+	return getTheKeyPointsChan(chan)
+
+def getTheBlue(img):
+	b, g, r = cv2.split(img)
+	return getTheKeyPointsChan(b)
+
+def getTheRed(img):
+	b, g, r = cv2.split(img)
+	return getTheKeyPointsChan(r)
+
+def getTheGreen(img):
+	b, g, r = cv2.split(img)
+	return getTheKeyPointsChan(g)
+
+
+def getTheKeyPointsChan(chan):
 	ret,img = cv2.threshold(img,127,255,cv2.THRESH_BINARY)
 
 	contours, hierarchy = cv2.findContours(img,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
@@ -49,9 +65,16 @@ def getTheKeypoints(img):
 
 
 
-def main(imgName):
+def main(imgName, gaussW=1):
 	img = cv2.imread(imgName)
-	img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+
+	img = cv2.GaussianBlur(img,(gaussW,gaussW),0)
+	b, g, r = cv2.split(img)
+	cv2.imshow('s', b)
+	cv2.waitKey()
+	#img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+	img = b
+
 	ret,img = cv2.threshold(img,127,255,cv2.THRESH_BINARY)
 
 	contours, hierarchy = cv2.findContours(img,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
@@ -84,7 +107,7 @@ def main(imgName):
 	
 	return img2
 
-def recolour(imgName):
+def recolour(imgName, gaussW=41):
 	newg_pixelVals = g_pixelVals
 	div = 40
 	for i in range(len(g_pixelVals)/div):
@@ -100,8 +123,6 @@ def recolour(imgName):
 
 	print finalCount
 	print newg_pixelVals
-
-	gaussW = 41
 
 	img2 = cv2.imread(imgName)
 	img2 = cv2.GaussianBlur(img2,(gaussW,gaussW),0)
@@ -127,20 +148,26 @@ def recolour(imgName):
 	#cv2.waitKey()
 
 
-imgName1 = 'lenna_big1.jpg'
-imgName2 = 'lenna_big2.jpg'
-imgName3 = 'lenna_big3.jpg'
-imgName4 = 'lenna_big4.jpg'
+imgName1 = 'rick1.jpg'
+imgName2 = 'rick2.jpg'
+imgName3 = 'rick3.jpg'
+imgName4 = 'rick4.jpg'
 
 
-recolour("./input/"+ imgName1 +"")
-recolour("./input/"+ imgName2 +"")
-recolour("./input/"+ imgName3 +"")
-recolour("./input/"+ imgName4 +"")
+#for i in range (10):
+#	gaussW = (i*10)+1
+#	recolour("./input/"+ imgName1 +"", gaussW)
+#	recolour("./input/"+ imgName2 +"", gaussW)
+#	recolour("./input/"+ imgName3 +"", gaussW)
+#	recolour("./input/"+ imgName4 +"", gaussW)
+#
 
 
 
-#finImg1 = main("./input/"+ imgName1 +"")
+finImg1 = main("./input/"+ imgName1 +"")
+cv2.imshow('d', finImg1)
+cv2.waitKey()
+
 #finImg2 = main("./input/"+ imgName2 +"")
 #finImg3 = main("./input/"+ imgName3 +"")
 #finImg4 = main("./input/"+ imgName4 +"")
