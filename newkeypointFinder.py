@@ -101,7 +101,10 @@ def recolour(imgName):
 	print finalCount
 	print newg_pixelVals
 
+	gaussW = 41
+
 	img2 = cv2.imread(imgName)
+	img2 = cv2.GaussianBlur(img2,(gaussW,gaussW),0)
 	img  = cv2.cvtColor(img2,cv2.COLOR_BGR2GRAY)
 
 	height, width= img.shape
@@ -120,14 +123,14 @@ def recolour(imgName):
 			img2[i,j] = threeVal
 
 
-	cv2.imwrite(imgName + 'lenna_big_diff_cols.png', img2)
+	cv2.imwrite(imgName + 'blur' + str(gaussW) + '_lenna_big_diff_cols.png', img2)
 	#cv2.waitKey()
 
 
-imgName1 = 'small_lenna1.jpg'
-imgName2 = 'small_lenna2.jpg'
-imgName3 = 'small_lenna3.jpg'
-imgName4 = 'small_lenna4.jpg'
+imgName1 = 'lenna_big1.jpg'
+imgName2 = 'lenna_big2.jpg'
+imgName3 = 'lenna_big3.jpg'
+imgName4 = 'lenna_big4.jpg'
 
 
 recolour("./input/"+ imgName1 +"")
