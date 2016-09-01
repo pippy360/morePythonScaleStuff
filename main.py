@@ -170,8 +170,8 @@ def showMatches(imgName, theImageWeWillMatchName):
 			handleMatchedFragments(inputImage, matchedJsonObjs, matchedImg, inputImageFragmentShape)
 
 	cv2.imwrite('./matched.jpg', inputImage)
-	while True:
-		cv2.waitKey(0)
+	#while True:
+		#cv2.waitKey(0)
 
 
 ######################################################################################
@@ -192,12 +192,16 @@ def showMatches(imgName, theImageWeWillMatchName):
 #addImageToDB("costanza_orginal_dots")
 #showMatches("costanza_changed", "costanza_orginal_dots")
 
-name1 = "lenna_big2"
-name2 = "lenna_big1"
+name1 = "small_lenna1"
+name2 = "small_lenna2"
+name3 = 'costanza_orginal_dots'
+name4 = "costanza_changed"
 
-addImageToDB(name1)
+#addImageToDB(name1)
+#addImageToDB("costanza_changed")
 #showMatches("lennaWithGreenDotsInTriangle", "lennaWithGreenDotsInTriangle3")
 
+#showMatches(name2, name1)
 showMatches(name2, name1)
 
 #showMatches("lennaWithGreenDotsInTriangle2", "lennaWithGreenDotsInTriangle3")

@@ -66,12 +66,9 @@ def getTheKeyPointsChan(chan):
 
 
 def main(imgName, gaussW=1):
-	img = cv2.imread(imgName)
+	img = recolour(imgName, gaussW)
 
-	img = cv2.GaussianBlur(img,(gaussW,gaussW),0)
 	b, g, r = cv2.split(img)
-	cv2.imshow('s', b)
-	cv2.waitKey()
 	#img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 	img = b
 
@@ -83,7 +80,7 @@ def main(imgName, gaussW=1):
 
 
 	finCnts = []
-	area = 250
+	area = 0
 	for cnt in contours:
 		if cv2.contourArea(cnt) > area:
 			finCnts.append(cnt)
@@ -143,15 +140,21 @@ def recolour(imgName, gaussW=41):
 
 			img2[i,j] = threeVal
 
-
-	cv2.imwrite(imgName + 'blur' + str(gaussW) + '_lenna_big_diff_cols.png', img2)
+	return img2
+#	cv2.imwrite(imgName + 'blur' + str(gaussW) + '_lenna_big_diff_cols.png', img2)
 	#cv2.waitKey()
 
 
-imgName1 = 'rick1.jpg'
-imgName2 = 'rick2.jpg'
-imgName3 = 'rick3.jpg'
-imgName4 = 'rick4.jpg'
+#imgName1 = 'rick1.jpg'
+#imgName2 = 'rick2.jpg'
+#imgName3 = 'rick3.jpg'
+#imgName4 = 'rick4.jpg'
+
+imgName1 = 'small_lenna1.jpg'
+imgName2 = 'small_lenna2.jpg'
+imgName3 = 'small_lenna3.jpg'
+imgName4 = 'small_lenna4.jpg'
+
 
 
 #for i in range (10):
@@ -163,14 +166,17 @@ imgName4 = 'rick4.jpg'
 #
 
 
-
-finImg1 = main("./input/"+ imgName1 +"")
-cv2.imshow('d', finImg1)
+g_gau = 11
+finImg1 = main("./input/"+ imgName1, g_gau)
+finImg2 = main("./input/"+ imgName2, g_gau)
+finImg3 = main("./input/"+ imgName3, g_gau)
+finImg4 = main("./input/"+ imgName4, g_gau)
+cv2.imshow('d1', finImg1)
+cv2.imshow('d2', finImg2)
+cv2.imshow('d3', finImg3)
+cv2.imshow('d4', finImg4)
 cv2.waitKey()
 
-#finImg2 = main("./input/"+ imgName2 +"")
-#finImg3 = main("./input/"+ imgName3 +"")
-#finImg4 = main("./input/"+ imgName4 +"")
 #
 #cv2.imwrite('t1.jpg', finImg1)
 #cv2.imwrite('t2.jpg', finImg2)
