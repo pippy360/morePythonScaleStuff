@@ -121,7 +121,7 @@ def handleMatchedFragment(inputImage, matchedJsonObj, matchedImg, inputImageFrag
 
 def handleMatchedFragments(inputImage, matchedJsonObjs, matchedImg, inputImageFragmentShape):
 	for matchedJsonObj in matchedJsonObjs:
-		handleMatchedFragment(inputImage, matchedJsonObj, matchedImg, inputImageFragmentShape)
+		handleMatchedFragment(inputImage, matchedJsonObj[1], matchedImg, matchedJsonObj[0])
 
 
 def handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFragmentHash):
@@ -133,6 +133,18 @@ def handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFrag
 	cv2.imshow('input', inputImage)
 	cv2.waitKey(0)
 
+def parseResults(jsonObjs):
+
+	matchedImages = {}
+	for jsonO in jsonObjs:
+		imgName = jsonO['imageName']
+		if matchedImages.get(imgName) == None:
+			matchedImages[imgName] = []
+
+		matchedImages[imgName].append(jsonO)
+
+	return matchedImages
+
 def findMatchesForHash(inputImageFragmentHash, r, threshold=1):
 	listKeys = r.keys()
 	ret = []
@@ -142,24 +154,54 @@ def findMatchesForHash(inputImageFragmentHash, r, threshold=1):
 		if(diff < threshold):
 			ret.extend(jh.getTheJsonObjs(akey, r))
 
+	ret = parseResults(ret)
+	#x = ret['somefafdsaf']
 	if ret == []:
+		return None
+	elif ret == {}:
 		return None
 	else:
 		return ret
 
-def showMatches(imgName, theImageWeWillMatchName):
+def continueParsing(tempList):
+	ret = {}
+	for borUp in tempList:
+		shapeOfInputFrag = borUp[0] 
+		bor = borUp[1]
+		for key, value in bor.iteritems():
+			if ret.get(key) == None:
+				ret[key] = []
+
+			for val in value:
+				ret[key].append( (shapeOfInputFrag, val) )
+
+	return ret
+
+def showMatches(imgName):
 	inputImageValues = processImage(imgName)
 
 	r = redis.StrictRedis(host='localhost', port=6379, db=0)
 	inputImage = cv2.imread("./input/"+imgName+".jpg")
 	
-	matchedImg = cv2.imread("./input/"+ theImageWeWillMatchName +".jpg")
 	
+
+	tempList = []
 	for inputImageVal in inputImageValues:
 
 		inputImageFragmentHash = inputImageVal[0][0]
 		inputImageFragmentShape = inputImageVal[0][2]
 		matchedJsonObjs = findMatchesForHash(inputImageFragmentHash, r)
+		if matchedJsonObjs != None:
+			tempList.append( (inputImageFragmentShape, matchedJsonObjs) )
+
+	tempList = continueParsing(tempList)
+
+	for key, matchedJsonObjs in tempList.iteritems():
+		print str(key) + ' has ' + str( len(matchedJsonObjs) ) + ' matches'
+
+
+	for key, matchedJsonObjs in tempList.iteritems():
+		matchedImg = cv2.imread("./input/"+ key +".jpg")
 
 		if matchedJsonObjs == None:
 			#handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFragmentHash)
@@ -167,7 +209,7 @@ def showMatches(imgName, theImageWeWillMatchName):
 			pass
 		else:
 			print 'matched...'
-			handleMatchedFragments(inputImage, matchedJsonObjs, matchedImg, inputImageFragmentShape)
+			handleMatchedFragments(inputImage, matchedJsonObjs, matchedImg, None)
 
 	cv2.imwrite('./matched.jpg', inputImage)
 	#while True:
@@ -202,7 +244,7 @@ name4 = "costanza_changed"
 #showMatches("lennaWithGreenDotsInTriangle", "lennaWithGreenDotsInTriangle3")
 
 #showMatches(name2, name1)
-showMatches(name2, name1)
+showMatches(name2)
 
 #showMatches("lennaWithGreenDotsInTriangle2", "lennaWithGreenDotsInTriangle3")
 

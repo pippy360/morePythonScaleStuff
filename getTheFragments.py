@@ -198,9 +198,6 @@ def recolour(img, gaussW=41):
 		newg_pixelVals[ len(g_pixelVals) -1 - i ] = newg_pixelVals[ finalCount ]
 
 
-	print finalCount
-	print newg_pixelVals
-
 	img2 = img
 	img2 = cv2.GaussianBlur(img2,(gaussW,gaussW),0)
 	img  = cv2.cvtColor(img2,cv2.COLOR_BGR2GRAY)
