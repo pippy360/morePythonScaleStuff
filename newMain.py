@@ -1,6 +1,7 @@
 import imagehash as ih
 import basicShapeOperations as BSO
 import basicImageOperations as BIO
+import fragProcessing as fp
 
 
 DEBUG_DATA = {
@@ -22,8 +23,9 @@ def getTheTriangles(keyPoints):
 def getTheFragments(img, triangles):
 	import fragProcessing as fs
 	for shape in triangles:
-		scaledShape, xfrag = fs.cutOutTheFrag(shape, img)
-		yield xfrag, scaledShape
+		innerShape, fragmentImage = fs.cutOutTheFrag(shape, img)
+		yield { 'img':fragmentImage, 'changedShape':innerShape, 'orginalShape':shape }
+
 
 def _weNeedToAdd180(rot, shape):
 	shape = BSO.rotateShape(shape, rot)
@@ -40,7 +42,6 @@ def _weNeedToAdd180(rot, shape):
 
 
 def getNormalisedFragmentForRotation(fragImageWithScaleFix, shapeWithScaleFix, rotation):
-	import fragProcessing as fp
 
 	if _weNeedToAdd180(rotation, shapeWithScaleFix):
 		rotation = rotation + 180
@@ -48,75 +49,84 @@ def getNormalisedFragmentForRotation(fragImageWithScaleFix, shapeWithScaleFix, r
 	shapeWithScaleAndRotationFix = BSO.rotateShape(shapeWithScaleFix, rotation)
 	fragImageWithScaleAndRotationFix = BIO.rotateImg(fragImageWithScaleFix, rotation)
 
-	#take the fiting out of this function!!!
-	fittedShape, fragImageWithScaleAndRotationFix = fp.fitFragTightToImage(shapeWithScaleAndRotationFix, fragImageWithScaleAndRotationFix);
-	return fragImageWithScaleAndRotationFix, fittedShape
+	return fragImageWithScaleAndRotationFix, shapeWithScaleAndRotationFix
 
 
 def normaliseRotationForSingleFrag(shapeWithScaleFix, fragImageWithScaleFix):
-	rotations = BSO.getFlatRotations(shapeWithScaleFix)#TODO: explain this function
+	#returns the 3 rotation required to make the triangle sit on it's sides
+	rotations = BSO.getFlatRotations(shapeWithScaleFix)
 
 	ret = []
 	for rotation in rotations:
 		tempFrag, tempShape = getNormalisedFragmentForRotation(fragImageWithScaleFix, shapeWithScaleFix, rotation)
-		ret.append( tempFrag )
+		ret.append( {'img':tempFrag, 'changedShape':tempShape} )
 
 	return ret
 
-
-#FIXME: remove this
 def _rotateAndScaleFragAndShape(shape, frag, angle, scalar):
 	resShape = BSO.scaleAndRotateShape(shape, angle, scalar)
 	fragImageWithScaleFix = BIO.rotateAndScaleByNumbers(shape, frag, angle, scalar)
 	return resShape, fragImageWithScaleFix
 
 
-def normaliseScaleForSingleFrag(inputFrag, inputShape):
+def normaliseScaleForSingleFrag(inputFrag, changedShape):
 	import getMinimumScaleForShape as g
-	angle, scalar = g.getValuesToNormaliseScale(inputShape)
-	return _rotateAndScaleFragAndShape(inputShape, inputFrag, angle, scalar)
+	angle, scalar = g.getValuesToNormaliseScale(changedShape)
+	return _rotateAndScaleFragAndShape(changedShape, inputFrag, angle, scalar)
 
 
-def normaliseScaleAndRotationForSingleFrag(inputFrag, inputShape):
-	shapeWithScaleFix, fragImageWithScaleFix = normaliseScaleForSingleFrag(inputFrag, inputShape)
-	theThreeTriangles = normaliseRotationForSingleFrag(shapeWithScaleFix, fragImageWithScaleFix)
-	return theThreeTriangles
+def normaliseScaleAndRotationForSingleFrag(inputFrag, changedShape):
+	shapeWithScaleFix, fragImageWithScaleFix = normaliseScaleForSingleFrag(inputFrag, changedShape)
+	theThreeTrianglesAndShapes = normaliseRotationForSingleFrag(shapeWithScaleFix, fragImageWithScaleFix)
+	return theThreeTrianglesAndShapes
 
-
-def normaliseScaleAndRotationForAllFrags(inputFragmentsAndShapes):
+def fitTrianglesIntoImage(theThreeTrianglesAndShapes):
 	ret = []
-	for inputFrag, inputShape in inputFragmentsAndShapes:
-		t1 = normaliseScaleAndRotationForSingleFrag(inputFrag, inputShape)
-		for tri in t1:
-			ret.append(tri)
+	for tempObj in theThreeTrianglesAndShapes:
+		fragImageWithScaleAndRotationFix, shapeWithScaleAndRotationFix = tempObj['img'], tempObj['changedShape']
+		fittedShape, fittedImage = fp.fitFragTightToImage(shapeWithScaleAndRotationFix, fragImageWithScaleAndRotationFix);
+		ret.append( (fittedImage, fittedShape) )
 
 	return ret
 
+def normaliseScaleAndRotationForAllFrags(inputFragmentsAndShapes):
+	for tempObj in inputFragmentsAndShapes:
+		inputFrag, changedShape, orginalShape = tempObj['img'], tempObj['changedShape'], tempObj['orginalShape']
+		theThreeTrianglesAndShapes = normaliseScaleAndRotationForSingleFrag(inputFrag, changedShape)
+		
+		fittedImagesAndShapes = fitTrianglesIntoImage(theThreeTrianglesAndShapes)
+		for triangleObj in theThreeTrianglesAndShapes:
+			triangleObj['orginalShape'] = orginalShape
+			yield triangleObj	
 
-def getHashForSingleFragment(fragment, hash_size=6):
+
+def getHashForSingleFragment(inputFrag, changedShape, orginalShape, hash_size=6):
 	from PIL import Image
-	pythonImageObj = Image.fromarray(fragment)
+	pythonImageObj = Image.fromarray(inputFrag)
 	return ih.phash(pythonImageObj, hash_size)
 
 
 #fragmentImages: array of the actual pixel matrix of a fragment  
 #fragmentTriangles: the triangles/shapes associated with each fragment...
 #...(we used this to know which part of the fragmentImage actually contains image data)
-def	getHashsForAllFragments(normalisedFragments):
-	for fragment in normalisedFragments:
-		yield getHashForSingleFragment(fragment)
+def	getHashsForAllFragments(normalisedFragmentObjs):
+	for tempObj in normalisedFragmentObjs:
+			inputFrag, changedShape, orginalShape = tempObj['img'], tempObj['changedShape'], tempObj['orginalShape']
+			yield getHashForSingleFragment(inputFrag, changedShape, orginalShape)
 
 
-def fragmentToJsonObjects(fragment, triangle):
+def fragmentToJsonObjects(inHash, triangle):
 	return {
-		'img': fragment, 
+		'hash': str(inHash), 
 		'shape': triangle
 	}
 
 
-def allFragmentsToJsonObjects(fragmentHashs):
-	for fragment, triangle in fragmentHashs:
-		yield fragmentToJsonObjects(fragment, triangle)
+def allFragmentsToJsonObjects(fragmentHashs, normalisedFragmentObjs):
+	from itertools import izip
+	for inHash, tempObj in izip(fragmentHashs, normalisedFragmentObjs):
+		inputFrag, changedShape, orginalShape = tempObj['img'], tempObj['changedShape'], tempObj['orginalShape']	
+		yield fragmentToJsonObjects(inHash, orginalShape)
 
 
 ##################################################
@@ -136,30 +146,15 @@ def getAllTheHashesForImage(inputImage):
 
 
 	#turn the triangles into fragments of the image
-	fragementsAndShape = getTheFragments(inputImage, triangles)
+	fragementsAndShapes = getTheFragments(inputImage, triangles)
 
 
 	#normalise the scale and fragments
-	normalisedFragments = normaliseScaleAndRotationForAllFrags(fragementsAndShape)
-
+	normalisedFragmentObjs = normaliseScaleAndRotationForAllFrags(fragementsAndShapes)
 
 	#hash the fragments 
-	fragmentHashs = getHashsForAllFragments(normalisedFragments)
+	fragmentHashs = getHashsForAllFragments(normalisedFragmentObjs)
 
-	for frag in fragmentHashs:
-		print frag
-
-	packedData = zip(fragmentHashs, normalisedFragments)#FIXME:
-
-	fragmentHashs_jsonObjs = allFragmentsToJsonObjects(packedData)
+	fragmentHashs_jsonObjs = allFragmentsToJsonObjects(fragmentHashs, normalisedFragmentObjs)
 
 	return fragmentHashs_jsonObjs
-
-
-
-
-import cv2
-img = cv2.imread("./input/small_lenna1.jpg")
-temp = getAllTheHashesForImage(img)
-#for x in temp:
-#	print str(x)
