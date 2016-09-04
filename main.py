@@ -111,12 +111,12 @@ def handleMatchedFragment(inputImage, matchedJsonObj, matchedImg, inputImageFrag
 	col = (randint(0,255),randint(0,255),randint(0,255))
 
 	d.drawLinesColourAlsoWidth(matchedCoords, matchedImg, col, 1)
-	cv2.imshow('found', matchedImg)
+	#cv2.imshow('found', matchedImg)
 	
 	d.drawLinesColourAlsoWidth(inputImageFragmentShape, inputImage, col, 1)
-	cv2.imshow('input', inputImage)
+	#cv2.imshow('input', inputImage)
 
-	cv2.waitKey(0)
+	#cv2.waitKey(0)
 
 
 def handleMatchedFragments(inputImage, matchedJsonObjs, matchedImg, inputImageFragmentShape):
