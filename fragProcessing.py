@@ -87,17 +87,5 @@ def cutOutTheFrag(shape, img):
 
 	return shape, frag
 
-def weNeedToAdd180(rot, shape):
-	resShape = BSO.rotateShape(shape, rot)
-	resShape = BSO.centerShapeUsingPoint(resShape, (0,0))
-	count = 0
-	for pt in resShape:
-		if pt[1] < 0:
-			count = count+1
-
-	if count > 1:
-		return True
-	else: 
-		return False
 
 

@@ -111,60 +111,15 @@ def getTriangles(points):
 
 	return retTris
 
-def fromPointsToFramenets_justTriangles(points, imgName, isDebug):
+def fromPointsToFramenets_justTriangles(points):
 	ret = []
 	x = getTriangles(points)
 
-	
-	if isDebug:
-		thefile = open('./output_debug/'+imgName+'/FULL_points_output_test.txt', 'w')
 	for i in x:
-		if isDebug:
-			thefile.write("%s\n" % str(i))
 		if containsNoPoints(i, points):
 			#if isGoodFrag(i):
 			ret.append(i)
 	return ret
-
-def fixTheRotationAndScaleOfTheImageForBrisk(img, shape):
-	#so pass in the angle and scale to use, then normalise it using a square as the fragment!
-	#hm.....how are we going to get the actual coords of those points...?
-	angle, scalar = g.getValuesToNormaliseScaleNoInputRange(shape)
-	img, changeFromCenterPosition = BIO.rotateAndScaleByNumbers_weird_simple_one(img, angle, scalar)
-	return img, angle, scalar
-
-def handleBrisk(img, imgName):
-	# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-	# Fundamental Parts
-	# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-	# alternative detectors, descriptors, matchers, parameters ==> different results
-	detector = cv2.BRISK(thresh=45, octaves=1)
-	extractor = cv2.DescriptorExtractor_create('BRISK')  # non-patented. Thank you!
-	matcher = cv2.BFMatcher(cv2.NORM_L2SQR)
-	# Detect blobs.
-
-	img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-	keypoints = detector.detect(img)
-	keypoints, obj_descriptors = extractor.compute(img, keypoints)
-
-	print 'Scene Summary  **' + str(imgName)
-	print '    {} keypoints'.format(len(keypoints))
-
-	ret = []
-	for keypoint in keypoints:
-		ret.append( (int(keypoint.pt[0]), int(keypoint.pt[1])) )
-
-	img = cv2.drawKeypoints(img, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-#	cv2.imshow('s', im_with_keypoints)
-#	cv2.waitKey()
-
-	return ret, img
-
-
-def getTheDifferenceOfTheCenterPoints(cnt_pnt, angle, scalar):
-#	points = BSO.scaleAndRotateShape([cnt_pnt], angle, scalar)
-#	pnt = points[0]
-	return (1,1)
 
 
 def getTheKeypoints_justPoints_inner(img):
@@ -272,44 +227,13 @@ def recolour(img, gaussW=41):
 #	cv2.imwrite(imgName + 'blur' + str(gaussW) + '_lenna_big_diff_cols.png', img2)
 	#cv2.waitKey()
 
-def getAllTheFragments_justPoints(imgName, isDebug):
-	img = cv2.imread("./input/"+imgName+".jpg")
+def getTheKeyPoints(img):
+	return getTheKeypoints_justPoints_inner(img)
+
+def getTheTriangles(points):
+	return fromPointsToFramenets_justTriangles(points)
+
+def getTheFragments(img):
 	points = getTheKeypoints_justPoints_inner(img)
-
-	frags = fromPointsToFramenets_justTriangles(points, imgName, isDebug)
-	return frags
-
-
-def getTheFragments(imgName, isDebug):
-	time1 = time.time()
-	############just take the first frag
-	ret = getAllTheFragments_justPoints(imgName, isDebug)
-
-	if isDebug:
-		thefile = open('./output_debug/'+imgName+'/FILTERED_points_output_test.txt', 'w')
-		for item in ret:
-		  thefile.write("%s\n" % str(item))
-
-	print "len(ret): " + str(len(ret))
-	finalRet = []
-	img = cv2.imread("./input/"+imgName+".jpg")
-
-	########draw the triangles
-	
-	for tempShape in ret:
-		col = (randint(0,255),randint(0,255),randint(0,255))
-		d.drawLinesColourAlsoWidth(tempShape, img, col, 1)
-	cv2.imwrite('temp/temp3.jpg', img)
-	########
-	img = cv2.imread("./input/"+imgName+".jpg")
-	time2 = time.time()
-	print '%s function took %0.3f ms' % ("getTheFrags", (time2-time1)*1000.0)
-
-	for tempShape in ret:
-		shape = []
-		for p in tempShape:
-			shape.append(p)
-		####################################
-		scaledShape, xfrag = fs.cutOutTheFrag(shape, img)
-
-		yield shape, scaledShape, xfrag
+	ret = fromPointsToFramenets_justTriangles(points)
+	return ret

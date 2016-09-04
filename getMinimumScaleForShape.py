@@ -167,7 +167,7 @@ def getValuesToNormaliseScale1(shape):
 	#return the local minimum
 	return (vals[0][2][1], vals[0][1][1])
 
-def getValuesToNormaliseScale2(shape, inputRange):
+def getValuesToNormaliseScale2(shape, inputRange=[(0.,359.0), (1.,8.)]):
 	shape = BSO.centerShapeUsingPoint(shape, (0,0))
 	bounds = [(low, high) for low, high in zip(inputRange[0], inputRange[1])]
 	minimizer_kwargs = {"args": shape, "bounds": bounds}
@@ -178,7 +178,7 @@ def getValuesToNormaliseScale2(shape, inputRange):
 	return val['x'][0], scale 
 
 
-def getValuesToNormaliseScale(shape, inputRange):
+def getValuesToNormaliseScale(shape, inputRange=[(0.,359.0), (1.,8.)]):
 	shape = BSO.centerShapeUsingPoint(shape, (0,0))
 	bounds = inputRange
 	
