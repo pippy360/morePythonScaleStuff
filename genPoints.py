@@ -61,19 +61,38 @@ def showTC(pts):
 
 	acceleration = t_component * tangent + n_component * normal
 
+
+
+
 def curvature_splines(pts, error=0.1):
-	t = np.arange(0,1.1,.1)
 	x = pts[:, 0]
 	y = pts[:, 1]
 	tck,u = interpolate.splprep([x,y],s=0)
-	unew = np.arange(0,1.01,0.01)
-	out = interpolate.splev(unew,tck)
+	unew = np.arange(0,1.01,0.02)
+	b, f, s = interpolate.splev(unew,tck), interpolate.splev(unew,tck, der=1),interpolate.splev(unew,tck, der=2)
+
 	plt.figure()
-	plt.plot(x,y,'x',out[0],out[1],x,y,'b')
+	plt.plot( b[0], b[1],'b')
 	plt.legend(['Linear','Cubic Spline'])
 	#plt.axis([-1.05,1.05,-1.05,1.05])
 	plt.title('Spline of parametrically-defined curve')
 	plt.show()
+
+	ret = []
+	for i in range(len(b[0])):
+		curvature = abs(f[0][i]* s[1][i] - f[1][i]* s[0][i]) / np.power(f[0][i]** 2 + f[1][i]** 2, 3 / 2)
+		ret.append(curvature)
+
+	return ret
+
+
+#	return out
+#	plt.figure()
+#	plt.plot(x,y,'x',out[0],out[1],x,y,'b')
+#	plt.legend(['Linear','Cubic Spline'])
+#	#plt.axis([-1.05,1.05,-1.05,1.05])
+#	plt.title('Spline of parametrically-defined curve')
+#	plt.show()
 
 #pts_g_1 = np.array([ [0,0], [5,0], [5,5] ])
 #showTheCircle(pts_g_1)
@@ -90,15 +109,19 @@ def curvature_splines(pts, error=0.1):
 pts_g_2_1 = PointsInCircum(5,16)
 pts_g_2_2 = PointsInCircum(5,32)
 
-#temp = []
-#for i in range(len(pts_g_2_1)/2):
-#	temp.append(pts_g_2_1[i])
+temp = []
+for i in range(len(pts_g_2_1)/2):
+	temp.append(pts_g_2_1[i])
 
-#for i in range(len(pts_g_2_2)/2):
-#	temp.append(pts_g_2_2[(len(pts_g_2_2)/2)+i])
+for i in range(len(pts_g_2_2)/2):
+	temp.append(pts_g_2_2[(len(pts_g_2_2)/2)+i])
 
 
-pts = PointsInCircum(5,10)
+#pts = PointsInCircum(5,10)
+pts = PointsInCircum(200,10)
+pts.extend( PointsInCircum(100,10) )
+#pts = temp
+print 'curvature_splines(np.array(pts))'
 print curvature_splines(np.array(pts))
 #print curvature_splines(a)
 
