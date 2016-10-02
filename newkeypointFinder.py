@@ -8,6 +8,7 @@ import fragProcessing as fp
 import getTheFragments as gf
 import itertools
 import math
+from math import atan2
 from PIL import Image
 import imagehash as ih
 from imagehash import ImageHash
@@ -67,6 +68,9 @@ def getTheKeyPointsChan(chan):
 
 def main(imgName, gaussW=1):
 	img = recolour(imgName, gaussW)
+
+	cv2.imshow('her', img)
+	cv2.waitKey()
 
 	b, g, r = cv2.split(img)
 	#img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -166,16 +170,16 @@ imgName4 = 'small_lenna4.jpg'
 #
 
 
-g_gau = 11
-finImg1 = main("./input/"+ imgName1, g_gau)
-finImg2 = main("./input/"+ imgName2, g_gau)
-finImg3 = main("./input/"+ imgName3, g_gau)
-finImg4 = main("./input/"+ imgName4, g_gau)
-cv2.imshow('d1', finImg1)
-cv2.imshow('d2', finImg2)
-cv2.imshow('d3', finImg3)
-cv2.imshow('d4', finImg4)
-cv2.waitKey()
+#g_gau = 11
+#finImg1 = main("./input/"+ imgName1, g_gau)
+#finImg2 = main("./input/"+ imgName2, g_gau)
+#finImg3 = main("./input/"+ imgName3, g_gau)
+#finImg4 = main("./input/"+ imgName4, g_gau)
+#cv2.imshow('d1', finImg1)
+#cv2.imshow('d2', finImg2)
+#cv2.imshow('d3', finImg3)
+#cv2.imshow('d4', finImg4)
+#cv2.waitKey()
 
 #
 #cv2.imwrite('t1.jpg', finImg1)
@@ -184,6 +188,147 @@ cv2.waitKey()
 #cv2.imwrite('t4.jpg', finImg4)
 #cv2.waitKey()
 
+
+def getTheColourForPoint(prevCoord, currCoord, nextCoord):
+	changeInVel2 = changeInVel(prevCoord, currCoord, nextCoord)
+	print changeInVel2
+
+	xCoord, yCoord = currCoord[0], currCoord[1]
+	colour = (255,255,255)
+	if changeInVel2 > 6:
+		colour = (100,100,255)
+	elif changeInVel2 > 2:
+		colour = (50,50,123)
+	else:
+		colour = (10,10,90)
+
+	return colour
+
+
+def getTheColouredImg(inputImg, finPoints):
+	height, width, chan = inputImg.shape
+	blank_image = np.zeros((height,width,3), np.uint8)
+
+	for points in finPoints:
+		fullLen = len(points)
+		for i in range(fullLen-2):
+			prevCoord = points[fullLen-1] if (i == 0) else points[i-1]
+			currCoord = points[i]
+			nextCoord = points[i+2]
+
+			colour = getTheColourForPoint(prevCoord, currCoord, nextCoord)
+			changeInVel2 = changeInVel(prevCoord, currCoord, nextCoord)
+			if changeInVel2 > 6:
+				cv2.circle(blank_image, (nextCoord[0],nextCoord[1]), 10, (0,255,0))
+
+			pnt = blank_image[currCoord[1]][currCoord[0]]
+			giveColour(pnt, colour)
+			cv2.line(blank_image, (prevCoord[0],prevCoord[1]), (currCoord[0],currCoord[1]), colour)
+
+	return blank_image
+
+def getColourForEachPoint():
+	pass
+
+
+def fromContourToPoints(cnt):
+	ret = []
+	for pnt in cnt:
+		pnt = pnt[0]
+		ret.append(pnt)
+
+	return ret
+
+
+def getApproxy(cnts):
+	ret = []
+	for cnt in cnts:
+		epsilon = 0.005*cv2.arcLength(cnt,True)
+		cnt = cv2.approxPolyDP(cnt,epsilon,True)
+		ret.append(cnt)
+
+	return ret
+
+def approx(imgName):
+	
+	img = cv2.imread(imgName)
+	imgCopy = img.copy()
+	#img = cv2.Canny(img,100,200)
+
+	img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+	junk,img = cv2.threshold(img,127,255,0)
+	img = (255-img)
+	contours, junk = cv2.findContours(img,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+
+	img = imgCopy
+	for cnt in contours:
+		epsilon = 0.005*cv2.arcLength(cnt,True)
+		cnt = cv2.approxPolyDP(cnt,epsilon,True)
+		cv2.drawContours(img, [cnt], -1, (0, 255, 0), 2)
+
+	cv2.imshow('d', img)
+	cv2.waitKey()
+
+
+
+def main2(imgName):
+	img = cv2.imread(imgName)
+	imgCopy = img.copy()
+	#img = cv2.Canny(img,100,200)
+
+	img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
+	junk,img = cv2.threshold(img,127,255,0)
+	img = (255-img)
+	contours, junk = cv2.findContours(img,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+	contours = getApproxy(contours)
+	img = imgCopy
+
+	#cv2.drawContours(img, contours, -1, (0,255,0), 3)
+
+	print len("contours")
+	print len(img[0])
+
+	finPoints = []
+	for cnt in contours:
+		finPoints.append(fromContourToPoints(cnt))
+
+	img = getTheColouredImg(img, finPoints)
+
+	cv2.imshow('img', img)
+	cv2.waitKey()
+
+
+def getChangeDirection(vec1, vec2):
+	angle = atan2(vec2[1], vec2[0]) - atan2(vec1[1], vec1[0])
+	if (angle < 0):
+		angle += 2 * math.pi
+	return angle
+
+def getTime():
+	pass
+
+def changeInVel(prevCoord, currCoord, nextCoord):
+	vec1 = (currCoord[0] - prevCoord[0], currCoord[1] - prevCoord[1])
+	vec2 = (nextCoord[0] - currCoord[0], nextCoord[1] - currCoord[1])
+	changeDir = getChangeDirection(vec1, vec2)
+	time = getDist(currCoord, nextCoord)
+	#return float(float(changeDir)/float(time))
+	return changeDir
+
+def getDist(pnt1, pnt2):
+	x1, y1 = pnt1
+	x2, y2 = pnt2
+	return math.sqrt( (x2 - x1)**2 + (y2 - y1)**2 )
+
+def giveColour(blank_image_p, colour):
+	blank_image_p[0] = colour[0]
+	blank_image_p[1] = colour[1]
+	blank_image_p[2] = colour[2]
+
+
+
+img = main2('./input/keypoint_input_1.jpg')
+#img = approx('./input/keypoint_input_1.jpg')
 
 
 

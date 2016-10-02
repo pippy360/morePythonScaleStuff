@@ -140,14 +140,11 @@ def getAllTheHashesForImage(inputImage):
 	#get the keyPoints
 	keyPoints = getTheKeyPoints(inputImage)
 
-
 	#turn the keyPoints into triangles	
 	triangles = getTheTriangles(keyPoints)
 
-
 	#turn the triangles into fragments of the image
 	fragementsAndShapes = getTheFragments(inputImage, triangles)
-
 
 	#normalise the scale and fragments
 	normalisedFragmentObjs = normaliseScaleAndRotationForAllFrags(fragementsAndShapes)

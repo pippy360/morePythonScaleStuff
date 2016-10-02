@@ -16,6 +16,7 @@ import redis
 import json	
 import jsonHandling as jh
 import os
+import newMain as nm
 
 isDebug = False
 
@@ -178,7 +179,8 @@ def continueParsing(tempList):
 	return ret
 
 def showMatches(imgName):
-	inputImageValues = processImage(imgName)
+	inImg = cv2.imread("./input/"+imgName+".jpg")
+	inputImageValues = nm.getAllTheHashesForImage(inImg)
 
 	r = redis.StrictRedis(host='localhost', port=6379, db=0)
 	inputImage = cv2.imread("./input/"+imgName+".jpg")
@@ -188,8 +190,8 @@ def showMatches(imgName):
 	tempList = []
 	for inputImageVal in inputImageValues:
 
-		inputImageFragmentHash = inputImageVal[0][0]
-		inputImageFragmentShape = inputImageVal[0][2]
+		inputImageFragmentHash = inputImageVal['hash']
+		inputImageFragmentShape = inputImageVal['shape']
 		matchedJsonObjs = findMatchesForHash(inputImageFragmentHash, r)
 		if matchedJsonObjs != None:
 			tempList.append( (inputImageFragmentShape, matchedJsonObjs) )
