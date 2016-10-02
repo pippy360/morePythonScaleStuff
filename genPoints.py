@@ -1,0 +1,106 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+from math import pi
+from scipy.interpolate import UnivariateSpline
+from scipy import interpolate 
+from scipy.interpolate import CubicSpline
+import scipy
+import numpy as np
+
+a = np.array([ [  0.  ,   0.  ],[  0.3 ,   0.  ],[  1.25,  -0.1 ],[  2.1 ,  -0.9 ],[  2.85,  -2.3 ],[  3.8 ,  -3.95],[  5.  ,  -5.75],[  6.4 ,  -7.8 ],[  8.05,  -9.9 ],[  9.9 , -11.6 ],[ 12.05, -12.85],[ 14.25, -13.7 ],[ 16.5 , -13.8 ],[ 19.25, -13.35],[ 21.3 , -12.2 ],[ 22.8 , -10.5 ],[ 23.55,  -8.15],[ 22.95,  -6.1 ],[ 21.35,  -3.95],[ 19.1 ,  -1.9 ]])
+
+def getPointsForCircle(noOfPoints = 16):
+	return PointsInCircum(10,noOfPoints)
+
+
+def PointsInCircum(r,n=100):
+    return [(math.cos(2*pi/n*x)*r,math.sin(2*pi/n*x)*r) for x in xrange(0,n+1)]
+
+
+def toPltCoords(inp):
+	x = []
+	y = []
+	for pt in inp:
+		x.append(pt[0])
+		y.append(pt[1])
+
+	return x, y
+
+
+def showTheCircle(pts):
+	dx_dt = np.gradient(pts[:, 0])
+	dy_dt = np.gradient(pts[:, 1])
+
+	velocity = np.array([ [dx_dt[i], dy_dt[i]] for i in range(dx_dt.size)])
+	ds_dt = np.sqrt(dx_dt * dx_dt + dy_dt * dy_dt)
+	print 'vel before norm:'
+	print ds_dt
+	ds_dt = ds_dt/(np.amax(ds_dt))
+	print 'vel after norm:'
+	print ds_dt
+
+	prevPt = pts[-1]
+	for i in range(len(pts)):
+		pt = pts[i]
+		plt.plot([prevPt[0], pt[0]], [prevPt[1], pt[1]], 'k-', color=(ds_dt[i],0,1-ds_dt[i]))
+		print str(prevPt) + ':' + str(pt) 
+		prevPt = pt
+
+	#plt.axis([-20, 20, -20, 20])
+
+
+def showTC(pts):
+	d2s_dt2 = np.gradient(ds_dt)
+	d2x_dt2 = np.gradient(dx_dt)
+	d2y_dt2 = np.gradient(dy_dt)
+
+	curvature = np.abs(d2x_dt2 * dy_dt - dx_dt * d2y_dt2) / (dx_dt * dx_dt + dy_dt * dy_dt)**1.5
+	t_component = np.array([d2s_dt2] * 2).transpose()
+	n_component = np.array([curvature * ds_dt * ds_dt] * 2).transpose()
+
+	acceleration = t_component * tangent + n_component * normal
+
+def curvature_splines(pts, error=0.1):
+	t = np.arange(0,1.1,.1)
+	x = pts[:, 0]
+	y = pts[:, 1]
+	tck,u = interpolate.splprep([x,y],s=0)
+	unew = np.arange(0,1.01,0.01)
+	out = interpolate.splev(unew,tck)
+	plt.figure()
+	plt.plot(x,y,'x',out[0],out[1],x,y,'b')
+	plt.legend(['Linear','Cubic Spline'])
+	#plt.axis([-1.05,1.05,-1.05,1.05])
+	plt.title('Spline of parametrically-defined curve')
+	plt.show()
+
+#pts_g_1 = np.array([ [0,0], [5,0], [5,5] ])
+#showTheCircle(pts_g_1)
+
+#pts_g = np.array(getPointsForCircle())
+#showTheCircle(pts_g)
+
+#showTheCircle(a)
+
+#pts_g_2 = np.array(PointsInCircum(5,16))
+#showTheCircle(pts_g_2)
+
+
+pts_g_2_1 = PointsInCircum(5,16)
+pts_g_2_2 = PointsInCircum(5,32)
+
+#temp = []
+#for i in range(len(pts_g_2_1)/2):
+#	temp.append(pts_g_2_1[i])
+
+#for i in range(len(pts_g_2_2)/2):
+#	temp.append(pts_g_2_2[(len(pts_g_2_2)/2)+i])
+
+
+pts = PointsInCircum(5,10)
+print curvature_splines(np.array(pts))
+#print curvature_splines(a)
+
+#plt.show()	
+
