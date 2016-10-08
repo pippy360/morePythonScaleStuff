@@ -68,19 +68,19 @@ def curvature_splines(pts, error=0.1):
 	x = pts[:, 0]
 	y = pts[:, 1]
 	tck,u = interpolate.splprep([x,y],s=0)
-	unew = np.arange(0,1.01,0.02)
+	unew = np.arange(0,1.01,0.1)
 	b, f, s = interpolate.splev(unew,tck), interpolate.splev(unew,tck, der=1),interpolate.splev(unew,tck, der=2)
-
 	plt.figure()
 	plt.plot( b[0], b[1],'b')
 	plt.legend(['Linear','Cubic Spline'])
 	#plt.axis([-1.05,1.05,-1.05,1.05])
 	plt.title('Spline of parametrically-defined curve')
-	plt.show()
+	#plt.show()
 
 	ret = []
 	for i in range(len(b[0])):
-		curvature = abs(f[0][i]* s[1][i] - f[1][i]* s[0][i]) / np.power(f[0][i]** 2 + f[1][i]** 2, 3 / 2)
+		curvature = np.power(1 + f[1][i]** 2, 3 / 2) / abs(s[1][i])
+		#abs(f[0][i]* s[1][i] - f[1][i]* s[0][i]) / np.power(f[0][i]** 2 + f[1][i]** 2, 3 / 2)
 		ret.append(curvature)
 
 	return ret
@@ -118,10 +118,12 @@ for i in range(len(pts_g_2_2)/2):
 
 
 #pts = PointsInCircum(5,10)
-pts = PointsInCircum(200,10)
-pts.extend( PointsInCircum(100,10) )
+pts = PointsInCircum(100,10)
+#pts.extend( PointsInCircum(100,10) )
 #pts = temp
 print 'curvature_splines(np.array(pts))'
+print curvature_splines(np.array(pts))
+pts = PointsInCircum(200,10)
 print curvature_splines(np.array(pts))
 #print curvature_splines(a)
 
