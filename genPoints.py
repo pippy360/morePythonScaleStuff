@@ -86,7 +86,68 @@ def curvature_splines____(pts, error=0.1):
 	return ret
 
 
+from scipy.integrate import quad
+
+def lengthRateOfChangeFunc(t, pts):
+	x, x_, y, y_ = breakItUp(t, pts)
+	val = math.sqrt(x_**2 + y_**2)
+	return val
+
+
+def arcLengthAtParamT(t, pts):
+	val = quad(lengthRateOfChangeFunc, 0, t, args=pts)
+	return val[0]
+
+
+def _getTheValueOfT(t, s, pts):
+	return arcLengthAtParamT(t, pts) - s
+
+def getTheValueOfT(s, pts):
+	from scipy import optimize
+	t = 1
+	res = optimize.newton(_getTheValueOfT, t, args=(s,pts))
+	return res
+
+def f(x, y):
+    return x * x - 3 + y
+
+def main():
+    x0 = .1
+    y = 1
+
+
+def breakItUp(fin_t, pts):
+	x, y = pts[:, 0], pts[:, 1]
+	t = np.arange(x.shape[0])
+
+	fx = UnivariateSpline(t, x, k=3)
+	x = fx([fin_t])
+	x_ = fx.derivative(1)([fin_t])
+	#x__ = fx.derivative(2)([fin_t])
+
+	fy = UnivariateSpline(t, y, k=3)
+	y = fy([fin_t])
+	y_ = fy.derivative(1)([fin_t])
+	#y__ = fy.derivative(2)(t)
+
+	return x[0], x_[0], y[0], y_[0]
+
 def curvature_splines(pts, error=0.1):
+	print getTheValueOfT(628, pts)
+#	print arcLengthAtParamT(20, pts)
+
+	#PLOT
+#	plt.figure()
+#	plt.plot(t,x,'b',color="blue")
+#	plt.plot(t,x,'x',color="blue")
+#	plt.plot(t,y,'b',color="red")
+#	plt.plot(t,y,'x',color="red")
+#	plt.show()
+	#\PLOT
+
+
+
+def old(pts, error=0.1):
 	from scipy.interpolate import UnivariateSpline
 	import numpy as np
 
@@ -111,50 +172,66 @@ def curvature_splines(pts, error=0.1):
 
 	x, y = pts[:, 0], pts[:, 1]
 
-	# handle list of complex case
-	if y is None:
-	    x, y = x.real, x.imag
-
-	t = np.arange(x.shape[0])
-	print t
-	std = error * np.ones_like(x)
-	fx = UnivariateSpline(t, x, k=3, w=1 / np.sqrt(std))
-	fy = UnivariateSpline(t, y, k=3, w=1 / np.sqrt(std))
-
-	x = fx(t)
-	y = fy(t)
-
-
-	x_ = fx.derivative(1)(t)
-	x__ = fx.derivative(2)(t)
-	y_ = fy.derivative(1)(t)
-	y__ = fy.derivative(2)(t)
-
-	plt.figure()
-
-	x_vals, y_vals = fx(t), fy(t)
-	for i in range(len(x_vals)):
-		mx, my = x_vals[i], y_vals[i]
-		scale = 40
-		dir_x, dir_y = x_[i], y_[i]
-		mag = math.sqrt(dir_x**2 + dir_y**2)
-		mult = (1/mag) * scale
-		dir_x = dir_x*mult
-		dir_y = dir_y*mult
-		
-		fin_x, fin_y = mx+dir_x, my+dir_y
-
-		plt.plot([mx,fin_x],[my,fin_y],'b', color='red')
-
-	#plt.plot(x,y,'b')
-	plt.legend(['Linear','Cubic Spline'])
-	plt.title('Spline of parametrically-defined curve')
-	plt.show()
+#	t = np.arange(x.shape[0])
+#	print t
+#	std = error * np.ones_like(x)
+#	fx = UnivariateSpline(t, x, k=3, w=1 / np.sqrt(std))
+#	fy = UnivariateSpline(t, y, k=3, w=1 / np.sqrt(std))
+#
+#	x = fx(t)
+#	y = fy(t)
+#
+#
+#	x_ = fx.derivative(1)(t)
+#	x__ = fx.derivative(2)(t)
+#	y_ = fy.derivative(1)(t)
+#	y__ = fy.derivative(2)(t)
+#
+#	plt.figure()
+	
+#	t = np.arange(0, 1.1, .1)
+#	tck, u = interpolate.splprep([x, y], s=0)
+#	unew = np.arange(0, 1.01, 0.01)
+#	out = interpolate.splev(unew, tck)
+#	x_, y_ = interpolate.splev(unew, tck, der=1)
+#	x__, y__ = interpolate.splev(unew, tck, der=2)
+#	print x_
+#	print y_
+#	plt.figure()
+#	plt.plot(x, y, 'x', out[0], out[1], 'b')
+#	plt.plot(out[0], out[1], 'x', color='red')
+#	plt.legend(['Linear', 'Cubic Spline', 'True'])
+#	#plt.axis([-1.05, 1.05, -1.05, 1.05])
 
 
-	idx = 0
-	curvature = abs(x_* y__ - y_* x__) / np.power(x_** 2 + y_** 2, 3 / 2)
-	return curvature
+
+#	x_vals, y_vals = out[0], out[1]
+#	
+#	for i in range(len(x_vals)):
+#		mx, my = x_vals[i], y_vals[i]
+#		scale = 10
+#		dir_x, dir_y = x_[i], y_[i]
+#		mag = math.sqrt(dir_x**2 + dir_y**2)
+#		mult = (1/mag) * scale
+#		dir_x = dir_x*mult
+#		dir_y = dir_y*mult
+#		
+#		fin_x, fin_y = mx+dir_x, my+dir_y
+#
+#		plt.plot([mx,fin_x],[my,fin_y],'b', color='red')
+#
+#	plt.title('Spline of parametrically-defined curve')
+#	#plt.show()
+#
+##	#plt.plot(x,y,'b')
+##	plt.legend(['Linear','Cubic Spline'])
+##	plt.title('Spline of parametrically-defined curve')
+##	plt.show()
+#
+#
+#	idx = 0
+#	curvature = abs(x_* y__ - y_* x__) / np.power(x_** 2 + y_** 2, 3 / 2)
+#	return curvature
 
 
 #	return out
@@ -180,19 +257,19 @@ def curvature_splines(pts, error=0.1):
 pts_g_2_1 = PointsInCircum(5,16)
 pts_g_2_2 = PointsInCircum(5,32)
 
-temp = []
-for i in range(len(pts_g_2_1)/2):
-	temp.append(pts_g_2_1[i])
+#temp = []
+#for i in range(len(pts_g_2_1)/2):
+#	temp.append(pts_g_2_1[i])
 
-for i in range(len(pts_g_2_2)/2):
-	temp.append(pts_g_2_2[(len(pts_g_2_2)/2)+i])
+#for i in range(len(pts_g_2_2)/2):
+#	temp.append(pts_g_2_2[(len(pts_g_2_2)/2)+i])
 
 
 #pts = PointsInCircum(5,10)
 pts = PointsInCircum(100,20)
-pts.extend( PointsInCircum(200,10) )
+#pts.extend( PointsInCircum(200,10) )
 #pts = temp
-print 'curvature_splines(np.array(pts))'
+print 'start:'
 print curvature_splines(np.array(pts))
 #pts = PointsInCircum(200,10)
 #print curvature_splines(np.array(pts))
