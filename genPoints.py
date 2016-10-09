@@ -64,7 +64,7 @@ def showTC(pts):
 
 
 
-def curvature_splines(pts, error=0.1):
+def curvature_splines____(pts, error=0.1):
 	x = pts[:, 0]
 	y = pts[:, 1]
 	tck,u = interpolate.splprep([x,y],s=0)
@@ -84,6 +84,77 @@ def curvature_splines(pts, error=0.1):
 		ret.append(curvature)
 
 	return ret
+
+
+def curvature_splines(pts, error=0.1):
+	from scipy.interpolate import UnivariateSpline
+	import numpy as np
+
+	"""Calculate the signed curvature of a 2D curve at each point
+	using interpolating splines.
+	Parameters
+	----------
+	x,y: numpy.array(dtype=float) shape (n_points, )
+	     or
+	     y=None and
+	     x is a numpy.array(dtype=complex) shape (n_points, )
+	     In the second case the curve is represented as a np.array
+	     of complex numbers.
+	error : float
+	    The admisible error when interpolating the splines
+	Returns
+	-------
+	curvature: numpy.array shape (n_points, )
+	Note: This is 2-3x slower (1.8 ms for 2000 points) than `curvature_gradient`
+	but more accurate, especially at the borders.
+	"""
+
+	x, y = pts[:, 0], pts[:, 1]
+
+	# handle list of complex case
+	if y is None:
+	    x, y = x.real, x.imag
+
+	t = np.arange(x.shape[0])
+	print t
+	std = error * np.ones_like(x)
+	fx = UnivariateSpline(t, x, k=3, w=1 / np.sqrt(std))
+	fy = UnivariateSpline(t, y, k=3, w=1 / np.sqrt(std))
+
+	x = fx(t)
+	y = fy(t)
+
+
+	x_ = fx.derivative(1)(t)
+	x__ = fx.derivative(2)(t)
+	y_ = fy.derivative(1)(t)
+	y__ = fy.derivative(2)(t)
+
+	plt.figure()
+
+	x_vals, y_vals = fx(t), fy(t)
+	for i in range(len(x_vals)):
+		mx, my = x_vals[i], y_vals[i]
+		scale = 40
+		dir_x, dir_y = x_[i], y_[i]
+		mag = math.sqrt(dir_x**2 + dir_y**2)
+		mult = (1/mag) * scale
+		dir_x = dir_x*mult
+		dir_y = dir_y*mult
+		
+		fin_x, fin_y = mx+dir_x, my+dir_y
+
+		plt.plot([mx,fin_x],[my,fin_y],'b', color='red')
+
+	#plt.plot(x,y,'b')
+	plt.legend(['Linear','Cubic Spline'])
+	plt.title('Spline of parametrically-defined curve')
+	plt.show()
+
+
+	idx = 0
+	curvature = abs(x_* y__ - y_* x__) / np.power(x_** 2 + y_** 2, 3 / 2)
+	return curvature
 
 
 #	return out
@@ -118,13 +189,13 @@ for i in range(len(pts_g_2_2)/2):
 
 
 #pts = PointsInCircum(5,10)
-pts = PointsInCircum(100,10)
-#pts.extend( PointsInCircum(100,10) )
+pts = PointsInCircum(100,20)
+pts.extend( PointsInCircum(200,10) )
 #pts = temp
 print 'curvature_splines(np.array(pts))'
 print curvature_splines(np.array(pts))
-pts = PointsInCircum(200,10)
-print curvature_splines(np.array(pts))
+#pts = PointsInCircum(200,10)
+#print curvature_splines(np.array(pts))
 #print curvature_splines(a)
 
 #plt.show()	
