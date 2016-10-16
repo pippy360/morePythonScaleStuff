@@ -87,7 +87,7 @@ def parameterizeFunctionWRTArcLength(pts):
 def _parameterizeFunctionWRTArcLength(org_x, org_y):
 		
 	tList = np.arange(org_x.shape[0])
-	s_no = .0001
+	s_no = 100.01
 	fx_t = UnivariateSpline(tList, org_x, k=3, s=s_no)
 	fy_t = UnivariateSpline(tList, org_y, k=3, s=s_no)
 
@@ -129,45 +129,48 @@ def _parameterizeFunctionWRTArcLength(org_x, org_y):
 
 	dxcurvature = UnivariateSpline(arcLengthList, curvature, s=s_no).derivative(1)(arcLengthList)
 	dx2curvature = UnivariateSpline(arcLengthList, curvature, s=s_no).derivative(2)(arcLengthList)
-	return org_x, org_y, x_, y_, x__, y__, arcLengthList, curvature, dxcurvature, dx2curvature
+	return org_x, org_y, x_, y_, x__, y__, arcLengthList, curvature, dxcurvature, dx2curvature, arcLengthList[-1]
 
-def plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, idx):
+def plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, idx, fullLength_s):
 	fullLen = len(s)
 	i = idx
 
 	
 	subplot(321)
-	axis([0.0,20.0,-15.0,15.0])
+	#axis([0.0,20.0,-15.0,15.0])
 #	pylab.axis([0.0,350.0,0.0,100.0])
+	pylab.xlim([0,fullLength_s])
 	pylab.axhline(0, color='black')
 	pylab.plot(s[0:i+1], curvature[0:i+1], 'b', color="red")
 	
 	
 	ax = subplot(322)
-	axis([-1.5,1.5,-1.5,1.5])
+	#axis([-1.5,1.5,-1.5,1.5])
+	pylab.xlim([0,fullLength_s])
 	pylab.plot(xs[0:i+1], ys[0:i+1], 'b', linewidth=2, color="red")
 
 	pylab.plot(xs[i:fullLen], ys[i:fullLen], 'b', color="grey")
 	ax = ax.axes
 	div = 1#1/(math.sqrt(dxdt[0:i+1][-1]**2 + dydt[0:i+1][-1]**2))
-	div = div * .5
+	#div = div * 0.5
 	ax.arrow(xs[0:i+1][-1], ys[0:i+1][-1], dxdt[0:i+1][-1]*div, dydt[0:i+1][-1]*div, head_width=0.05, head_length=0.1, fc='r', ec='r')
 	div = 1#1/(math.sqrt((dxdt[0:i+1][-1]+d2xdt[0:i+1][-1])**2 + (dydt[0:i+1][-1]+d2ydt[0:i+1][-1])**2))
-	div = div * .5
+	#div = div * 0.5
 	ax.arrow(xs[0:i+1][-1], ys[0:i+1][-1], (dxdt[0:i+1][-1]+d2xdt[0:i+1][-1])*div, ((dydt[0:i+1][-1]+d2ydt[0:i+1][-1]))*div, head_width=0.05, head_length=0.1, fc='b', ec='b')
 
 	subplot(323)
-	axis([0.0,20.0,-1.0,1.0])
+	#axis([0.0,20.0,-1.0,1.0])
+	pylab.xlim([0,fullLength_s])
 	pylab.axhline(0, color='black')
 	pylab.plot(s[0:i+1], dxdt[0:i+1], 'b', linewidth=2, color="red")
 	subplot(324)
-	axis([0.0,20.0,-1.0,1.0])
+	#axis([0.0,20.0,-1.0,1.0])
 	pylab.axhline(0, color='black')
 	pylab.plot(s[0:i+1], dydt[0:i+1], 'b', linewidth=2, color="red")
 	
 	subplot(325)
 	#axis([0.0,20.0,-2.0,2.0])
-	pylab.xlim([0,20])
+	pylab.xlim([0,fullLength_s])
 	pylab.axhline(0, color='black')
 	vals = dydt[0:i+1]**2+dxdt[0:i+1]**2
 	vals = abs(vals-1)
@@ -175,15 +178,15 @@ def plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, d
 
 	subplot(326)
 	#axis([0.0,20.0,-10.0,10.0])
-	pylab.xlim([0,20])
+	pylab.xlim([0,fullLength_s])
 	pylab.axhline(0, color='black')
 	#pylab.plot(s[0:i+1], d2ydt[0:i+1], 'b', linewidth=2, color="red")
 	tempVals = abs(dxcurvature[0:i+1])
 	#tempVals = np.log(tempVals)
-	pylab.plot(s[0:i+1], tempVals, 'b', linewidth=2, color="red")
+	pylab.plot(s[0:i+1], (dxdt**2 + dydt**2)[0:i+1], 'b', linewidth=2, color="red")
 	print "vals[-1]"
 	print vals[-1]
-	pylab.savefig('foo'+str(idx)+'.png')
+	pylab.savefig('output_debug/foo'+str(idx)+'.png')
 	pylab.clf()
 
 
@@ -208,7 +211,7 @@ def breakUpFullLengthOfArcIntoXPoints(fullLength, noOfPoints, addZeroPoint=False
 def getSimplePts(pts, maxNoOfPoints=100):
 	org_x, org_y = pts[:, 0], pts[:, 1]
 	tList = np.arange(org_x.shape[0])
-	s_no = .01
+	s_no = 10.01
 	fx_t = UnivariateSpline(tList, org_x, k=3, s=s_no)
 	fy_t = UnivariateSpline(tList, org_y, k=3, s=s_no)
 	newTList = breakUpFullLengthOfArcIntoXPoints(tList[-1], maxNoOfPoints, addZeroPoint=True)
@@ -224,22 +227,34 @@ def getSimplePts(pts, maxNoOfPoints=100):
 def genImages(pts):
 	#simplify the points
 	new_org_x, new_org_y, new_tList = getSimplePts(pts, maxNoOfPoints=100)
-
+	new_org_x = np.multiply(new_org_x, .1)
+	new_org_x = new_org_x[1:-1]
+	new_org_y = np.multiply(new_org_y, .1)
+	new_org_y = new_org_y[1:-1]
+	new_org_y = np.multiply(new_org_y, .1)
+	print new_org_x
+	print new_org_y
 	org_x, org_y = new_org_x, new_org_y#pts[:, 0], pts[:, 1]
 	org_y = org_y
+
+	xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, fullLength_s = _parameterizeFunctionWRTArcLength(org_x, org_y)
+
 	#PLOT
-	plot(pts[:, 0], pts[:, 1], ':')
-	plot(new_org_x, new_org_y, 'b', color='red')
+	#plot(pts[:, 0], pts[:, 1], ':')
+	plot(xs, ys, 'x', color='red')
+	plot(new_org_x, new_org_y, 'b', color='blue')
 	show()
 	#PLOT
-
-	xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature = _parameterizeFunctionWRTArcLength(org_x, org_y)
 
 	dx2curvature = abs(dx2curvature)
 	maxm = argrelextrema(dx2curvature, np.greater)  # (array([1, 3, 6]),)
 	print "maxm"
 	print dx2curvature
 	print maxm
+
+	for i in range(len(dx2curvature)):
+		plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, i, fullLength_s)
+
 
 	coordsx = []
 	coordsy = []
