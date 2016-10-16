@@ -93,6 +93,14 @@ def lengthRateOfChangeFunc(t, pts):
 	val = math.sqrt(x_**2 + y_**2)
 	return val
 
+def TtoS(t, pts):
+	ret = []
+	for v in t:
+		l = arcLengthAtParamT(v, pts)
+		ret.append(l)
+
+	return np.array(ret)
+
 
 def arcLengthAtParamT(t, pts):
 	val = quad(lengthRateOfChangeFunc, 0, t, args=pts)
@@ -146,69 +154,73 @@ def curvature_splines(pts, error=0.1):
 	#\PLOT
 
 
+def StoT(s, pts):
+	ret = []
+	for v in s:
+		t_val = getTheValueOfT(v, pts)
+		ret.append(t_val)
+	return np.array(ret)
 
 def old(pts, error=0.1):
-	from scipy.interpolate import UnivariateSpline
+	from scipy.interpolate import UnivariateSpline, PchipInterpolator, interp1d, pchip_interpolate
 	import numpy as np
-
-	"""Calculate the signed curvature of a 2D curve at each point
-	using interpolating splines.
-	Parameters
-	----------
-	x,y: numpy.array(dtype=float) shape (n_points, )
-	     or
-	     y=None and
-	     x is a numpy.array(dtype=complex) shape (n_points, )
-	     In the second case the curve is represented as a np.array
-	     of complex numbers.
-	error : float
-	    The admisible error when interpolating the splines
-	Returns
-	-------
-	curvature: numpy.array shape (n_points, )
-	Note: This is 2-3x slower (1.8 ms for 2000 points) than `curvature_gradient`
-	but more accurate, especially at the borders.
-	"""
 
 	x, y = pts[:, 0], pts[:, 1]
 
-#	t = np.arange(x.shape[0])
-#	print t
-#	std = error * np.ones_like(x)
-#	fx = UnivariateSpline(t, x, k=3, w=1 / np.sqrt(std))
-#	fy = UnivariateSpline(t, y, k=3, w=1 / np.sqrt(std))
-#
-#	x = fx(t)
-#	y = fy(t)
-#
-#
-#	x_ = fx.derivative(1)(t)
-#	x__ = fx.derivative(2)(t)
-#	y_ = fy.derivative(1)(t)
-#	y__ = fy.derivative(2)(t)
-#
-#	plt.figure()
-	
-#	t = np.arange(0, 1.1, .1)
-#	tck, u = interpolate.splprep([x, y], s=0)
-#	unew = np.arange(0, 1.01, 0.01)
-#	out = interpolate.splev(unew, tck)
-#	x_, y_ = interpolate.splev(unew, tck, der=1)
-#	x__, y__ = interpolate.splev(unew, tck, der=2)
-#	print x_
-#	print y_
-#	plt.figure()
-#	plt.plot(x, y, 'x', out[0], out[1], 'b')
-#	plt.plot(out[0], out[1], 'x', color='red')
-#	plt.legend(['Linear', 'Cubic Spline', 'True'])
-#	#plt.axis([-1.05, 1.05, -1.05, 1.05])
+	t = np.arange(x.shape[0])
+	std = error * np.ones_like(x)
+	fx = UnivariateSpline(t, x, k=3, w=1 / np.sqrt(std))
+	fy = UnivariateSpline(t, y, k=3, w=1 / np.sqrt(std))
 
 
+
+	print "StoT(60, pts)"
+	x = fx(t)
+	print "x"
+	print x
+	print "t"
+	print t
+	st = TtoS(t, pts)
+	print "st"
+	print st
+	x_vals = x
+	y_vals = y
+
+	print "x_vals"
+	print x_vals
+	print "y_vals"
+	print y_vals
+
+	fx = PchipInterpolator(st, x_vals)
+	fy = PchipInterpolator(st, y_vals)
+
+	tn = t#np.array([0,5,10,15,20,])
+	x = fx(tn)
+	y = fy(tn)
+	x_ = fx.derivative(1)(tn)
+	x__ = fx.derivative(2)(tn)
+	y_ = fy.derivative(1)(tn)
+	y__ = fy.derivative(2)(tn)
+
+	curvature = abs(x_* y__ - y_* x__) / np.power(x_** 2 + y_** 2, 3 / 2)
+	print "curvature"
+	print curvature
+	print 1/curvature
+	plt.figure()
+	plt.plot(x, 	y, 'b', color='green')
+	plt.plot(x, 	y, 'x', color='green')
+	plt.plot(t, 	x_vals, 'x', color='red')
+	plt.plot(t, 	x_vals, 'x', color='red')
+	plt.plot(st, 	x_vals, 'b', color='red')
+	plt.plot(t, 	y_vals, 'x', color='blue')
+	plt.plot(st, 	y_vals, 'b', color='blue')
+	#plt.plot(x_vals, 	y_vals, 'b', color='green')
+	plt.show()
 
 #	x_vals, y_vals = out[0], out[1]
 #	
 #	for i in range(len(x_vals)):
-#		mx, my = x_vals[i], y_vals[i]
+#		mx, my = x_vals[i], y_vals[i]d
 #		scale = 10
 #		dir_x, dir_y = x_[i], y_[i]
 #		mag = math.sqrt(dir_x**2 + dir_y**2)
@@ -230,7 +242,6 @@ def old(pts, error=0.1):
 #
 #
 #	idx = 0
-#	curvature = abs(x_* y__ - y_* x__) / np.power(x_** 2 + y_** 2, 3 / 2)
 #	return curvature
 
 
@@ -266,11 +277,11 @@ pts_g_2_2 = PointsInCircum(5,32)
 
 
 #pts = PointsInCircum(5,10)
-pts = PointsInCircum(100,20)
-#pts.extend( PointsInCircum(200,10) )
+pts = PointsInCircum(5,40)
+pts.extend( PointsInCircum(10,10) )
 #pts = temp
 print 'start:'
-print curvature_splines(np.array(pts))
+print old(np.array(pts))
 #pts = PointsInCircum(200,10)
 #print curvature_splines(np.array(pts))
 #print curvature_splines(a)

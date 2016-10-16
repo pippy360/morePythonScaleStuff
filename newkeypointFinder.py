@@ -327,7 +327,7 @@ def giveColour(blank_image_p, colour):
 
 
 
-img = main2('./input/keypoint_input_1.jpg')
+#img = main2('./input/keypoint_input_1.jpg')
 #img = approx('./input/keypoint_input_1.jpg')
 
 
