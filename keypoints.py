@@ -228,9 +228,9 @@ def genImages(pts):
 	org_x, org_y = new_org_x, new_org_y#pts[:, 0], pts[:, 1]
 	org_y = org_y
 	#PLOT
-	#plot(org_x, org_y, ':')
-	#plot(new_org_x, new_org_y, 'b', color='red')
-	#show()
+	plot(pts[:, 0], pts[:, 1], ':')
+	plot(new_org_x, new_org_y, 'b', color='red')
+	show()
 	#PLOT
 
 	xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature = _parameterizeFunctionWRTArcLength(org_x, org_y)

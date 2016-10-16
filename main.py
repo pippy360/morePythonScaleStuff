@@ -242,6 +242,7 @@ name2 = "small_lenna2"
 name3 = 'costanza_orginal_dots'
 name4 = "costanza_changed"
 name5 = "shape"
+name5 = "testingKeyPointSystem1"
 name6 = "rick2"
 name7 = "rick3"
 name8 = "rick4"
