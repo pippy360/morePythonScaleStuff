@@ -18,8 +18,10 @@ from pylab import plot,show,subplot, axhline, axis, axes
 import sys
 from scipy import signal
 from scipy.signal import argrelextrema
-
+import new_shapes as ns
 ####### gen points ########
+
+g_name = 'something'
 
 def PointsInCircum(r,n=100):
     return [(math.cos(2*pi/n*x)*r,math.sin(2*pi/n*x)*r) for x in xrange(0,n+1)]
@@ -87,7 +89,7 @@ def parameterizeFunctionWRTArcLength(pts):
 def _parameterizeFunctionWRTArcLength(org_x, org_y):
 		
 	tList = np.arange(org_x.shape[0])
-	s_no = 100.01
+	s_no = 1.0
 	fx_t = UnivariateSpline(tList, org_x, k=3, s=s_no)
 	fy_t = UnivariateSpline(tList, org_y, k=3, s=s_no)
 
@@ -139,14 +141,14 @@ def plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, d
 	subplot(321)
 	#axis([0.0,20.0,-15.0,15.0])
 #	pylab.axis([0.0,350.0,0.0,100.0])
-	pylab.xlim([0,fullLength_s])
+	#pylab.xlim([0,fullLength_s])
 	pylab.axhline(0, color='black')
 	pylab.plot(s[0:i+1], curvature[0:i+1], 'b', color="red")
 	
 	
 	ax = subplot(322)
 	#axis([-1.5,1.5,-1.5,1.5])
-	pylab.xlim([0,fullLength_s])
+	#pylab.xlim([0,fullLength_s])
 	pylab.plot(xs[0:i+1], ys[0:i+1], 'b', linewidth=2, color="red")
 
 	pylab.plot(xs[i:fullLen], ys[i:fullLen], 'b', color="grey")
@@ -160,7 +162,7 @@ def plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, d
 
 	subplot(323)
 	#axis([0.0,20.0,-1.0,1.0])
-	pylab.xlim([0,fullLength_s])
+	#pylab.xlim([0,fullLength_s])
 	pylab.axhline(0, color='black')
 	pylab.plot(s[0:i+1], dxdt[0:i+1], 'b', linewidth=2, color="red")
 	subplot(324)
@@ -170,7 +172,7 @@ def plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, d
 	
 	subplot(325)
 	#axis([0.0,20.0,-2.0,2.0])
-	pylab.xlim([0,fullLength_s])
+	#pylab.xlim([0,fullLength_s])
 	pylab.axhline(0, color='black')
 	vals = dydt[0:i+1]**2+dxdt[0:i+1]**2
 	vals = abs(vals-1)
@@ -178,7 +180,7 @@ def plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, d
 
 	subplot(326)
 	#axis([0.0,20.0,-10.0,10.0])
-	pylab.xlim([0,fullLength_s])
+	#pylab.xlim([0,fullLength_s])
 	pylab.axhline(0, color='black')
 	#pylab.plot(s[0:i+1], d2ydt[0:i+1], 'b', linewidth=2, color="red")
 	tempVals = abs(dxcurvature[0:i+1])
@@ -186,7 +188,7 @@ def plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, d
 	pylab.plot(s[0:i+1], (dxdt**2 + dydt**2)[0:i+1], 'b', linewidth=2, color="red")
 	print "vals[-1]"
 	print vals[-1]
-	pylab.savefig('output_debug/foo'+str(idx)+'.png')
+	pylab.savefig('output_debug/'+g_name+'_foo'+str(idx)+'.png')
 	pylab.clf()
 
 
@@ -211,7 +213,7 @@ def breakUpFullLengthOfArcIntoXPoints(fullLength, noOfPoints, addZeroPoint=False
 def getSimplePts(pts, maxNoOfPoints=100):
 	org_x, org_y = pts[:, 0], pts[:, 1]
 	tList = np.arange(org_x.shape[0])
-	s_no = 10.01
+	s_no = 1.01
 	fx_t = UnivariateSpline(tList, org_x, k=3, s=s_no)
 	fy_t = UnivariateSpline(tList, org_y, k=3, s=s_no)
 	newTList = breakUpFullLengthOfArcIntoXPoints(tList[-1], maxNoOfPoints, addZeroPoint=True)
@@ -224,16 +226,31 @@ def getSimplePts(pts, maxNoOfPoints=100):
 ####### \make less points
 
 
+
+def genImagesWithDisplayFix(pts, numberOfPixelsPerUnit=25):
+	org_x, org_y = pts[:, 0], pts[:, 1]
+	org_x = np.multiply(org_x, 1./float(numberOfPixelsPerUnit))
+	org_y = np.multiply(org_y, 1./float(numberOfPixelsPerUnit))
+	xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, fullLength_s = _parameterizeFunctionWRTArcLength(org_x, org_y)
+
+	#PLOT
+	#subplot(121)
+	#plot(s, ys)
+	#subplot(122)
+	#plot(s, xs)
+	#show()
+	#PLOT
+
+	for i in range(len(dx2curvature)):
+		plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, i, fullLength_s)
+
+
+
+
 def genImages(pts):
 	#simplify the points
 	new_org_x, new_org_y, new_tList = getSimplePts(pts, maxNoOfPoints=100)
-	new_org_x = np.multiply(new_org_x, .1)
-	new_org_x = new_org_x[1:-1]
-	new_org_y = np.multiply(new_org_y, .1)
-	new_org_y = new_org_y[1:-1]
-	new_org_y = np.multiply(new_org_y, .1)
-	print new_org_x
-	print new_org_y
+
 	org_x, org_y = new_org_x, new_org_y#pts[:, 0], pts[:, 1]
 	org_y = org_y
 
@@ -241,9 +258,9 @@ def genImages(pts):
 
 	#PLOT
 	#plot(pts[:, 0], pts[:, 1], ':')
-	plot(xs, ys, 'x', color='red')
-	plot(new_org_x, new_org_y, 'b', color='blue')
-	show()
+	#plot(xs, ys, 'x', color='red')
+	#plot(new_org_x, new_org_y, 'b', color='blue')
+	#show()
 	#PLOT
 
 	dx2curvature = abs(dx2curvature)
@@ -277,12 +294,21 @@ def genImages(pts):
 #pts = [(0,0),(1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0),(8,0),(9,0),(10,0)]
 #pts = [(0,0),(1,1),(2,2),(3,3),(4,4),(5,5),(6,6),(7,7),(8,8),(9,9),(10,10)]
 #pts = [(0,0**2),(1,1**2),(2,2**2),(3,3**2),(4,4**2),(5,5**2),(6,6**2),(7,7**2),(8,8**2),(9,9**2),(10,10**2)]
-##pts = PointsInCircum(50,8)
+
+
+#pts = PointsInCircum(50,8)
+#pts = ns.shape7
+
 #pts = thatCurve()
 ##print breakUpFullLengthOfArcIntoXPoints(10, 10, True)
 ##print getEqidistantPointsAlongFunction(np.array(pts))
 ##fx, fy, fullLength = parameterizeFunctionWRTArcLength(np.array(pts))
-#genImages(np.array(pts))
+
+#pts = np.multiply(pts, 100)
+for key, value in ns.shapes.iteritems():
+	g_name = key
+	pts = np.array(value)
+	genImagesWithDisplayFix(pts)
 
 	
 	

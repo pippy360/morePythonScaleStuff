@@ -13,6 +13,7 @@ import time
 #####rules
 import keypoints as kp
 
+
 def containsNoPoints(tri, points):
 	return True
 	
