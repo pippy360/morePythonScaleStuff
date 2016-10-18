@@ -89,7 +89,7 @@ def parameterizeFunctionWRTArcLength(pts):
 def _parameterizeFunctionWRTArcLength(org_x, org_y):
 		
 	tList = np.arange(org_x.shape[0])
-	s_no = 1.0
+	s_no = 100.0
 	fx_t = UnivariateSpline(tList, org_x, k=3, s=s_no)
 	fy_t = UnivariateSpline(tList, org_y, k=3, s=s_no)
 
@@ -112,11 +112,12 @@ def _parameterizeFunctionWRTArcLength(org_x, org_y):
 	arcLengthList = convertTListToArcLengthList(tList, fx_t, fy_t)
 	time2 = time.time()
 	print 'function took %0.3f ms' % ((time2-time1)*1000.0)
-	
-	fx_s = UnivariateSpline(arcLengthList, org_x, s=None)
-	fy_s = UnivariateSpline(arcLengthList, org_y, s=None)
 
-	
+	#CAREFUL!!! we might use fx_t(tList) here, or x_org 
+	#but only if that's what the arcLengthListIsDefinedAS ??? it must be, how else would we make the spline????
+	fx_s = UnivariateSpline(arcLengthList, fx_t(tList), s=None)
+	fy_s = UnivariateSpline(arcLengthList, fy_t(tList), s=None)
+
 	print 'now the functions'
 	print arcLengthList
 	print org_x
@@ -125,12 +126,15 @@ def _parameterizeFunctionWRTArcLength(org_x, org_y):
 	print fy_s(arcLengthList)
 	
 	#PLOT 
-	subplot(211)
+	subplot(411)
+	plot(org_x, org_y, 'b', color="blue")
+	subplot(412)
 	plot(arcLengthList, org_x, 'x', color="red")
 	plot(arcLengthList, fx_s(arcLengthList), 'b', color="blue")
-	subplot(212)
+	subplot(413)
 	plot(arcLengthList, org_y, 'x', color="red")
 	plot(arcLengthList, fy_s(arcLengthList), 'b', color="blue")
+	subplot(414)
 	plot(fx_s(arcLengthList), fy_s(arcLengthList), 'b', color="blue")
 	show()
 	#PLOT
@@ -253,9 +257,11 @@ def getSimplePts(pts, maxNoOfPoints=100):
 
 def genImagesWithDisplayFix(pts, numberOfPixelsPerUnit=25):
 	org_x, org_y = pts[:, 0], pts[:, 1]
+	org_y = org_y[310:500]
+	org_x = org_x[310:500]
 	#org_x, org_y, junk = getSimplePts(pts)
-	org_x = np.multiply(org_x, 1./float(numberOfPixelsPerUnit))
-	org_y = np.multiply(org_y, 1./float(numberOfPixelsPerUnit))
+	#org_x = np.multiply(org_x, 1./float(numberOfPixelsPerUnit))
+	#org_y = np.multiply(org_y, 1./float(numberOfPixelsPerUnit))
 	
 	print 'mult done'
 	print org_x
@@ -283,7 +289,7 @@ def genImages(pts):
 	new_org_x, new_org_y, new_tList = getSimplePts(pts, maxNoOfPoints=100)
 
 	org_x, org_y = new_org_x, new_org_y#pts[:, 0], pts[:, 1]
-	org_y = org_y
+
 
 	xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, fullLength_s = _parameterizeFunctionWRTArcLength(org_x, org_y)
 
