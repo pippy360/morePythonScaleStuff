@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 import time
 
 import matplotlib.pyplot as plt
@@ -94,14 +94,14 @@ def _parameterizeFunctionWRTArcLength(org_x, org_y):
 	fy_t = UnivariateSpline(tList, org_y, k=3, s=s_no)
 
 	#PLOT 
-	#subplot(211)
-	#plot(tList, org_x, 'x', color="red")
-	#plot(tList, fx_t(tList), 'b', color="blue")
-	#subplot(212)
-	#plot(tList, org_y, 'x', color="red")
-	#plot(tList, fy_t(tList), 'b', color="blue")
+	subplot(211)
+	plot(tList, org_x, 'x', color="red")
+	plot(tList, fx_t(tList), 'b', color="blue")
+	subplot(212)
+	plot(tList, org_y, 'x', color="red")
+	plot(tList, fy_t(tList), 'b', color="blue")
 	#plot(fx_t(tList), fy_t(tList), 'b', color="blue")
-	#show()
+	show()
 	#PLOT
 
 	#start param for t
@@ -112,9 +112,30 @@ def _parameterizeFunctionWRTArcLength(org_x, org_y):
 	arcLengthList = convertTListToArcLengthList(tList, fx_t, fy_t)
 	time2 = time.time()
 	print 'function took %0.3f ms' % ((time2-time1)*1000.0)
-	fx_s = UnivariateSpline(arcLengthList, org_x, s=s_no)
-	fy_s = UnivariateSpline(arcLengthList, org_y, s=s_no)
+	
+	fx_s = UnivariateSpline(arcLengthList, org_x, s=None)
+	fy_s = UnivariateSpline(arcLengthList, org_y, s=None)
 
+	
+	print 'now the functions'
+	print arcLengthList
+	print org_x
+	print org_y
+	print fx_s(arcLengthList)
+	print fy_s(arcLengthList)
+	
+	#PLOT 
+	subplot(211)
+	plot(arcLengthList, org_x, 'x', color="red")
+	plot(arcLengthList, fx_s(arcLengthList), 'b', color="blue")
+	subplot(212)
+	plot(arcLengthList, org_y, 'x', color="red")
+	plot(arcLengthList, fy_s(arcLengthList), 'b', color="blue")
+	plot(fx_s(arcLengthList), fy_s(arcLengthList), 'b', color="blue")
+	show()
+	#PLOT
+
+	
 #	x = arcLengthList
 	x_ = fx_s.derivative(1)(arcLengthList)
 	x__ = fx_s.derivative(2)(arcLengthList)
@@ -210,6 +231,9 @@ def breakUpFullLengthOfArcIntoXPoints(fullLength, noOfPoints, addZeroPoint=False
 		
 	return ret
 
+	
+#express the function in less points by parameterizing WRT some variable (t) 
+#and then interpolating
 def getSimplePts(pts, maxNoOfPoints=100):
 	org_x, org_y = pts[:, 0], pts[:, 1]
 	tList = np.arange(org_x.shape[0])
@@ -229,8 +253,15 @@ def getSimplePts(pts, maxNoOfPoints=100):
 
 def genImagesWithDisplayFix(pts, numberOfPixelsPerUnit=25):
 	org_x, org_y = pts[:, 0], pts[:, 1]
+	#org_x, org_y, junk = getSimplePts(pts)
 	org_x = np.multiply(org_x, 1./float(numberOfPixelsPerUnit))
 	org_y = np.multiply(org_y, 1./float(numberOfPixelsPerUnit))
+	
+	print 'mult done'
+	print org_x
+	print org_y
+	print 'mult done end'
+	
 	xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, fullLength_s = _parameterizeFunctionWRTArcLength(org_x, org_y)
 
 	#PLOT
@@ -241,8 +272,8 @@ def genImagesWithDisplayFix(pts, numberOfPixelsPerUnit=25):
 	#show()
 	#PLOT
 
-	for i in range(len(dx2curvature)):
-		plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, i, fullLength_s)
+	#for i in range(len(dx2curvature)):
+	#	plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, i, fullLength_s)
 
 
 
@@ -269,8 +300,8 @@ def genImages(pts):
 	print dx2curvature
 	print maxm
 
-	for i in range(len(dx2curvature)):
-		plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, i, fullLength_s)
+	#for i in range(len(dx2curvature)):
+	#	plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, i, fullLength_s)
 
 
 	coordsx = []
@@ -305,10 +336,11 @@ def genImages(pts):
 ##fx, fy, fullLength = parameterizeFunctionWRTArcLength(np.array(pts))
 
 #pts = np.multiply(pts, 100)
-for key, value in ns.shapes.iteritems():
-	g_name = key
-	pts = np.array(value)
-	genImagesWithDisplayFix(pts)
+#for key, value in ns.shapes.iteritems():
+#	g_name = key
+#	pts = np.array(value)
+#	genImagesWithDisplayFix(pts)
 
-	
+pts = ns.shapes['shape4']
+genImagesWithDisplayFix(np.array(pts))
 	
