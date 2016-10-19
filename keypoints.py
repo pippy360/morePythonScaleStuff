@@ -22,8 +22,12 @@ import new_shapes as ns
 import plotting
 ####### gen points ########
 
-g_name = 'something'
+g_name = 'REPLACE_ME'
 g_enable_plotting = True
+g_SmoothingForParameterization_t = None
+g_SmoothingForParameterization_s = None
+g_SmoothingForDeltaCurvature = None
+g_isMakeAllPointsEqidistant = False
 
 #pts = [(0,0),(1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0),(8,0),(9,0),(10,0)]
 #pts = [(0,0),(1,1),(2,2),(3,3),(4,4),(5,5),(6,6),(7,7),(8,8),(9,9),(10,10)]
@@ -77,6 +81,8 @@ def plotTwoFuncsVsOrgPoints(tList, fx_t, org_x, fy_t, org_y):
 	#PLOT
 
 def randomPlot1(org_x, org_y, arcLengthList, fx_s, fy_s):
+	if not g_enable_plotting:
+		return 
 	#PLOT 
 	subplot(411)
 	plot(org_x, org_y, 'b', color="blue")
@@ -157,8 +163,6 @@ def arcLengthAtParamT(t, fx_t, fy_t):
 	return val[0]
 
 def TtoS(tList, fx, fy):
-	print "tList"
-	print tList
 	ret = []
 	for val in tList:
 		ret.append(arcLengthAtParamT(val, fx, fy))
@@ -212,8 +216,14 @@ def getFirstAndSecondDerivForTPoints(arcLengthList, fx_s, fy_s):
 	y_ = fy_s.derivative(1)(arcLengthList)
 	y__ = fy_s.derivative(2)(arcLengthList)
 	return x, x_, x__, y, y_, y__
+
+def getEqidistantPointsArcLengthList(oldArcLengthList, fx_s, fy_s):
+	#TODO: implement this if needed
+	pass
 	
-def newArcLengthList(oldArcLengthList):
+def newArcLengthList(oldArcLengthList, fx_s, fy_s, isMakeAllPointsEqidistant=g_isMakeAllPointsEqidistant):
+	if isMakeAllPointsEqidistant:
+		return getEqidistantPointsAlongFunction(oldArcLengthList, fx_s, fy_s)
 	return oldArcLengthList
 	
 #Remember: curvature points will be the input points (and so won't be equidistant if the arcLengthList isn't)
@@ -232,27 +242,27 @@ def parameterizeFunctionWRTArcLength(pts):
 def _parameterizeFunctionWRTArcLength(org_x, org_y):
 		
 	tList = np.arange(org_x.shape[0])
-	fx_t, fy_t = getParameterizedFunctionFromPoints(tList, org_x, org_y, smoothing=1.0)
+	fx_t, fy_t = getParameterizedFunctionFromPoints(tList, org_x, org_y, smoothing=g_SmoothingForParameterization_t)
 
 	#PLOT 
 	#plotTwoFuncsVsOrgPoints(tList, fx_t, org_x, fy_t, org_y)
 	#PLOT
 
-	arcLengthList, fx_s, fy_s = reParameterizeFunctionFromPoints(convertTListToArcLengthList, tList, fx_t, fy_t, smoothing=1.0)
+	arcLengthList, fx_s, fy_s = reParameterizeFunctionFromPoints(convertTListToArcLengthList, tList, fx_t, fy_t, smoothing=g_SmoothingForParameterization_s)
 	
 	#PRINT DEBUG
 	randomPrint1(arcLengthList, org_x, org_y, fx_s, fy_s)
 	randomPlot1(org_x, org_y, arcLengthList, fx_s, fy_s)
 	#PRINT DEBUG
 	
-	arcLengthList = newArcLengthList(arcLengthList)
+	arcLengthList = newArcLengthList(arcLengthList, fx_s, fy_s)
 	x, x_, x__, y, y_, y__ = getFirstAndSecondDerivForTPoints(arcLengthList, fx_s, fy_s)
 
 	#PRINT DEBUG
 	printTheDerivativesError(x_, y_)
 	#PRINT DEBUG
 	
-	curvature, dxcurvature, dx2curvature = getCurvatureForPoints(arcLengthList, fx_s, fy_s, smoothing=1.0)
+	curvature, dxcurvature, dx2curvature = getCurvatureForPoints(arcLengthList, fx_s, fy_s, smoothing=g_SmoothingForDeltaCurvature)
 
 	return org_x, org_y, x_, y_, x__, y__, arcLengthList, curvature, dxcurvature, dx2curvature, arcLengthList[-1]
 
@@ -277,11 +287,6 @@ def genImagesWithDisplayFix(pts, numberOfPixelsPerUnit=1):
 	#for i in range(len(dx2curvature)):
 	#	plotting.plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, i, fullLength_s)
 
-	
-def getEqidistantPointsAlongFunction(pts):
-	pass
-
-
 def genImages(pts):
 	#simplify the points
 	new_org_x, new_org_y, new_tList = getSimplePts(pts, maxNoOfPoints=100)
@@ -298,7 +303,6 @@ def genImages(pts):
 
 	#for i in range(len(dx2curvature)):
 	#	plotting.plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, i, fullLength_s)
-
 
 	coordsx = []
 	coordsy = []
