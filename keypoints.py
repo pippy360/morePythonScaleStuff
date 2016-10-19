@@ -28,6 +28,10 @@ g_SmoothingForParameterization_t = None
 g_SmoothingForParameterization_s = None
 g_SmoothingForDeltaCurvature = None
 g_isMakeAllPointsEqidistant = False
+g_cullPoints = False
+g_maxNoOfPointsForCullingFunctoin = 100
+g_SmoothingForPointsCulling = None
+g_numberOfPixelsPerUnit = 1
 
 #pts = [(0,0),(1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0),(8,0),(9,0),(10,0)]
 #pts = [(0,0),(1,1),(2,2),(3,3),(4,4),(5,5),(6,6),(7,7),(8,8),(9,9),(10,10)]
@@ -135,9 +139,8 @@ def breakUpFullLengthOfArcIntoXPoints(fullLength, noOfPoints, addZeroPoint=False
 def getSimplePts(pts, maxNoOfPoints=100):
 	org_x, org_y = pts[:, 0], pts[:, 1]
 	tList = np.arange(org_x.shape[0])
-	s_no = 1.01
-	fx_t = UnivariateSpline(tList, org_x, k=3, s=s_no)
-	fy_t = UnivariateSpline(tList, org_y, k=3, s=s_no)
+	fx_t = UnivariateSpline(tList, org_x, k=3, s=g_SmoothingForPointsCulling)
+	fy_t = UnivariateSpline(tList, org_y, k=3, s=g_SmoothingForPointsCulling)
 	newTList = breakUpFullLengthOfArcIntoXPoints(tList[-1], maxNoOfPoints, addZeroPoint=True)
 	xt = fx_t(newTList)
 	yt = fy_t(newTList)
@@ -269,12 +272,13 @@ def _parameterizeFunctionWRTArcLength(org_x, org_y):
 def genImages2(retX, retY):
 	return genImages
 
-def genImagesWithDisplayFix(pts, numberOfPixelsPerUnit=1):
+def genImagesWithDisplayFix(pts, numberOfPixelsPerUnit=g_numberOfPixelsPerUnit):
 	org_x, org_y = pts[:, 0], pts[:, 1]
 	org_y = org_y[310:500]
 	org_x = org_x[310:500]
 
-	#org_x, org_y, junk = getSimplePts(pts)
+	if g_cullPoints:
+		org_x, org_y, junk = getSimplePts(pts)
 	org_x = np.multiply(org_x, 1./float(numberOfPixelsPerUnit))
 	org_y = np.multiply(org_y, 1./float(numberOfPixelsPerUnit))
 	
@@ -289,7 +293,7 @@ def genImagesWithDisplayFix(pts, numberOfPixelsPerUnit=1):
 
 def genImages(pts):
 	#simplify the points
-	new_org_x, new_org_y, new_tList = getSimplePts(pts, maxNoOfPoints=100)
+	new_org_x, new_org_y, new_tList = getSimplePts(pts, maxNoOfPoints=g_maxNoOfPointsForCullingFunctoin)
 
 	org_x, org_y = new_org_x, new_org_y#pts[:, 0], pts[:, 1]
 
