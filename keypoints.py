@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import math
 from math import pi
 from scipy.interpolate import UnivariateSpline, interp1d
-from scipy.integrate import quad
+from scipy.integrate import quad, cumtrapz
 from scipy import interpolate 
 from scipy.interpolate import CubicSpline
 import scipy
@@ -28,8 +28,8 @@ g_SmoothingForParameterization_t = None
 g_SmoothingForParameterization_s = None
 g_SmoothingForDeltaCurvature = None
 g_isMakeAllPointsEqidistant = False
-g_cullPoints = False
-g_maxNoOfPointsForCullingFunctoin = 100
+g_cullPoints = True
+g_maxNoOfPointsForCullingFunctoin = 20
 g_SmoothingForPointsCulling = None
 g_numberOfPixelsPerUnit = 1
 
@@ -161,37 +161,72 @@ def lengthRateOfChangeFunc(t, fx, fy):
 	val = math.sqrt(dxdt**2 + dydt**2)
 	return val
 
-def arcLengthAtParamT(t, fx_t, fy_t):
-	val = quad(lengthRateOfChangeFunc, 0, t, args=(fx_t, fy_t))
-	return val[0]
-
-def TtoS(tList, fx, fy):
-	ret = []
-	for val in tList:
-		ret.append(arcLengthAtParamT(val, fx, fy))
-
-	return np.array(ret)
+def arcLengthAllTheWayToT(tList, fx_t, fy_t, noOfPoints=100):
+	maxXValue = fx_t(tList[-1])
+	all_x_vals = tList
+	all_y_vals = []
+	for x1 in all_x_vals:
+			all_y_vals.append(lengthRateOfChangeFunc(x1, fx_t, fy_t))
 	
-##----these two funcs should never be needed
-def _getTheValueOfT(tList, s, pts):
-	return arcLengthAtParamT(tList, pts) - s
+	print "all_x_vals"
+	print all_x_vals
+	print all_y_vals
+	print len(all_x_vals)
+	print len(all_y_vals)
 	
-def getTheValueOfTAtPosition(s, pts):
-	from scipy import optimize
-	t = 1 #starting position
-	res = optimize.newton(_getTheValueOfT, t, args=(s,pts))
-	return res
-##----	
+	vals = cumtrapz(all_y_vals, all_x_vals, initial=0)
+#	print vals
+	return vals
 
 def convertTListToArcLengthList(tList, fx_t, fy_t):
  	print "starting the integral"
 	time1 = time.time()
-	arcLengthList = _convertTListToArcLengthList(tList, fx_t, fy_t)
+	arcLengthList = arcLengthAllTheWayToT(tList, fx_t, fy_t, noOfPoints=len(tList))
 	time2 = time.time()
 	print 'function took %0.3f seconds' % ((time2-time1))
 	return arcLengthList
 
+################################################
+##############OLD
+
+def getPointsAndFirstDerAtT_old(t, fx, fy):
+	return fx([t])[0], fx.derivative(1)([t])[0], fy([t])[0], fy.derivative(1)([t])[0]
 	
+def lengthRateOfChangeFunc_old(t, fx, fy):
+	x, dxdt, y, dydt = getPointsAndFirstDerAtT_old(t, fx, fy)
+	val = math.sqrt(dxdt**2 + dydt**2)
+	return val
+
+def arcLengthAtParamT(t, fx_t, fy_t):
+	val = quad(lengthRateOfChangeFunc_old, 0, t, args=(fx_t, fy_t))
+	return val[0]
+
+def TtoS_old(tList, fx, fy):
+	ret = []
+	for val in tList:
+		ret.append(arcLengthAtParamT_old(val, fx, fy))
+
+	return np.array(ret)
+	
+
+def _convertTListToArcLengthList_old(tList, fx, fy):
+	return TtoS_old(tList, fx, fy)
+	
+def convertTListToArcLengthList_old(tList, fx_t, fy_t):
+ 	print "starting the integral"
+	time1 = time.time()
+	arcLengthList = _convertTListToArcLengthList_old(tList, fx_t, fy_t)
+	time2 = time.time()
+	print 'function took %0.3f seconds' % ((time2-time1))
+	return arcLengthList
+
+################################################
+##############OLD END
+
+def arcLengthAtParamT_old(t, fx_t, fy_t):
+	val = quad(lengthRateOfChangeFunc, 0, t, args=(fx_t, fy_t))
+	return val[0]
+
 def getParameterizedFunctionFromPoints(tList, x_pts, y_pts, smoothing=None):
 	fx_t = UnivariateSpline(tList, x_pts, k=3, s=smoothing)
 	fy_t = UnivariateSpline(tList, y_pts, k=3, s=smoothing)
@@ -200,15 +235,22 @@ def getParameterizedFunctionFromPoints(tList, x_pts, y_pts, smoothing=None):
 #if reparameterizing with respect to arc length then [s1, s2, ...] = t_to_s_function([t1, t2, ...])
 def reParameterizeFunctionFromPoints(t_to_s_function, tList, fx_t, fy_t, smoothing=None):
 	#for each point (org_x[i], org_y[i]) the "arcLengthList" gives use the arc length from 0 to that point
-	arcLengthList = t_to_s_function(tList, fx_t, fy_t)
+	#arcLengthList = convertTListToArcLengthList_old(tList, fx_t, fy_t)
 	
+	arcLengthList = convertTListToArcLengthList(tList, fx_t, fy_t)
+	
+	print '############'
+	print arcLengthList
+#	print arcLengthList2
+	print len(arcLengthList)
+#	print len(arcLengthList2)
+	print '############'
+	
+#	sys.exit()
 	#CAREFUL!!! we might use fx_t(tList) here, or x_org 
 	#but only if that's what the arcLengthListIsDefinedAS ??? it must be, how else would we make the spline????
 	fx_s, fy_s = getParameterizedFunctionFromPoints(arcLengthList, fx_t(tList), fy_t(tList), smoothing=smoothing)
 	return arcLengthList, fx_s, fy_s 
-	
-def _convertTListToArcLengthList(tList, fx, fy):
-	return TtoS(tList, fx, fy)
 
 def getFirstAndSecondDerivForTPoints(arcLengthList, fx_s, fy_s):
 	x = fx_s(arcLengthList)
@@ -251,7 +293,7 @@ def _parameterizeFunctionWRTArcLength(org_x, org_y):
 	#plotTwoFuncsVsOrgPoints(tList, fx_t, org_x, fy_t, org_y)
 	#PLOT
 
-	arcLengthList, fx_s, fy_s = reParameterizeFunctionFromPoints(convertTListToArcLengthList, tList, fx_t, fy_t, smoothing=g_SmoothingForParameterization_s)
+	arcLengthList, fx_s, fy_s = reParameterizeFunctionFromPoints(convertTListToArcLengthList_old, tList, fx_t, fy_t, smoothing=g_SmoothingForParameterization_s)
 	
 	#PRINT DEBUG
 	randomPrint1(arcLengthList, org_x, org_y, fx_s, fy_s)
