@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 import time
 
 import matplotlib.pyplot as plt
@@ -24,13 +24,13 @@ import plotting
 
 g_name = 'REPLACE_ME'
 g_enable_plotting = True
-g_SmoothingForParameterization_t = None
-g_SmoothingForParameterization_s = None
-g_SmoothingForDeltaCurvature = None
+g_SmoothingForParameterization_t = 0
+g_SmoothingForParameterization_s = 0
+g_SmoothingForDeltaCurvature = 0
 g_isMakeAllPointsEqidistant = False
 g_cullPoints = True
 g_maxNoOfPointsForCullingFunctoin = 20
-g_SmoothingForPointsCulling = None
+g_SmoothingForPointsCulling = 0
 g_numberOfPixelsPerUnit = 1
 
 #pts = [(0,0),(1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0),(8,0),(9,0),(10,0)]
@@ -316,11 +316,16 @@ def genImages2(retX, retY):
 
 def genImagesWithDisplayFix(pts, numberOfPixelsPerUnit=g_numberOfPixelsPerUnit):
 	org_x, org_y = pts[:, 0], pts[:, 1]
-	org_y = org_y[310:500]
-	org_x = org_x[310:500]
+	org_y = org_y[600:800]
+	org_x = org_x[600:800]
 
-	if g_cullPoints:
-		org_x, org_y, junk = getSimplePts(pts)
+	plot(org_x,org_y)
+	show()
+
+#	if g_cullPoints:
+#		org_x, org_y, junk = getSimplePts(pts)
+
+
 	org_x = np.multiply(org_x, 1./float(numberOfPixelsPerUnit))
 	org_y = np.multiply(org_y, 1./float(numberOfPixelsPerUnit))
 	
@@ -330,8 +335,8 @@ def genImagesWithDisplayFix(pts, numberOfPixelsPerUnit=g_numberOfPixelsPerUnit):
 	
 	xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, fullLength_s =_parameterizeFunctionWRTArcLength(org_x, org_y)
 
-	#for i in range(len(dx2curvature)):
-	#	plotting.plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, i, fullLength_s)
+	for i in range(len(dx2curvature)):
+		plotting.plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, i, fullLength_s)
 
 def genImages(pts):
 	#simplify the points
@@ -385,5 +390,6 @@ def genImages(pts):
 #	genImagesWithDisplayFix(pts)
 
 pts = ns.shapes['shape4']
+#pts = [(0,0),(1,0),(2,0),(3,0),(4,0),(0,4),(0,3),(0,2),(0,1)]
 genImagesWithDisplayFix(np.array(pts))
 	

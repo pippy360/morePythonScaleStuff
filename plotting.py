@@ -1,3 +1,28 @@
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import time
+
+import matplotlib.pyplot as plt
+import math
+from math import pi
+from scipy.interpolate import UnivariateSpline, interp1d
+from scipy.integrate import quad, cumtrapz
+from scipy import interpolate 
+from scipy.interpolate import CubicSpline
+import scipy
+import numpy as np
+import pylab
+from numpy import sin,pi,linspace
+from pylab import plot,show,subplot, axhline, axis, axes
+import sys
+from scipy import signal
+from scipy.signal import argrelextrema
+import new_shapes as ns
+import plotting
+####### gen points ########
+g_name = "image"
+
 def plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, idx, fullLength_s):
 	fullLen = len(s)
 	i = idx
