@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import math
 from math import pi
 from scipy.interpolate import UnivariateSpline, interp1d
-from scipy.integrate import quad, cumtrapz
+from scipy.integrate import quad, cumtrapz, quad_explain
 from scipy import interpolate 
 from scipy.interpolate import CubicSpline
 import scipy
@@ -32,6 +32,9 @@ g_cullPoints = True
 g_maxNoOfPointsForCullingFunctoin = 20
 g_SmoothingForPointsCulling = 0
 g_numberOfPixelsPerUnit = 1
+
+#debug
+g_plotVelocity = True
 
 #pts = [(0,0),(1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0),(8,0),(9,0),(10,0)]
 #pts = [(0,0),(1,1),(2,2),(3,3),(4,4),(5,5),(6,6),(7,7),(8,8),(9,9),(10,10)]
@@ -100,7 +103,10 @@ def randomPlot1(org_x, org_y, arcLengthList, fx_s, fy_s):
 	plot(fx_s(arcLengthList), fy_s(arcLengthList), 'b', color="blue")
 	show()
 	#PLOT
-	
+
+def plotVelocity(t_pts, v_pts):
+	plot(t_pts, v_pts)
+	show()
 #####################################
 ####### debug prints #######
 #####################################
@@ -162,17 +168,13 @@ def lengthRateOfChangeFunc(t, fx, fy):
 	return val
 
 def arcLengthAllTheWayToT(tList, fx_t, fy_t, noOfPoints=100):
-	maxXValue = fx_t(tList[-1])
 	all_x_vals = tList
 	all_y_vals = []
 	for x1 in all_x_vals:
 			all_y_vals.append(lengthRateOfChangeFunc(x1, fx_t, fy_t))
 	
-	print "all_x_vals"
-	print all_x_vals
-	print all_y_vals
-	print len(all_x_vals)
-	print len(all_y_vals)
+	if g_plotVelocity:
+		plotVelocity(all_x_vals, all_y_vals)
 	
 	vals = cumtrapz(all_y_vals, all_x_vals, initial=0)
 #	print vals
@@ -185,6 +187,42 @@ def convertTListToArcLengthList(tList, fx_t, fy_t):
 	time2 = time.time()
 	print 'function took %0.3f seconds' % ((time2-time1))
 	return arcLengthList
+
+def plotTheIntegratorStuff(ptsSoFar, fx_t, fy_t, all_y_vals, idx):
+
+	subplot(421)
+	plot(ptsSoFar, all_y_vals)
+	subplot(422)
+	plot(ptsSoFar, fx_t(ptsSoFar))
+	subplot(423)
+	plot(ptsSoFar, fy_t(ptsSoFar))
+	subplot(424)
+	plot(fx_t(ptsSoFar), fy_t(ptsSoFar))
+	pylab.savefig('output_debug/'+g_name+'_foo'+str(idx)+'.png')
+	pylab.clf()
+
+
+def plotThisPointForTheArcLengthStuff(ptsSoFar, fx_t, fy_t, idx):
+	all_y_vals = []
+	for x1 in ptsSoFar:
+		all_y_vals.append(lengthRateOfChangeFunc(x1, fx_t, fy_t))
+
+	#remember to plot the rate of change function
+	plotTheIntegratorStuff(ptsSoFar, fx_t, fy_t, all_y_vals, idx)
+
+
+def convertTListToArcLengthList_debug_new(tList, fx_t, fy_t):
+	ptsSoFar = []
+	for i in range(len(tList)):
+		ptsSoFar.append(tList[i])
+		if i == 0:
+			continue
+
+		plotThisPointForTheArcLengthStuff(ptsSoFar, fx_t, fy_t, i)
+
+	return convertTListToArcLengthList(tList, fx_t, fy_t)
+
+
 
 ################################################
 ##############OLD
@@ -237,7 +275,7 @@ def reParameterizeFunctionFromPoints(t_to_s_function, tList, fx_t, fy_t, smoothi
 	#for each point (org_x[i], org_y[i]) the "arcLengthList" gives use the arc length from 0 to that point
 	#arcLengthList = convertTListToArcLengthList_old(tList, fx_t, fy_t)
 	
-	arcLengthList = convertTListToArcLengthList(tList, fx_t, fy_t)
+	arcLengthList = convertTListToArcLengthList_debug_new(tList, fx_t, fy_t)
 	
 	print '############'
 	print arcLengthList
