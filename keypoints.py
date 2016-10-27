@@ -35,6 +35,7 @@ g_numberOfPixelsPerUnit = 1
 
 #debug
 g_plotVelocity = True
+g_dividerForPts = 10
 
 #pts = [(0,0),(1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0),(8,0),(9,0),(10,0)]
 #pts = [(0,0),(1,1),(2,2),(3,3),(4,4),(5,5),(6,6),(7,7),(8,8),(9,9),(10,10)]
@@ -91,17 +92,17 @@ def randomPlot1(org_x, org_y, arcLengthList, fx_s, fy_s):
 	if not g_enable_plotting:
 		return 
 	#PLOT 
-	subplot(411)
-	plot(org_x, org_y, 'b', color="blue")
-	subplot(412)
-	plot(arcLengthList, org_x, 'x', color="red")
-	plot(arcLengthList, fx_s(arcLengthList), 'b', color="blue")
-	subplot(413)
-	plot(arcLengthList, org_y, 'x', color="red")
-	plot(arcLengthList, fy_s(arcLengthList), 'b', color="blue")
-	subplot(414)
-	plot(fx_s(arcLengthList), fy_s(arcLengthList), 'b', color="blue")
-	show()
+#	subplot(411)
+#	plot(org_x, org_y, 'b', color="blue")
+#	subplot(412)
+#	plot(arcLengthList, org_x, 'x', color="red")
+#	plot(arcLengthList, fx_s(arcLengthList), 'b', color="blue")
+#	subplot(413)
+#	plot(arcLengthList, org_y, 'x', color="red")
+#	plot(arcLengthList, fy_s(arcLengthList), 'b', color="blue")
+#	subplot(414)
+#	plot(fx_s(arcLengthList), fy_s(arcLengthList), 'b', color="blue")
+#	show()
 	#PLOT
 
 def plotVelocity(t_pts, v_pts):
@@ -173,8 +174,8 @@ def arcLengthAllTheWayToT(tList, fx_t, fy_t, noOfPoints=100):
 	for x1 in all_x_vals:
 			all_y_vals.append(lengthRateOfChangeFunc(x1, fx_t, fy_t))
 	
-	if g_plotVelocity:
-		plotVelocity(all_x_vals, all_y_vals)
+#	if g_plotVelocity:
+#		plotVelocity(all_x_vals, all_y_vals)
 	
 	vals = cumtrapz(all_y_vals, all_x_vals, initial=0)
 #	print vals
@@ -188,37 +189,61 @@ def convertTListToArcLengthList(tList, fx_t, fy_t):
 	print 'function took %0.3f seconds' % ((time2-time1))
 	return arcLengthList
 
-def plotTheIntegratorStuff(ptsSoFar, fx_t, fy_t, all_y_vals, idx):
+def plotTheIntegratorStuff(ptsSoFar, fx_t, fy_t, all_y_vals, idx, expandedTList_ptsSoFar, expandedTList_all_y_vals):
 
-	subplot(421)
-	plot(ptsSoFar, all_y_vals)
-	subplot(422)
-	plot(ptsSoFar, fx_t(ptsSoFar))
-	subplot(423)
-	plot(ptsSoFar, fy_t(ptsSoFar))
-	subplot(424)
+	subplot(211)
+	plot(ptsSoFar, all_y_vals, 'b', color='r')
+	plot(expandedTList_ptsSoFar, expandedTList_all_y_vals, 'b',  color='b')
+	#subplot(422)
+	#plot(ptsSoFar, fx_t(ptsSoFar))
+	#subplot(423)
+	#plot(ptsSoFar, fy_t(ptsSoFar))
+	subplot(212)
 	plot(fx_t(ptsSoFar), fy_t(ptsSoFar))
 	pylab.savefig('output_debug/'+g_name+'_foo'+str(idx)+'.png')
 	pylab.clf()
 
 
-def plotThisPointForTheArcLengthStuff(ptsSoFar, fx_t, fy_t, idx):
+def plotThisPointForTheArcLengthStuff(ptsSoFar, fx_t, fy_t, idx, dividerForPts=g_dividerForPts):
 	all_y_vals = []
 	for x1 in ptsSoFar:
 		all_y_vals.append(lengthRateOfChangeFunc(x1, fx_t, fy_t))
 
+	expandedYVals = []
+	expandedTVals = []
+	for i in range((len(ptsSoFar)*dividerForPts)):
+		expandedTVals.append(float(i)/float(dividerForPts))
+		expandedYVals.append(lengthRateOfChangeFunc(float(i)/float(dividerForPts), fx_t, fy_t))
+
 	#remember to plot the rate of change function
-	plotTheIntegratorStuff(ptsSoFar, fx_t, fy_t, all_y_vals, idx)
+	plotTheIntegratorStuff(ptsSoFar, fx_t, fy_t, all_y_vals, idx, expandedTVals, expandedYVals)
 
 
 def convertTListToArcLengthList_debug_new(tList, fx_t, fy_t):
 	ptsSoFar = []
+
+	all_y_vals = []
+	for x1 in tList:
+		all_y_vals.append(lengthRateOfChangeFunc(x1, fx_t, fy_t))
+
+	expandedYVals = []
+	expandedTVals = []
+	dividerForPts = g_dividerForPts
+	for i in range((len(tList)*dividerForPts)):
+		expandedTVals.append(float(i)/float(dividerForPts))
+		expandedYVals.append(lengthRateOfChangeFunc(float(i)/float(dividerForPts), fx_t, fy_t))
+
+	plot(expandedTVals, expandedYVals, 'b', color='b')
+	plot(tList, all_y_vals, 'b', color='r')
+	show()
+
 	for i in range(len(tList)):
 		ptsSoFar.append(tList[i])
 		if i == 0:
 			continue
 
 		plotThisPointForTheArcLengthStuff(ptsSoFar, fx_t, fy_t, i)
+
 
 	return convertTListToArcLengthList(tList, fx_t, fy_t)
 
@@ -357,8 +382,8 @@ def genImagesWithDisplayFix(pts, numberOfPixelsPerUnit=g_numberOfPixelsPerUnit):
 	org_y = org_y[600:800]
 	org_x = org_x[600:800]
 
-	plot(org_x,org_y)
-	show()
+#	plot(org_x,org_y)
+#	show()
 
 #	if g_cullPoints:
 #		org_x, org_y, junk = getSimplePts(pts)
