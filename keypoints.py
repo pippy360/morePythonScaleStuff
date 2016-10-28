@@ -24,18 +24,18 @@ import plotting
 
 g_name = 'REPLACE_ME'
 g_enable_plotting = True
-g_SmoothingForParameterization_t = 0
-g_SmoothingForParameterization_s = 0
-g_SmoothingForDeltaCurvature = 0
+g_SmoothingForParameterization_t = None
+g_SmoothingForParameterization_s = None
+g_SmoothingForDeltaCurvature = None
 g_isMakeAllPointsEqidistant = False
-g_cullPoints = True
-g_maxNoOfPointsForCullingFunctoin = 20
+g_cullPoints = False
+g_maxNoOfPointsForCullingFunctoin = 40
 g_SmoothingForPointsCulling = 0
 g_numberOfPixelsPerUnit = 1
 
 #debug
 g_plotVelocity = True
-g_dividerForPts = 10
+g_dividerForPts = 1
 
 #pts = [(0,0),(1,0),(2,0),(3,0),(4,0),(5,0),(6,0),(7,0),(8,0),(9,0),(10,0)]
 #pts = [(0,0),(1,1),(2,2),(3,3),(4,4),(5,5),(6,6),(7,7),(8,8),(9,9),(10,10)]
@@ -143,7 +143,7 @@ def breakUpFullLengthOfArcIntoXPoints(fullLength, noOfPoints, addZeroPoint=False
 
 #express the function in less points by parameterizing WRT some variable (t) 
 #and then interpolating
-def getSimplePts(pts, maxNoOfPoints=100):
+def getSimplePts(pts, maxNoOfPoints=g_maxNoOfPointsForCullingFunctoin):
 	org_x, org_y = pts[:, 0], pts[:, 1]
 	tList = np.arange(org_x.shape[0])
 	fx_t = UnivariateSpline(tList, org_x, k=3, s=g_SmoothingForPointsCulling)
@@ -168,15 +168,26 @@ def lengthRateOfChangeFunc(t, fx, fy):
 	val = math.sqrt(dxdt**2 + dydt**2)
 	return val
 
-def arcLengthAllTheWayToT(tList, fx_t, fy_t, noOfPoints=100):
+def arcLengthAllTheWayToT(tList, fx_t, fy_t, noOfPoints=100, subDivide=g_dividerForPts):
 	all_x_vals = tList
 	all_y_vals = []
-	for x1 in all_x_vals:
+	for i in range((len(all_x_vals)*subDivide)):#FIXME: this won't work for odd values of tList, it makes the presumption that tList is just incrementing ints
+			x1 = float(i)/float(subDivide)
 			all_y_vals.append(lengthRateOfChangeFunc(x1, fx_t, fy_t))
 	
+	#extract only the y values we care about
+	next_all_y_vals = []
+	for i in range(len(all_y_vals)/subDivide):
+			next_all_y_vals.append(all_y_vals[i*subDivide])
+
+	all_y_vals = next_all_y_vals
 #	if g_plotVelocity:
 #		plotVelocity(all_x_vals, all_y_vals)
 	
+	print "len(all_x_vals)"
+	print len(all_x_vals)
+	print len(all_y_vals)
+
 	vals = cumtrapz(all_y_vals, all_x_vals, initial=0)
 #	print vals
 	return vals
@@ -220,29 +231,29 @@ def plotThisPointForTheArcLengthStuff(ptsSoFar, fx_t, fy_t, idx, dividerForPts=g
 
 
 def convertTListToArcLengthList_debug_new(tList, fx_t, fy_t):
-	ptsSoFar = []
-
-	all_y_vals = []
-	for x1 in tList:
-		all_y_vals.append(lengthRateOfChangeFunc(x1, fx_t, fy_t))
-
-	expandedYVals = []
-	expandedTVals = []
-	dividerForPts = g_dividerForPts
-	for i in range((len(tList)*dividerForPts)):
-		expandedTVals.append(float(i)/float(dividerForPts))
-		expandedYVals.append(lengthRateOfChangeFunc(float(i)/float(dividerForPts), fx_t, fy_t))
-
-	plot(expandedTVals, expandedYVals, 'b', color='b')
-	plot(tList, all_y_vals, 'b', color='r')
-	show()
-
-	for i in range(len(tList)):
-		ptsSoFar.append(tList[i])
-		if i == 0:
-			continue
-
-		plotThisPointForTheArcLengthStuff(ptsSoFar, fx_t, fy_t, i)
+#	ptsSoFar = []
+#
+#	all_y_vals = []
+#	for x1 in tList:
+#		all_y_vals.append(lengthRateOfChangeFunc(x1, fx_t, fy_t))
+#
+#	expandedYVals = []
+#	expandedTVals = []
+#	dividerForPts = g_dividerForPts
+#	for i in range((len(tList)*dividerForPts)):
+#		expandedTVals.append(float(i)/float(dividerForPts))
+#		expandedYVals.append(lengthRateOfChangeFunc(float(i)/float(dividerForPts), fx_t, fy_t))
+#
+#	#plot(expandedTVals, expandedYVals, 'b', color='b')
+#	#plot(tList, all_y_vals, 'b', color='r')
+#	#show()
+#
+#	for i in range(len(tList)):
+#		ptsSoFar.append(tList[i])
+#		if i == 0:
+#			continue
+#
+#		plotThisPointForTheArcLengthStuff(ptsSoFar, fx_t, fy_t, i)
 
 
 	return convertTListToArcLengthList(tList, fx_t, fy_t)
@@ -372,21 +383,21 @@ def _parameterizeFunctionWRTArcLength(org_x, org_y):
 	
 	curvature, dxcurvature, dx2curvature = getCurvatureForPoints(arcLengthList, fx_s, fy_s, smoothing=g_SmoothingForDeltaCurvature)
 
-	return org_x, org_y, x_, y_, x__, y__, arcLengthList, curvature, dxcurvature, dx2curvature, arcLengthList[-1]
+	return org_x, org_y, x_, y_, x__, y__, arcLengthList, curvature, dxcurvature, dx2curvature, arcLengthList[-1], fx_s, fy_s
 
 def genImages2(retX, retY):
 	return genImages
 
 def genImagesWithDisplayFix(pts, numberOfPixelsPerUnit=g_numberOfPixelsPerUnit):
 	org_x, org_y = pts[:, 0], pts[:, 1]
-	org_y = org_y[600:800]
-	org_x = org_x[600:800]
+#	org_y = org_y[600:800]
+#	org_x = org_x[600:800]
 
 #	plot(org_x,org_y)
 #	show()
 
-#	if g_cullPoints:
-#		org_x, org_y, junk = getSimplePts(pts)
+	if g_cullPoints:
+		org_x, org_y, junk = getSimplePts(pts)
 
 
 	org_x = np.multiply(org_x, 1./float(numberOfPixelsPerUnit))
@@ -396,14 +407,36 @@ def genImagesWithDisplayFix(pts, numberOfPixelsPerUnit=g_numberOfPixelsPerUnit):
 	print org_x
 	print org_y
 	
-	xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, fullLength_s =_parameterizeFunctionWRTArcLength(org_x, org_y)
+	xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, fullLength_s, fx_s, fy_s =_parameterizeFunctionWRTArcLength(org_x, org_y)
 
-	for i in range(len(dx2curvature)):
-		plotting.plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, i, fullLength_s)
+	finalVals = argrelextrema(curvature, np.greater, order=2)
+
+	print "finalVals"
+	print finalVals
+
+	temp = []
+	temp2 = []
+	temp3 = []
+	temp4 = []
+	for i in finalVals:
+			temp.append(curvature[i])
+			temp2.append(xs[i])
+			temp3.append(ys[i])
+			temp4.append(s[i])
+
+	#plot(xs, ys, 'b', color='b')
+#	plot(s, curvature, 'b', color='b')
+#	plot(temp2, temp3, 'b', color='b')
+#	plot(fx_s(finalVals), fy_s(finalVals), 'ro', color='r')
+	#plot(temp2, temp3, 'ro', color='r')
+	#plot(temp4, temp, 'ro', color='r')
+	#show()
+#	for i in range(len(dx2curvature)):
+#		plotting.plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, i, fullLength_s)
 
 def genImages(pts):
 	#simplify the points
-	new_org_x, new_org_y, new_tList = getSimplePts(pts, maxNoOfPoints=g_maxNoOfPointsForCullingFunctoin)
+	new_org_x, new_org_y, new_tList = getSimplePts(pts, maxNoOfPoints=100)
 
 	org_x, org_y = new_org_x, new_org_y#pts[:, 0], pts[:, 1]
 
