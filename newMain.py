@@ -140,18 +140,29 @@ def getAllTheHashesForImage(inputImage):
 	#get the keyPoints
 	keyPoints = getTheKeyPoints(inputImage)
 
+
 	#turn the keyPoints into triangles	
 	triangles = getTheTriangles(keyPoints)
 
+	#print triangles
+
 	#turn the triangles into fragments of the image
+	print 'here now:'
 	fragementsAndShapes = getTheFragments(inputImage, triangles)
 
 	#normalise the scale and fragments
+	print 'here now:'
 	normalisedFragmentObjs = normaliseScaleAndRotationForAllFrags(fragementsAndShapes)
 
 	#hash the fragments 
+	print 'here now:'
 	fragmentHashs = getHashsForAllFragments(normalisedFragmentObjs)
 
+	print 'here now:'
+
 	fragmentHashs_jsonObjs = allFragmentsToJsonObjects(fragmentHashs, normalisedFragmentObjs)
+
+	print 'here now:'
+	print fragmentHashs_jsonObjs
 
 	return fragmentHashs_jsonObjs

@@ -164,9 +164,9 @@ def getTheKeypoints_justPoints_inner_inner(channel, img2):
 
 	for i in range(len(contours)):
 		cv2.drawContours(img2, contours, i, (0,0,255), 1)
-		#cv2.circle(img2, finCnts[i], 3, (255, 0, 0), -1)
+		cv2.circle(img2, finCnts[i], 3, (255, 0, 0), -1)
 
-	print "len(contours):" + str(len(contours))
+	#print "len(contours):" + str(len(contours))
 	for i in range(len(contours)):
 		cnt = contours[i]
 		#print "cnt"
@@ -177,19 +177,16 @@ def getTheKeypoints_justPoints_inner_inner(channel, img2):
 			ret.append( (pt[0], pt[1]) )
 
 		#print ret
-		#xcoords, ycoords = kp.genImages( np.array(ret) )
-		print "shape"+str(i)+" = " + str(ret)
+		xcoords, ycoords = kp.genImagesWithDisplayFix( np.array(ret) )
+#		print "shape"+str(i)+" = " + str(ret)
 		#print xcoords[0]
 		#print ycoords[0]
 
-		#for i in range(len(xcoords[0])):
-		#	cv2.circle(img2, ( int(xcoords[0][i]), int(ycoords[0][i]) ), 3, (255, 0, 0), -1)
+		for i in range(len(xcoords[0])):
+			cv2.circle(img2, ( int(xcoords[0][i]), int(ycoords[0][i]) ), 3, (255, 0, 0), -1)
 
 	cv2.imshow('t1', img2)
 	cv2.waitKey()
-
-
-	sys.exit()
 
 	return finCnts
 

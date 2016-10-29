@@ -23,6 +23,7 @@ isDebug = False
 def hex_to_hash(hexstr):
 
 	l = []
+
 	if len(hexstr) != 8:
 		raise ValueError('The hex string has the wrong length')
 	for i in range(4):
@@ -82,25 +83,30 @@ def processImage(imgName):
 		    os.makedirs('./output_debug/'+imgName+'/')
 
 	rangeInput = [(0.,359.0), (1.,8.)]
+
+
 	img = cv2.imread("./input/"+imgName+".jpg")
+	return nm.getAllTheHashesForImage(img)
 
-	finalret = []
-	for shape, scaledShape, frag in gf.getTheFragments(imgName, isDebug):
-		finalret.append( handleFragment(shape, scaledShape, frag, rangeInput, imgName) )
-
-	return finalret
 	######################################### 	
 
 
 def addImageToDB(imgName):
 	values = processImage(imgName)
-
+	print "values"
+	print values
 	r = redis.StrictRedis(host='localhost', port=6379, db=0)
 
-	for val in values:
-		r.lpush(val[0][0], val[0][1])
+	count = 0
+	for inputImageVal in values:    
+		inputImageFragmentHash = inputImageVal['hash']
+		inputImageFragmentShape = inputImageVal['shape']
+		print inputImageVal['hash']
+		print inputImageVal['shape']
+		r.lpush(inputImageFragmentHash, jh.getTheJsonString(imgName, inputImageFragmentHash, 10, inputImageFragmentShape) )
+		count += 1
 
-	print "added: "+ str(len(values))
+	print "added: "+ str(count)
 
 
 def handleMatchedFragment(inputImage, matchedJsonObj, matchedImg, inputImageFragmentShape):
@@ -112,12 +118,12 @@ def handleMatchedFragment(inputImage, matchedJsonObj, matchedImg, inputImageFrag
 	col = (randint(0,255),randint(0,255),randint(0,255))
 
 	d.drawLinesColourAlsoWidth(matchedCoords, matchedImg, col, 1)
-	#cv2.imshow('found', matchedImg)
+	cv2.imshow('found', matchedImg)
 	
 	d.drawLinesColourAlsoWidth(inputImageFragmentShape, inputImage, col, 1)
-	#cv2.imshow('input', inputImage)
+	cv2.imshow('input', inputImage)
 
-	#cv2.waitKey(0)
+	cv2.waitKey(0)
 
 
 def handleMatchedFragments(inputImage, matchedJsonObjs, matchedImg, inputImageFragmentShape):
@@ -150,11 +156,15 @@ def findMatchesForHash(inputImageFragmentHash, r, threshold=1):
 	listKeys = r.keys()
 	ret = []
 	for akey in listKeys:
-		diff = hex_to_hash(akey) - hex_to_hash(inputImageFragmentHash)
-		#print akey+" with diff: " + str(diff)
-		if(diff < threshold):
-			ret.extend(jh.getTheJsonObjs(akey, r))
-
+		try:
+			diff = hex_to_hash(akey) - hex_to_hash(inputImageFragmentHash)
+			#print akey+" with diff: " + str(diff)
+			if(diff < threshold):
+				print 'match found'
+				ret.extend(jh.getTheJsonObjs(akey, r))
+		except ValueError:
+			pass
+			#print 'failed for :' + akey
 	ret = parseResults(ret)
 	#x = ret['somefafdsaf']
 	if ret == []:
@@ -181,7 +191,7 @@ def continueParsing(tempList):
 def showMatches(imgName):
 	inImg = cv2.imread("./input/"+imgName+".jpg")
 	inputImageValues = nm.getAllTheHashesForImage(inImg)
-
+	print 'out of there'
 	r = redis.StrictRedis(host='localhost', port=6379, db=0)
 	inputImage = cv2.imread("./input/"+imgName+".jpg")
 	
@@ -251,12 +261,14 @@ name8 = "rick4"
 #addImageToDB(name5)
 #addImageToDB(name6)
 #addImageToDB(name7)
-#addImageToDB(name8)
+addImageToDB(name3)
+#addImageToDB(name7)
 #addImageToDB("costanza_changed")
 #showMatches("lennaWithGreenDotsInTriangle", "lennaWithGreenDotsInTriangle3")
 
 #showMatches(name2, name1)
-showMatches(name5)
+#showMatches(name5)
+showMatches(name4)
 
 
 #showMatches(name5)

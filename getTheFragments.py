@@ -304,7 +304,7 @@ def getTheFragments(imgName, isDebug):
 	########
 	img = cv2.imread("./input/"+imgName+".jpg")
 	time2 = time.time()
-	print '%s function took %0.3f ms' % ("getTheFrags", (time2-time1)*1000.0)
+	print '%s function took %0.3f seconds' % ("getTheFrags", (time2-time1))
 
 	for tempShape in ret:
 		shape = []

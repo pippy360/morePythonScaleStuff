@@ -184,20 +184,20 @@ def arcLengthAllTheWayToT(tList, fx_t, fy_t, noOfPoints=100, subDivide=g_divider
 #	if g_plotVelocity:
 #		plotVelocity(all_x_vals, all_y_vals)
 	
-	print "len(all_x_vals)"
-	print len(all_x_vals)
-	print len(all_y_vals)
+#	print "len(all_x_vals)"
+#	print len(all_x_vals)
+#	print len(all_y_vals)
 
 	vals = cumtrapz(all_y_vals, all_x_vals, initial=0)
 #	print vals
 	return vals
 
 def convertTListToArcLengthList(tList, fx_t, fy_t):
- 	print "starting the integral"
+ 	#print "starting the integral"
 	time1 = time.time()
 	arcLengthList = arcLengthAllTheWayToT(tList, fx_t, fy_t, noOfPoints=len(tList))
 	time2 = time.time()
-	print 'function took %0.3f seconds' % ((time2-time1))
+	print 'integral took %0.3f seconds' % ((time2-time1))
 	return arcLengthList
 
 def plotTheIntegratorStuff(ptsSoFar, fx_t, fy_t, all_y_vals, idx, expandedTList_ptsSoFar, expandedTList_all_y_vals):
@@ -287,11 +287,11 @@ def _convertTListToArcLengthList_old(tList, fx, fy):
 	return TtoS_old(tList, fx, fy)
 	
 def convertTListToArcLengthList_old(tList, fx_t, fy_t):
- 	print "starting the integral"
+# 	print "starting the integral"
 	time1 = time.time()
 	arcLengthList = _convertTListToArcLengthList_old(tList, fx_t, fy_t)
 	time2 = time.time()
-	print 'function took %0.3f seconds' % ((time2-time1))
+	print 'integral took %0.3f seconds' % ((time2-time1))
 	return arcLengthList
 
 ################################################
@@ -313,12 +313,12 @@ def reParameterizeFunctionFromPoints(t_to_s_function, tList, fx_t, fy_t, smoothi
 	
 	arcLengthList = convertTListToArcLengthList_debug_new(tList, fx_t, fy_t)
 	
-	print '############'
-	print arcLengthList
+#	print '############'
+#	print arcLengthList
 #	print arcLengthList2
-	print len(arcLengthList)
+#	print len(arcLengthList)
 #	print len(arcLengthList2)
-	print '############'
+#	print '############'
 	
 #	sys.exit()
 	#CAREFUL!!! we might use fx_t(tList) here, or x_org 
@@ -370,15 +370,15 @@ def _parameterizeFunctionWRTArcLength(org_x, org_y):
 	arcLengthList, fx_s, fy_s = reParameterizeFunctionFromPoints(convertTListToArcLengthList_old, tList, fx_t, fy_t, smoothing=g_SmoothingForParameterization_s)
 	
 	#PRINT DEBUG
-	randomPrint1(arcLengthList, org_x, org_y, fx_s, fy_s)
-	randomPlot1(org_x, org_y, arcLengthList, fx_s, fy_s)
+	#randomPrint1(arcLengthList, org_x, org_y, fx_s, fy_s)
+	#randomPlot1(org_x, org_y, arcLengthList, fx_s, fy_s)
 	#PRINT DEBUG
 	
 	arcLengthList = newArcLengthList(arcLengthList, fx_s, fy_s)
 	x, x_, x__, y, y_, y__ = getFirstAndSecondDerivForTPoints(arcLengthList, fx_s, fy_s)
 
 	#PRINT DEBUG
-	printTheDerivativesError(x_, y_)
+	#printTheDerivativesError(x_, y_)
 	#PRINT DEBUG
 	
 	curvature, dxcurvature, dx2curvature = getCurvatureForPoints(arcLengthList, fx_s, fy_s, smoothing=g_SmoothingForDeltaCurvature)
@@ -403,36 +403,47 @@ def genImagesWithDisplayFix(pts, numberOfPixelsPerUnit=g_numberOfPixelsPerUnit):
 	org_x = np.multiply(org_x, 1./float(numberOfPixelsPerUnit))
 	org_y = np.multiply(org_y, 1./float(numberOfPixelsPerUnit))
 	
-	print 'Vals of org_x and org_y after mult'
-	print org_x
-	print org_y
+	#print 'Vals of org_x and org_y after mult'
+	#print org_x
+	#print org_y
 	
 	xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, fullLength_s, fx_s, fy_s =_parameterizeFunctionWRTArcLength(org_x, org_y)
 
 	finalVals = argrelextrema(curvature, np.greater, order=2)
 
-	print "finalVals"
-	print finalVals
+	#print "finalVals"
+	#print finalVals
 
 	temp = []
 	temp2 = []
 	temp3 = []
 	temp4 = []
-	for i in finalVals:
-			temp.append(curvature[i])
-			temp2.append(xs[i])
-			temp3.append(ys[i])
-			temp4.append(s[i])
 
-	#plot(xs, ys, 'b', color='b')
+	I__  = finalVals[0]
+	temp = curvature[I__]
+	temp2 = xs[I__]
+	temp3 = ys[I__]
+	temp4 = s[I__]
+
+	fin_pts = []
+	for i in range(len(temp2)):
+			pt = (temp2[i], temp3[i])
+			fin_pts.append(pt)
+
 #	plot(s, curvature, 'b', color='b')
 #	plot(temp2, temp3, 'b', color='b')
-#	plot(fx_s(finalVals), fy_s(finalVals), 'ro', color='r')
-	#plot(temp2, temp3, 'ro', color='r')
+	#plot(fx_s(finalVals), fy_s(finalVals), 'ro', color='r')
 	#plot(temp4, temp, 'ro', color='r')
-	#show()
+	
+#	plot(xs, ys, 'b', color='b')
+#	plot(temp2, temp3, 'ro', color='r')
+#	show()
+
 #	for i in range(len(dx2curvature)):
 #		plotting.plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, i, fullLength_s)
+
+	#return fin_pts
+	return [temp2], [temp3]
 
 def genImages(pts):
 	#simplify the points
@@ -444,9 +455,9 @@ def genImages(pts):
 
 	dx2curvature = abs(dx2curvature)
 	maxm = argrelextrema(dx2curvature, np.greater)  # (array([1, 3, 6]),)
-	print "maxm"
-	print dx2curvature
-	print maxm
+#	print "maxm"
+#	print dx2curvature
+#	print maxm
 
 	#for i in range(len(dx2curvature)):
 	#	plotting.plotItAtIndex(xs, ys, dxdt, dydt, d2xdt, d2ydt, s, curvature, dxcurvature, dx2curvature, i, fullLength_s)
@@ -485,7 +496,7 @@ def genImages(pts):
 #	pts = np.array(value)
 #	genImagesWithDisplayFix(pts)
 
-pts = ns.shapes['shape4']
+#pts = ns.shapes['shape4']
 #pts = [(0,0),(1,0),(2,0),(3,0),(4,0),(0,4),(0,3),(0,2),(0,1)]
-genImagesWithDisplayFix(np.array(pts))
+#print genImagesWithDisplayFix(np.array(pts))
 	
