@@ -21,7 +21,9 @@ import newMain as nm
 isDebug = False
 
 def hex_to_hash(hexstr):
-
+	if isinstance(hexstr, ImageHash):
+    		hexstr = str(hexstr)
+			
 	l = []
 
 	if len(hexstr) != 8:
@@ -86,23 +88,25 @@ def processImage(imgName):
 
 
 	img = cv2.imread("./input/"+imgName+".jpg")
-	return nm.getAllTheHashesForImage(img)
+	return nm.getAllTheHashesForImage(imgName, img)
 
 	######################################### 	
 
 
 def addImageToDB(imgName):
 	values = processImage(imgName)
-	print "values"
-	print values
 	r = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 	count = 0
-	for inputImageVal in values:    
-		inputImageFragmentHash = inputImageVal['hash']
-		inputImageFragmentShape = inputImageVal['shape']
-		print inputImageVal['hash']
-		print inputImageVal['shape']
+	for fragment in values:    
+		inputImageFragmentHash = fragment.fragmentHash
+		inputImageFragmentShape = fragment.fragmentImageCoords
+
+		#DEBUG_PRINT
+		print inputImageFragmentHash
+		print inputImageFragmentShape
+		#\DEBUG_PRINT
+
 		r.lpush(inputImageFragmentHash, jh.getTheJsonString(imgName, inputImageFragmentHash, 10, inputImageFragmentShape) )
 		count += 1
 
@@ -152,7 +156,8 @@ def parseResults(jsonObjs):
 
 	return matchedImages
 
-def findMatchesForHash(inputImageFragmentHash, r, threshold=1):
+def findMatchesForHash_in_db(inputImageFragmentHash, threshold=1):
+	r = getRedisConnection()
 	listKeys = r.keys()
 	ret = []
 	for akey in listKeys:
@@ -174,59 +179,74 @@ def findMatchesForHash(inputImageFragmentHash, r, threshold=1):
 	else:
 		return ret
 
-def continueParsing(tempList):
+def getRedisConnection():
+	return redis.StrictRedis(host='localhost', port=6379, db=0)
+
+
+def getMatchForHash(hashObj):
+	pass#TODO
+
+
+def organiseMatchedHashesByMatchedImageName(listOfShapesAndTheirMatchedFragments):
 	ret = {}
-	for borUp in tempList:
-		shapeOfInputFrag = borUp[0] 
-		bor = borUp[1]
-		for key, value in bor.iteritems():
-			if ret.get(key) == None:
-				ret[key] = []
+	for searchingImageMatchedFragmentObj in listOfShapesAndTheirMatchedFragments:
+		searchingImageFragmentShape = searchingImageMatchedFragmentObj['searchingImageFragmentShape'] 
+		matchedImageFragmentObjs = searchingImageMatchedFragmentObj['matchedImageFragmentObjs']
+		for matchedImageName, value in matchedImageFragmentObjs.iteritems():
+			if ret.get(matchedImageName) == None:
+				ret[matchedImageName] = []
 
 			for val in value:
-				ret[key].append( (shapeOfInputFrag, val) )
+				ret[matchedImageName].append( (searchingImageFragmentShape, val) )
 
 	return ret
 
-def showMatches(imgName):
-	inImg = cv2.imread("./input/"+imgName+".jpg")
-	inputImageValues = nm.getAllTheHashesForImage(inImg)
-	print 'out of there'
-	r = redis.StrictRedis(host='localhost', port=6379, db=0)
-	inputImage = cv2.imread("./input/"+imgName+".jpg")
-	
-	
+def getSearchingImageMatchFragmentObj(searchingImageFragmentShape, matchedImageFragmentsObj):
+	return {
+		'searchingImageFragmentShape': searchingImageFragmentShape, 
+		'matchedImageFragmentObjs': matchedImageFragmentsObj
+		}
 
+def getMatchesForAllHashes(searchingImageHashObjs):
 	tempList = []
-	for inputImageVal in inputImageValues:
-
-		inputImageFragmentHash = inputImageVal['hash']
-		inputImageFragmentShape = inputImageVal['shape']
-		matchedJsonObjs = findMatchesForHash(inputImageFragmentHash, r)
+	for fragment in searchingImageHashObjs:
+		inputImageFragmentHash = fragment.fragmentHash
+		inputImageFragmentShape = fragment.fragmentImageCoords
+		matchedJsonObjs = findMatchesForHash_in_db(inputImageFragmentHash)
 		if matchedJsonObjs != None:
-			tempList.append( (inputImageFragmentShape, matchedJsonObjs) )
+    			for matchedObj in matchedJsonObjs:
+    					tempList.append( getSearchingImageMatchFragmentObj(inputImageFragmentShape, matchedJsonObjs) )
 
-	tempList = continueParsing(tempList)
+	return tempList
 
-	for key, matchedJsonObjs in tempList.iteritems():
+def printNumberOfMatches(inputList):
+	for key, matchedJsonObjs in inputList.iteritems():
 		print str(key) + ' has ' + str( len(matchedJsonObjs) ) + ' matches'
 
+def handleTheMatchedItemsAndSaveTheImages(inputList, searchingImage):
+	for matchedImageName, matchedJsonObjs in inputList.iteritems():
+		matchedImg = cv2.imread("./input/"+ matchedImageName +".jpg")
+		handleMatchedFragments(searchingImage, matchedJsonObjs, matchedImg, None)
 
-	for key, matchedJsonObjs in tempList.iteritems():
-		matchedImg = cv2.imread("./input/"+ key +".jpg")
+		cv2.imwrite('./matched'+matchedImageName+'.jpg', searchingImage)
+		cv2.imwrite('./matched'+matchedImageName+'_2.jpg', matchedImg)
 
-		if matchedJsonObjs == None:
-			#handleNOTmatchedFragment(inputImage, inputImageFragmentShape, inputImageFragmentHash)
-			print 'not matched'
-			pass
-		else:
-			print 'matched...'
-			handleMatchedFragments(inputImage, matchedJsonObjs, matchedImg, None)
 
-		cv2.imwrite('./matched'+key+'.jpg', inputImage)
-		cv2.imwrite('./matched'+key+'_2.jpg', matchedImg)
-	#while True:
-		#cv2.waitKey(0)
+def showMatches(imgName):
+	searchingImage = cv2.imread("./input/"+imgName+".jpg")
+	r = getRedisConnection()
+
+	searchingImageHashObjs = nm.getAllTheHashesForImage(imgName, searchingImage)	
+
+	tempList = getMatchesForAllHashes(searchingImageHashObjs)
+	tempList = organiseMatchedHashesByMatchedImageName(tempList)
+	#DEBUG
+	printNumberOfMatches(tempList)
+	#\DEBUG
+
+	handleTheMatchedItemsAndSaveTheImages(tempList, searchingImage)
+
+
 
 
 ######################################################################################

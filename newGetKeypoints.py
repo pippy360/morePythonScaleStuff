@@ -118,8 +118,8 @@ def fromPointsToFramenets_justTriangles(points):
 
 	for i in x:
 		if containsNoPoints(i, points):
-			#if isGoodFrag(i):
-			ret.append(i)
+			if isGoodFrag(i):
+				ret.append(i)
 	return ret
 
 
@@ -185,8 +185,8 @@ def getTheKeypoints_justPoints_inner_inner(channel, img2):
 		for i in range(len(xcoords[0])):
 			cv2.circle(img2, ( int(xcoords[0][i]), int(ycoords[0][i]) ), 3, (255, 0, 0), -1)
 
-	cv2.imshow('t1', img2)
-	cv2.waitKey()
+#	cv2.imshow('t1', img2)
+#	cv2.waitKey()
 
 	return finCnts
 

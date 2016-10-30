@@ -26,7 +26,7 @@ def isGoodFrag(tri):
 	dist2 = BSO.dist(pt2, pt3)
 	dist3 = BSO.dist(pt3, pt1)
 	mult = 2
-	minArea = 100
+	minArea = 200
 	if dist1 > (mult*dist2) or dist2 > (mult*dist1):
 		return False
 	
@@ -123,8 +123,8 @@ def fromPointsToFramenets_justTriangles(points, imgName, isDebug):
 		if isDebug:
 			thefile.write("%s\n" % str(i))
 		if containsNoPoints(i, points):
-			#if isGoodFrag(i):
-			ret.append(i)
+			if isGoodFrag(i):
+				ret.append(i)
 	return ret
 
 def fixTheRotationAndScaleOfTheImageForBrisk(img, shape):
