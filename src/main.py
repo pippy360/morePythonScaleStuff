@@ -185,7 +185,7 @@ def showMatches(imgName):
 	tempList = getMatchesForAllHashes(searchingImageHashObjs)
 	tempList = organiseMatchedHashesByMatchedImageName(tempList)
 	#DEBUG
-	printNumberOfMatches(tempList)
+	#printNumberOfMatches(tempList)
 	#\DEBUG
 
 	handleTheMatchedItemsAndSaveTheImages(tempList, searchingImage)
@@ -225,17 +225,24 @@ name8 = "rick4"
 #addImageToDB(name5)
 #addImageToDB(name6)
 #addImageToDB(name7)
-addImageToDB(name3)
+#addImageToDB(name3)
 #addImageToDB(name7)
 #addImageToDB("costanza_changed")
 #showMatches("lennaWithGreenDotsInTriangle", "lennaWithGreenDotsInTriangle3")
 
 #showMatches(name2, name1)
 #showMatches(name5)
-showMatches(name4)
+#showMatches(name4)
+addImageToDB(name4)
 
 
-#showMatches(name5)
+#from KeypointSystem import newGetKeypoints as gk
+#img = cv2.imread("../input/"+name4+".jpg")
+#gk.getTheKeyPoints(img)
+#img = cv2.imread("../input/"+name4+".jpg")
+#gk.getTheKeyPoints(img)
+#cv2.waitKey()
+showMatches(name3)
 
 #showMatches("lennaWithGreenDotsInTriangle2", "lennaWithGreenDotsInTriangle3")
 

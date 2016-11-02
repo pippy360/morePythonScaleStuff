@@ -176,15 +176,6 @@ def scaleImgInPlace(img, scale):
 	resizeImg = cv2.resize(img,None,fx=normalisedScale[0], fy=normalisedScale[1], interpolation = cv2.INTER_CUBIC)
 	return cropImageAroundCenter(resizeImg, width, height)
 
-def _rotateImg(img, rotate, rows, cols):
-	M = cv2.getRotationMatrix2D((cols/2,rows/2),rotate,1)
-	dst = cv2.warpAffine(img,M,(cols,rows))
-	return dst
-
-def rotateImg(img, rotate):
-	rows,cols,c = img.shape
-	return _rotateImg(img, rotate, rows, cols)
-
 def resizeImgSoThatItHasEnoughRoomForRotatedShape():
 	#remember the rotation is an "in place" algo so you CAN'T decrease any widths/height, only increase if necessary 
 	pass
@@ -200,6 +191,7 @@ def rotateAndScaleByNumbers(shape, img, angle, scale):
 	res = rotateImg(res, -angle)
 
 	return res
+	
 
 def rotateAndScaleByNumbers_weird_simple_one(img, angle, scale):
 	res = img
@@ -237,3 +229,40 @@ def scaleImgInPlace_ws(img, scale):
 	normalisedScale = turnXIntoSqrtX(scale)
 	resizeImg = cv2.resize(img,None,fx=normalisedScale[0], fy=normalisedScale[1], interpolation = cv2.INTER_CUBIC)
 	return cropImageAroundCenter_ws(resizeImg, width, height)
+
+
+
+##################################################
+# NEW
+##################################################
+
+def _rotateImage(img, rotate, rows, cols):
+	M = cv2.getRotationMatrix2D((cols/2,rows/2),rotate,1)
+	dst = cv2.warpAffine(img,M,(cols,rows))
+	return dst
+
+#PUBLIC 
+#NOTE: this will cause the corners of the image to be cut off (the image isn't resized to fit the new rotated image) 
+#if you want to rotate without losing any of the image use rotateAndFitImage(img, angle)
+def rotateImage(img, rotate):
+	rows,cols,c = img.shape
+	return _rotateImage(img, rotate, rows, cols)
+
+#PUBLIC 
+#
+#angle in degrees
+def rotateAndFitImage(img, angle):
+	shape = [(0,0), (img.shape[0],0), (img.shape[0], img.shape[1]), (0,img.shape[1])]
+	return rotateAndFitImage(img, angle, shape)
+
+def rotateAndFitImage(img, angle, shape):
+	#resize the image so that any possible rotation won't cause any of the image to be lost
+
+
+	return #rotate the image using a simple rotation
+
+
+#fragmentShape is the area of the image that we are interested in.....#TODO #TODO
+#def rotateAndScale_withShape(fragmentShape, imgData, )
+#	BSO.scaleAndRotateShape(inputFrag.fragmentImageShape, angle, scalar)
+

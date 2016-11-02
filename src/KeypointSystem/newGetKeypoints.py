@@ -26,7 +26,7 @@ def isGoodFrag(tri):
 	dist2 = BSO.dist(pt2, pt3)
 	dist3 = BSO.dist(pt3, pt1)
 	mult = 2
-	minArea = 400
+	minArea = 100
 	if dist1 > (mult*dist2) or dist2 > (mult*dist1):
 		return False
 	
@@ -58,17 +58,25 @@ def getDist(pnt1, pnt2):
 	return math.sqrt( (x2 - x1)**2 + (y2 - y1)**2 )
 
 
-def getClosesetXPoints(pnt, points, thresh=30):
+def getClosesetXPoints(pnt, points, thresh=20):
 
 	if len(points) < thresh:
 		return points
 
 	cpy = list(points)
 	ret = []
-	for i in range(thresh):
+	i = 0
+	count = 0
+	while i < len(points) and count < thresh:
 		idx = getIndexOfClosestPoint(pnt, cpy)
-		ret.append(cpy[idx])
-		cpy.pop(idx)
+
+		#require the point to be a minimum distance away
+		if getDist(pnt, cpy[idx]) > 50:	
+			ret.append(cpy[idx])
+			cpy.pop(idx)
+			count += 1
+
+		i += 1
 
 	return ret
 
@@ -133,8 +141,8 @@ def getTheKeypoints_justPoints_inner(img):
 	img = b
 	points1 = []
 	points1.extend(getTheKeypoints_justPoints_inner_inner(b, img2))
-	points1.extend(getTheKeypoints_justPoints_inner_inner(g, img2))
-	points1.extend(getTheKeypoints_justPoints_inner_inner(r, img2))
+#	points1.extend(getTheKeypoints_justPoints_inner_inner(g, img2))
+#	points1.extend(getTheKeypoints_justPoints_inner_inner(r, img2))
 	return points1
 
 
@@ -187,9 +195,9 @@ def getTheKeypoints_justPoints_inner_inner(channel, img2):
 			xs = xcoords[0][i]
 			ys = ycoords[0][i]
 			finCnts.append( (xs, ys) )
-			
-	#cv2.imshow('t1', img2)
-	#cv2.waitKey()
+	#import time		
+	#cv2.imshow('t1'+str(time.time()), img2)
+	
 
 	return finCnts
 

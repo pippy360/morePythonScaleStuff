@@ -2,7 +2,6 @@ import numpy as np
 import cv2
 import getMinimumScaleForShape as g
 import shapeDrawerWithDebug as d
-from utils import basicImageOperations as BIO
 from utils import basicShapeOperations as BSO
 from random import randint
 import itertools
@@ -52,6 +51,7 @@ def getMinMaxValues(shape):
 
 
 def cropImageAroundShape(shape, frag):
+	from utils import basicImageOperations as BIO
 	return BIO.cropImageAroundShape(shape, frag)
 
 def fitFragTightToImage(shape, frag):
@@ -66,6 +66,7 @@ def fitFragTightToImage(shape, frag):
 	diff = int(bb_c_pnt[0] - c_pnt[0]), int(bb_c_pnt[1] - c_pnt[1])
 	shape = BSO.moveEachPoint(shape, diff[0], diff[1])
 
+	from utils import basicImageOperations as BIO
 	frag = BIO.moveImage(frag, -diff[0], -diff[1])
 
 	#ok now that they're centered lets start cropping/moving the shape over
@@ -80,7 +81,7 @@ def cutOutTheFrag(shape, img):
 	#the shape is the position of the fragment!!!
 	antiAliasing = 1
 	frag = img
-
+	from utils import basicImageOperations as BIO
 	shape, frag = BIO.cutAShapeWithImageCoordsWithAA(shape, img, antiAliasing)
 
 	shape, frag = cropImageAroundShape(shape, frag)

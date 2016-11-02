@@ -83,11 +83,9 @@ def drawTheDistaceLinesWithText(baseImg, shape, colour):
 		drawDistanceTextAtLineMidPoint(baseImg, c_point, point, (255,255,255))
 
 
-def drawShapeWithAllTheDistances_withBaseImage(baseImg, shape, colour):
-	h, w, c = baseImg.shape
-	centeredShape = shape#BSO.centerShapeUsingPoint(shape, (w/2,h/2))
-	drawLines(centeredShape, baseImg, colour)
-	drawTheDistaceLinesWithText(baseImg, centeredShape, colour)
+def drawShapeWithAllTheDistances_withBaseImage(baseImg, shape, colour=(0,0,255)):
+	drawLines(shape, baseImg, colour)
+	drawTheDistaceLinesWithText(baseImg, shape, colour)
 	return baseImg
 
 
