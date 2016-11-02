@@ -266,3 +266,5 @@ def rotateAndFitImage(img, angle, shape):
 #def rotateAndScale_withShape(fragmentShape, imgData, )
 #	BSO.scaleAndRotateShape(inputFrag.fragmentImageShape, angle, scalar)
 
+#TODO: remove the image centering in CUTOUTHEFRAG
+
