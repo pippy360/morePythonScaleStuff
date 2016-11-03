@@ -16,7 +16,7 @@ def testTheScalingAndRotationFix():
     frag = FragmentImageData(img, shape)
     cv2.imshow('a', frag.fragmentImage)
 
-    rotImg = BIO.rotateImage(img, 90)
+    newShape, rotImg = BIO.rotateAndFitImage(img, 90, shape)
     cv2.imshow('rot', rotImg)
 
     
