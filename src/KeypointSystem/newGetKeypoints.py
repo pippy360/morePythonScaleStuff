@@ -150,7 +150,9 @@ def getTheKeypoints_justPoints_inner(img):
 def getTheKeypoints_justPoints_inner_inner(channel, img2):
 	img = channel
 	ret,img = cv2.threshold(img,127,255,cv2.THRESH_BINARY)
-
+	img2 = img.copy()
+#	cv2.imshow('here..'+str(img.shape), img2)
+#	cv2.waitKey()
 	contours, hierarchy = cv2.findContours(img,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 	
 	finCnts = []

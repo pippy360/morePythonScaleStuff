@@ -129,7 +129,7 @@ def breakIntoMatchingAndNotMatching_two(baseImg, orgKeyPoints, calcdKeyPoints, d
         else:
 #            print 'deleting'
  #           drawPoint(baseImg, pt, colour)
-            matching.append((pt, calcdNotMatching[matchedIdx]))
+            matching.append({'fixed': pt, 'changed': calcdNotMatching[matchedIdx]})
             del calcdNotMatching[matchedIdx]
 
     return matching, orgNotMatching, calcdNotMatching
@@ -190,7 +190,7 @@ def test_KeypointsMatching():
     #sd.drawKeypoints(frag, calcdNotMatching, colour=(0,0,255))
     sd.drawKeypoints(frag, orgKeyPoints, colour=(0,0,255))
     #sd.drawKeypoints(frag, orgNotMatching, colour=(255,0,0))
-    sd.drawKeypoints(frag, calcdKeyPoints, colour=(0,0,255))
+    sd.drawKeypoints(frag, calcdKeyPoints, colour=(255,0,0))
     sd.drawKeypoints(frag, matching, colour=(0,255,0))
     cv2.imshow('d', frag)
     cv2.waitKey()
@@ -229,54 +229,101 @@ def findMatching(tri, triList):
     
     return None
 
+def breakIntoMatchingPointsAndNonMatchingPoints(tris_all_fixed, tris_all_changed, tris_match_fixed, tris_match_changed):
+    pass
+    
+
+def splitMatching(matching):
+    fixed = []
+    changed = []
+    for v in matching:
+        fixed.append(v['fixed'])
+        changed.append(v['changed'])
+    return fixed, changed
+
+#LABELS: 
+#_org -> the original image, before any manipulation
+#_fixed -> the data from the orginal image 
+#_changed -> the changed image
 def test_triangleMatching():
 
     import shapeDrawerWithDebug as sd
     import newMain
 
-    junk, keypoints_image1, baseImage, keypoints_image2, fixedKeyPoints = getTwoImagesAndTheirKeypoints()
-    matching, orgNotMatching, calcdNotMatching = breakIntoMatchingAndNotMatching_two(baseImage, keypoints_image2, fixedKeyPoints)
-    #sd.drawKeypoints(baseImage, keypoints_image2, colour=(0,0,255))
-    #sd.drawKeypoints(baseImage, orgNotMatching, colour=(255,0,0))
-    #sd.drawKeypoints(baseImage, fixedKeyPoints, colour=(255,0,0))
+    junk1, junk2, img_change, keypoints_changed, keypoints_fixed = getTwoImagesAndTheirKeypoints()
+    matchingKeypoints, notMatching_fixed, notMatching_changed = breakIntoMatchingAndNotMatching_two(img_change, keypoints_changed, keypoints_fixed)
+    matching_fixed, matching_changed = splitMatching(matchingKeypoints)
+    #sd.drawKeypoints(img_change, notMatching_fixed, colour=(0,0,255))
+    #sd.drawKeypoints(img_change, notMatching_changed, colour=(255,0,0))
+    #sd.drawKeypoints(img_change, matching_fixed, colour=(0,255,0))
 
-    #print matching
-
-    temp1 = []
-    temp2 = []
-    for pt1, pt2 in matching:
-        temp1.append(pt1)
-        temp2.append(pt2)
-
-    #sd.drawKeypoints(baseImage, temp1, colour=(0,255,0))
-    #cv2.imshow('d', baseImage)
+    #cv2.imshow('d', img_change)
     #cv2.waitKey()
+
+    ###################################################
+    #now lets test the newMain.getTheTriangles function
     #find all the triangles that match
     import itertools
-    iterTemp1 = itertools.combinations(temp1, 3)
-    iterTemp2 = itertools.combinations(temp2, 3)
 
-    triangles1 = newMain.getTheTriangles(keypoints_image2)
-    triangles2 = newMain.getTheTriangles(fixedKeyPoints)
-    print len(triangles1)
-    print len(triangles2)
+    tris_match_fixed = []
+    for e in itertools.combinations(matching_fixed, 3):
+        tris_match_fixed.append(e)
 
-    matchedTris = []
-    for tri1 in iterTemp1:
-        m = findMatching(tri1, triangles1)
-        if m == None:
-            pass
-        else:
-            matchedTris.append(m)
+    tris_match_changed = []
+    for e in itertools.combinations(matching_changed, 3):
+        tris_match_changed.append(e)
 
-    print "matchedTris"
-    print matchedTris
+    print len(matching_fixed)
+    print len(tris_match_fixed)
+    print len(matching_changed)
+    print len(tris_match_changed)
+
+    tris_all_fixed = newMain.getTheTriangles(keypoints_fixed)
+    tris_all_changed = newMain.getTheTriangles(keypoints_changed)
+
+    matchedTris, notMatchingTris_fixed, notMatchingTris_changed = breakIntoMatchingPointsAndNonMatchingPoints(
+        tris_all_fixed, tris_all_changed, tris_match_fixed, tris_match_changed
+    )
+
+def test_findingKeypoints():
+    inputImage = cv2.imread("../input/costanza_orginal_dots.jpg")
+    img = inputImage
+    shape = [(0,0), (img.shape[1],0), (img.shape[1], img.shape[0]), (0,img.shape[0])]
+    import shapeDrawerWithDebug as sd
+
+    import newMain
+    keypoints = newMain.getTheKeyPoints(inputImage)    
+
+    c_pnt1 = BSO.getCenterPointOfShape_int(shape)
+
+    angleWereUsing = 45
+    scaleWereUsing = 2
+    #Rotate and scale the image
+    shape, img = BIO.rotateAndFitFragmentWhileKeepingShapeCenterAtTheCenterOfTheImage(inputImage, angleWereUsing, shape)
+    shape, frag = BIO.scaleImageAlongAxis_withCropping(shape, img, 0, scaleWereUsing)
+
+    c_pnt2 = BSO.getCenterPointOfShape_int(shape)
+
+    #get the new keypoints
+    orgKeyPoints = fixKeypointsPosition(keypoints, scaleWereUsing, angleWereUsing, c_pnt1, c_pnt2)
+    #
+    calcdKeyPoints = newMain.getTheKeyPoints(frag)
+    #cv2.waitKey()
+    matching, orgNotMatching, calcdNotMatching = breakIntoMatchingAndNotMatching(frag, orgKeyPoints, calcdKeyPoints)
+    #frag = sd.drawShapeWithAllTheDistances_withBaseImage(frag, shape)
+    #sd.drawKeypoints(frag, calcdNotMatching, colour=(0,0,255))
+    sd.drawKeypoints(frag, orgKeyPoints, colour=(0,0,255))
+    #sd.drawKeypoints(frag, orgNotMatching, colour=(255,0,0))
+    sd.drawKeypoints(frag, calcdKeyPoints, colour=(0,0,255))
+    sd.drawKeypoints(frag, matching, colour=(0,255,0))
+    cv2.imshow('d', frag)
+    cv2.waitKey()
 
 
 #testTheScalingAndRotationFix()
 #test_rotateAndScaleByNumbers()
 #test_gettingTheFragments()
 #test_cropImageAroundPoint()
-#test_KeypointsMatching()
-test_triangleMatching()
-
+test_KeypointsMatching()
+#test_triangleMatching()
+#test_findingKeypoints()
