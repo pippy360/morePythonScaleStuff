@@ -19,11 +19,15 @@ def _centeroidnp(arr):
     sum_y = np.sum(arr[:, 1])
     return sum_x/length, sum_y/length
 
-def getCenterPointOfShape(shape):
+def getCenterPointOfShape_int(shape):
+	c_pnt = getCenterPointOfShape_float(shape)
+	return ( int(c_pnt[0]), int(c_pnt[1]))
+
+def getCenterPointOfShape_float(shape):
 	return _centeroidnp(np.asarray(shape))
 
 def centerShapeUsingPoint(shape, point):
-	c_shape = getCenterPointOfShape(shape)
+	c_shape = getCenterPointOfShape_float(shape)
 	d_x, d_y = (point[0] - c_shape[0], point[1] - c_shape[1])
 	newShape = moveEachPoint(shape, d_x, d_y)	
 	return newShape
@@ -35,7 +39,7 @@ def getDistanceOfPoint(point, c_point):
 	return math.sqrt(sumOfSqr)
 
 def getTheDistanceSquared(shape):
-	c_point = getCenterPointOfShape(shape)
+	c_point = getCenterPointOfShape_float(shape)
 	ret = 0
 	for point in shape:
 		val = getDistanceOfPoint(point, c_point)
@@ -56,7 +60,8 @@ def scaleInX(ret, normX):
 	ret[0] = ret[0]*normX
 	return ret
 	
-def rotatePoint( tetha, point):
+#rotates a point around (0,0)
+def rotatePointAroundOrigin( tetha, point):
 	rads = math.radians(tetha)
 	sinT = math.sin(rads)
 	cosT = math.cos(rads)
@@ -65,13 +70,14 @@ def rotatePoint( tetha, point):
 	tempPoint = rotMat*pointMat
 	return [tempPoint.item(0), tempPoint.item(1)]
 	
-def applyTransformToPoint(tetha, normX, point):
+#the rotations are done around (0,0)
+def applyTransformAroundOriginToPoint(tetha, normX, point):
 	ret = point
-	ret = rotatePoint( tetha, ret)
+	ret = rotatePointAroundOrigin( tetha, ret)
 	
 	ret = scaleInX(ret, normX)
 	
-	ret = rotatePoint(-tetha, ret)
+	ret = rotatePointAroundOrigin(-tetha, ret)
 	return ret
 
 
@@ -79,8 +85,8 @@ def applyTransformToAllPoints(tetha, normX, normY, points):
 	ret = []
 	for point in points:
 		newPoint = point
-		newPoint = applyTransformToPoint(tetha, normX, newPoint)
-		newPoint = applyTransformToPoint(tetha+90, normY, newPoint)
+		newPoint = applyTransformAroundOriginToPoint(tetha, normX, newPoint)
+		newPoint = applyTransformAroundOriginToPoint(tetha+90, normY, newPoint)
 		ret.append(newPoint)
 	
 	return ret
@@ -107,14 +113,40 @@ def getFlatRotations(shape):
 		rotations.append(rot)
 	return rotations
 
+def rotateShapeAroundPoint(shape, angle, inputPoint):
+	originalCenterPoint = getCenterPointOfShape_float(shape)
+    #move the shape to the origin so that we can rotate it easily
+	shapeCenteredAroundOrigin = moveEachPoint(shape, -inputPoint[0], -inputPoint[1])
 
-def rotateShape(shape, angle):
 	ret = []
-	for point in shape:
-		newPoint = rotatePoint(angle, point)
-		ret.append(newPoint)
+	for pt in shapeCenteredAroundOrigin:
+		newPt = rotatePointAroundOrigin(angle, pt)
+		ret.append(newPt)
 
-	return ret
+	#now that we have the shape rotated undo the move to the origin
+	shapeCenteredAroundOrginalCenterPoint = moveEachPoint(ret, inputPoint[0], inputPoint[1])
+	return shapeCenteredAroundOrginalCenterPoint
+    
+
+#The center of the shape will be used as the point to rotate around
+def rotateShapeAroundShapeCenter(shape, angle):
+	originalCenterPoint = getCenterPointOfShape_float(shape)
+	return rotateShapeAroundPoint(shape, angle, originalCenterPoint)
+    
+
+#def rotateShapeAroundShapeCenter(shape, angle):
+#	originalCenterPoint = getCenterPointOfShape_float(shape)
+#    #move the shape to the origin so that we can rotate it easily
+#	shapeCenteredAroundOrigin = centerShapeUsingPoint(shape, (0,0))
+#
+#	ret = []
+#	for point in shapeCenteredAroundOrigin:
+#		newPoint = rotatePointAroundOrigin(angle, point)
+#		ret.append(newPoint)
+#
+#	#now that we have the shape rotated undo the move to the origin
+#	shapeCenteredAroundOrginalCenterPoint = centerShapeUsingPoint(ret, originalCenterPoint)
+#	return shapeCenteredAroundOrginalCenterPoint
 
 
 def scaleAndRotateShape(shape, angle, scale):

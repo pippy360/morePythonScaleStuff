@@ -26,7 +26,7 @@ def getTheFragments(img, trianglesList):
 
 
 def _weNeedToAdd180(rot, shape):
-	shape = BSO.rotateShape(shape, rot)
+	shape = BSO.rotateShapeAroundShapeCenter(shape, rot)
 	shape = BSO.centerShapeUsingPoint(shape, (0,0))
 	count = 0
 	for pt in shape:
@@ -40,14 +40,10 @@ def _weNeedToAdd180(rot, shape):
 
 
 def getNormalisedFragmentForRotation(fragImageWithScaleFix, shapeWithScaleFix, rotation):
-
 	if _weNeedToAdd180(rotation, shapeWithScaleFix):
 		rotation = rotation + 180
 
-	shapeWithScaleAndRotationFix = BSO.rotateShape(shapeWithScaleFix, rotation)
-	fragImageWithScaleAndRotationFix = BIO.rotateImg(fragImageWithScaleFix, rotation)
-
-	return fragImageWithScaleAndRotationFix, shapeWithScaleAndRotationFix
+	return BIO.rotateAndFitFragmentWhileKeepingShapeCenterAtTheCenterOfTheImage(fragImageWithScaleFix, rotation, shapeWithScaleFix)
 
 
 def normaliseRotationForSingleFrag(inputFrag):
@@ -56,7 +52,7 @@ def normaliseRotationForSingleFrag(inputFrag):
 
 	fragmentImageDataList = []
 	for rotation in rotations:
-		rotatedFrag, rotatedShape = getNormalisedFragmentForRotation(inputFrag.fragmentImage, inputFrag.fragmentImageShape, rotation)
+		rotatedShape, rotatedFrag = getNormalisedFragmentForRotation(inputFrag.fragmentImage, inputFrag.fragmentImageShape, rotation)
 		fragmentImageData = FragmentImageData(rotatedFrag, rotatedShape)
 		fragmentImageDataList.append( fragmentImageData )
 
@@ -64,7 +60,7 @@ def normaliseRotationForSingleFrag(inputFrag):
 
 
 def _rotateAndScaleFragAndShape(inputFrag, angle, scalar):
-	resShape, fragImageWithScaleFix = BIO.rotateAndScaleByNumbers(inputFrag.fragmentImageShape, inputFrag.fragmentImage, angle, scalar) 
+	resShape, fragImageWithScaleFix = BIO.scaleImageAlongAxis_withCropping(inputFrag.fragmentImageShape, inputFrag.fragmentImage, angle, scalar) 
 	return FragmentImageData(fragImageWithScaleFix, resShape)
 
 def normaliseScaleForSingleFrag(inputFrag):
@@ -87,8 +83,8 @@ def fitTrianglesIntoImage(theThreeTrianglesAndShapes):
 	return ret
 
 
-def normaliseFragmentScaleAndRotation(fragmentImageData):
-	theThreeTrianglesAndShapes = normaliseScaleAndRotationForSingleFrag(fragmentImageData)
+def normaliseFragmentScaleAndRotation(fragmentObj):
+	theThreeTrianglesAndShapes = normaliseScaleAndRotationForSingleFrag(fragmentObj)
 	#Fit the fragments as best we can into the square images
 	theThreeTrianglesAndShapes = fitTrianglesIntoImage(theThreeTrianglesAndShapes)
 	return theThreeTrianglesAndShapes

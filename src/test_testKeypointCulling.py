@@ -13,7 +13,7 @@ def testTheChoiceOfTriangles():
 
     img = drawTheseTrianglesOnThisImage_copy(img, triangles)
     cv2.imshow('title', img)
-    cv2.waitKey()    
+    cv2.waitKey() 
 
 
 def drawTheseTrianglesOnThisImage_copy(img, triangles):

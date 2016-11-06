@@ -49,15 +49,10 @@ def getMinMaxValues(shape):
 	maxY = getMaxYInShape(shape)
 	return (minX, minY), (maxX, maxY)
 
-
-def cropImageAroundShape(shape, frag):
-	from utils import basicImageOperations as BIO
-	return BIO.cropImageAroundShape(shape, frag)
-
 def fitFragTightToImage(shape, frag):
 	h, w, c = frag.shape
 	s_pnt, e_pnt = getTheBoundingBoxOfShape(shape)
-	c_pnt = BSO.getCenterPointOfShape(shape)
+	c_pnt = BSO.getCenterPointOfShape_float(shape)
 
 	#move the shape to the actual center
 	s_w = int(e_pnt[0] - s_pnt[0])+1
@@ -73,7 +68,9 @@ def fitFragTightToImage(shape, frag):
 	s_pnt, e_pnt = getTheBoundingBoxOfShape(shape)
 	shape = BSO.moveEachPoint(shape, -s_pnt[0], -s_pnt[1])
 
-	frag = BIO.cropImageAroundCenter(frag, s_w, s_h)
+	#REPLACED: frag = BIO.cropImageAroundCenter(frag, s_w, s_h)
+	h, w, c = frag.shape	
+	frag = BIO.cropImageAroundPoint(frag, s_w, s_h, (w/2, h/2))
 
 	return shape, frag
 
@@ -83,9 +80,7 @@ def cutOutTheFrag(shape, img):
 	frag = img
 	from utils import basicImageOperations as BIO
 	shape, frag = BIO.cutAShapeWithImageCoordsWithAA(shape, img, antiAliasing)
-
-	shape, frag = cropImageAroundShape(shape, frag)
-
+	
 	return shape, frag
 
 def weNeedToAdd180(rot, shape):

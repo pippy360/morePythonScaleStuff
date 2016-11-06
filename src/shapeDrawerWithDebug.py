@@ -39,7 +39,7 @@ def drawLines(points, img, colour):
 
 def getAmountToAddOnToEachPoint(image, shape):
 	c_image = getCenterPointOfImage(image)
-	c_shape = BSO.getCenterPointOfShape(shape)
+	c_shape = BSO.getCenterPointOfShape_float(shape)
 	return (c_image[0] - c_shape[0], c_image[1] - c_shape[1])
 
 def centerShapeUsingImageCoords(image, shape):
@@ -75,7 +75,7 @@ def drawDistanceTextAtLineMidPoint(baseImg, point1, point2, colour):
 	_drawDistanceTextAtLineMidPoint(baseImg, point1, point2, colour, distanceText)
 
 def drawTheDistaceLinesWithText(baseImg, shape, colour):
-	c_point = BSO.getCenterPointOfShape(shape)
+	c_point = BSO.getCenterPointOfShape_float(shape)
 	drawMidPoint(baseImg, c_point, (c_point[0]+3, c_point[1]+3), (0,255,255))
 	_drawDistanceTextAtLineMidPoint(baseImg, c_point, (c_point[0]+3, c_point[1]+3), (0,255,255), str(BSO.getTheDistanceSquared(shape)))
 	for point in shape:
