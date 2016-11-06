@@ -62,8 +62,9 @@ def drawShapeWithImage_1000x1000Coords_autoCenter(shape, colour):
 def drawLinePlain(baseImg, point1, point2, colour):
 	cv2.line(baseImg, ( int(point1[0]), int(point1[1]) ) , ( int(point2[0]), int(point2[1]) ), colour, 1)
 
-def drawMidPoint(baseImg, point1, point2, colour):
-	cv2.line(baseImg, ( int(point1[0]), int(point1[1]) ) , ( int(point2[0]), int(point2[1]) ), colour, 5)
+def drawPoint(baseImg, point1, colour):
+	cv2.circle(baseImg,(int(point1[0]), int(point1[1])),1,colour,2)
+	#cv2.line(baseImg, ( int(point1[0]), int(point1[1]) ) , ( int(point1[0]+2), int(point1[1]+2) ), colour, 3)
 
 def _drawDistanceTextAtLineMidPoint(baseImg, point1, point2, colour, distanceText):
 	x = ((point1[0] - point2[0]) / 2 ) + point2[0];
@@ -76,7 +77,7 @@ def drawDistanceTextAtLineMidPoint(baseImg, point1, point2, colour):
 
 def drawTheDistaceLinesWithText(baseImg, shape, colour):
 	c_point = BSO.getCenterPointOfShape_float(shape)
-	drawMidPoint(baseImg, c_point, (c_point[0]+3, c_point[1]+3), (0,255,255))
+	drawPoint(baseImg, c_point, (0,255,255))
 	_drawDistanceTextAtLineMidPoint(baseImg, c_point, (c_point[0]+3, c_point[1]+3), (0,255,255), str(BSO.getTheDistanceSquared(shape)))
 	for point in shape:
 		drawLinePlain(baseImg, c_point, point, colour)
@@ -93,4 +94,9 @@ def drawShapeWithAllTheDistances(shape, colour):
 	centeredShape = BSO.centerShapeUsingPoint(shape, (500,500))
 	baseImg = drawShapeWithImage_1000x1000Coords_autoCenter(centeredShape, colour)
 	drawTheDistaceLinesWithText(baseImg, centeredShape, colour)
+	return baseImg
+
+def drawKeypoints(baseImg, keypoints, colour=(0,0,255)):
+	for pt in keypoints:
+		drawPoint(baseImg, pt, colour)
 	return baseImg

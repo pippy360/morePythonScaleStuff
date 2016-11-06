@@ -132,21 +132,6 @@ def rotateShapeAroundPoint(shape, angle, inputPoint):
 def rotateShapeAroundShapeCenter(shape, angle):
 	originalCenterPoint = getCenterPointOfShape_float(shape)
 	return rotateShapeAroundPoint(shape, angle, originalCenterPoint)
-    
-
-#def rotateShapeAroundShapeCenter(shape, angle):
-#	originalCenterPoint = getCenterPointOfShape_float(shape)
-#    #move the shape to the origin so that we can rotate it easily
-#	shapeCenteredAroundOrigin = centerShapeUsingPoint(shape, (0,0))
-#
-#	ret = []
-#	for point in shapeCenteredAroundOrigin:
-#		newPoint = rotatePointAroundOrigin(angle, point)
-#		ret.append(newPoint)
-#
-#	#now that we have the shape rotated undo the move to the origin
-#	shapeCenteredAroundOrginalCenterPoint = centerShapeUsingPoint(ret, originalCenterPoint)
-#	return shapeCenteredAroundOrginalCenterPoint
 
 
 def scaleAndRotateShape(shape, angle, scale):
