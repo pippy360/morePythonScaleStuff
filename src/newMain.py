@@ -2,7 +2,7 @@ import imagehash as ih
 from utils import basicShapeOperations as BSO
 from utils import basicImageOperations as BIO
 import fragProcessing as fp
-from Fragment import Fragment, FragmentImageData
+from Fragment import NormalisedFragment, FragmentImageData
 #DEBUG IMPORTS#
 import cv2
 #\DEBUG IMPORTS#
@@ -125,7 +125,7 @@ def getFragmentObjs(imgName, imageFragmentCoords, fragmentHashsGroupOfThree, non
 
 		#...in each rotation
 		for hash, normalisedFragment in izip(fragmentHashList, normalisedFragmentsList):
-			yield Fragment(imgName, originalShape, hash, nonNormalisedFragment, normalisedFragment)
+			yield NormalisedFragment(imgName, originalShape, hash, nonNormalisedFragment, normalisedFragment)
 	
 
 ##################################################

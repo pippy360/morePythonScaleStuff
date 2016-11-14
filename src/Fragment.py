@@ -13,8 +13,10 @@ class FragmentImageData:
         self.fragmentImage = fragmentImage
         self.fragmentImageShape = fragmentImageShape
 
+    def getCenterPoint(self):
+        return BSO.getCenterPointOfShape_float(self.fragmentImageShape)
 
-class Fragment:
+class NormalisedFragment:
     
     #str            @imageName -> the name of the image (just the name, not the full path) that the fragment is taken from
     #[(x,y),...]    @fragmentImageCoords -> the coordinates of the fragment (usually only 3 points) with respect to the image
