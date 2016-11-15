@@ -34,7 +34,7 @@ def drawLinesColourAlsoWidth(points, img, col, wid):
 		cv2.line(img, points[i], points[i+1], col, wid)
 	cv2.line(img, points[len(points)-1], points[0], col, wid)
 	
-def drawLines(points, img, colour):
+def drawLines(points, img, colour=(0,0,255)):
 	drawLinesColour(points, img, colour)
 
 def getAmountToAddOnToEachPoint(image, shape):

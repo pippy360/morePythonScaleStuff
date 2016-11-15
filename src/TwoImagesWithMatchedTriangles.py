@@ -9,7 +9,7 @@ class TwoImagesWithMatchedTriangles:
     #FIXME: does not support translation
     #class ShapeAndPositionInvariantImage originalImage
     #class ShapeAndPositionInvariantImage transformedImage
-    def __init__(self, originalImage, transformedImage, scaleUsed=ScaleInDirection(1,0), rotationUsed=0, transpose, getKeypointsFunction=None):
+    def __init__(self, originalImage, transformedImage, scaleUsed=1, rotationUsed=0, transpose=(0,0), getKeypointsFunction=None):
         if getKeypointsFunction == None:
             getKeypointsFunction = getTheKeyPoints
         self.getKeypointsFunction = getKeypointsFunction
@@ -21,11 +21,23 @@ class TwoImagesWithMatchedTriangles:
         self.scaleUsed = scaleUsed
         self.rotationUsed = rotationUsed
 
+
     def getKeypointsFromOriginalImageMappedToTransformedImage(self):
         return _fixKeypointsPosition(self.originalImageKeypoints, self.scaleUsed, self.rotationUsed, 
             self.originalImage.getCenterPoint(), self.transformedImage.getCenterPoint())
 
+    def getKeypointsFromOriginalImageMappedToTransformedImageMap(self):
+        transformedKeypoints = _fixKeypointsPosition(self.originalImageKeypoints, self.scaleUsed, self.rotationUsed, 
+            self.originalImage.getCenterPoint(), self.transformedImage.getCenterPoint())
+        ret = {}
+        for i in range(len(transformedKeypoints)):
+            ret[str(self.originalImageKeypoints[i])] = transformedKeypoints[i]
+
+        return ret
+
     def getKeypointsFromTransformedImageMappedToOriginalImage():
+        print 'ERROR !!!!'
+        #FIXME:
         return _fixKeypointsPosition(self.originalImageKeypoints, 1.0/float(self.scaleUsed), -self.rotationUsed, 
             self.originalImage.getCenterPoint(), self.transformedImage.getCenterPoint())
 
@@ -35,37 +47,31 @@ class TwoImagesWithMatchedTriangles:
     def isTriangleFromTransformedImageFoundInOriginalImage(triangle):
         pass
 
-    def getCorrespondingTransformedImageTriangle(originalImageTriangle):
-        keyPointMap = getMatchingKeypointMapByOriginalKeypoint()
-        #look up each point in the map
-            #all points must be there!!!
-        
-        pass
+    def getAllTrianglesForOriginalImageMappedToTransformedImage(self):
+        ret = []
+        tris = self.getAllTrianglesForOriginalImage()
+        for tri in tris:
+            transformedTri = self.getCorrespondingTransformedImageTriangle(tri)
+            ret.append(transformedTri)
+        return ret
 
-    #################################
-    #             PURE
-    #################################
+    def getAllTrianglesForTransformedImageMappedToOriginalImage(self):
+        ret = []
+        tris = self.getAllTrianglesForOriginalImage()
+        for tri in tris:
+            transformedTri = self.getCorrespondingOriginalImageTriangle(tri)
+            ret.append(transformedTri)
+        return ret
 
-    #pure
-    def _transformKeypointsFromImage2ToImage1(keypointsFromImage1, scaleUsed, rotationUsed, centerPointBeforeScaleAndRotation, centerPntAfter):
-        _fixKeypointsPosition(keypoints, scaleUsed, angleUsed, centerPointBeforeScaleAndRotation, centerPntAfter )
-        
+    def getCorrespondingTransformedImageTriangle(self, originalImageTriangle):
+        keyPointMap = self.getKeypointsFromOriginalImageMappedToTransformedImageMap()
+        ret = []
+        for pt in originalImageTriangle:
+            lookup = keyPointMap[str(pt)]
+            ret.append(lookup)
+        return ret
 
-    #pure
-    def _getMatchingKeyPoints(keyKeypoints, valueKeypoints):
-        pass
-
-    #TODO: doc me
-    def buildKeypointMap(keyImage, valueImage, scaleUsed, rotationUsed):
-    
-        
-        #transform the value keypoints
-        _transformValueKeypoints
-
-        #matching = _getMatchingKeyPoints(, scaleUsed, rotationUsed)
-
-
-    def getCorrespondingOriginalImageTriangle(transformedImageTriangle):
+    def getCorrespondingOriginalImageTriangle(self, transformedImageTriangle):
         keyPointMap = getMatchingKeypointMapByTransformedKeypoint()
         #look up each point in the map
             #all points must be there!!!
@@ -73,27 +79,47 @@ class TwoImagesWithMatchedTriangles:
         pass
 
     #public
-    def getMatchingKeypointMapByTransformedKeypoint():
-        #return the map
-        return buildKeypointMap()
-
-    #public
-    def getMatchingKeypointMapByOriginalKeypoint():
+    def getMatchingKeypointsMapByTransformedKeypoint():
         #return the map
         pass
+
+    def getMatchingKeypointsMapByOriginalKeypoint2(self):
+        mappedKeypoints = self.getKeypointsFromOriginalImageMappedToTransformedImage()
+        return breakIntoMatchingAndNotMatching(self.transformedImageKeypoints, mappedKeypoints)
+
+    #public
+    def getMatchingKeypointsMapByOriginalKeypoint(self):
+        mappedKeypoints = self.getKeypointsFromOriginalImageMappedToTransformedImage()
+        matching, orgNotMatching, calcdNotMatching = breakIntoMatchingAndNotMatching(self.transformedImageKeypoints, mappedKeypoints)
+
+        ret = {}
+        #now format the matching
+        for v in matching:
+            ret[str(v['fixed'])] = v['changed']
+
+        return ret
 
     def getNonMatchingTrianglesForOriginalImage():
         pass
 
-    def getAllTrianglesForOriginalImage():
-        pass
+    #all = matched + not matched
+    def getAllTrianglesForOriginalImage(self):
+        return newMain.getTheTriangles(self.originalImageKeypoints)
 
     def getNonMatchingTrianglesForTransformedImage():
         pass
 
-    def getAllTrianglesForTransformedImage():
+    def getAllTrianglesForTransformedImage(self):
+        return newMain.getTheTriangles(self.transformedImageKeypoints)
+
+    def getTrianglesMadeOfMatchingPointsForOriginalImage():
+        #get the triangles, check how many consist only of matching points
         pass
 
+
+#################################
+#             PURE
+#################################
 def _fixKeypointsPosition(keypoints, scaleUsed, angleUsed, centerPointBeforeScaleAndRotation, centerPntAfter ):
     x_before, y_before = centerPointBeforeScaleAndRotation
     x_after, y_after = centerPntAfter
@@ -104,3 +130,27 @@ def _fixKeypointsPosition(keypoints, scaleUsed, angleUsed, centerPointBeforeScal
     newKeyPoints = BSO.simpleScale(newKeyPoints, normalisedScale)
     newKeyPoints = BSO.moveEachPoint(newKeyPoints, x_after, y_after)
     return newKeyPoints
+
+def breakIntoMatchingAndNotMatching(orgKeyPoints, calcdKeyPoints, dist=7):
+    matching = []
+    iterateList = list(orgKeyPoints)
+    orgNotMatching = []
+    calcdNotMatching = list(calcdKeyPoints)
+
+    while not iterateList == []:
+        pt = iterateList.pop()
+        #check if we have a matching point
+        matchedIdx=None
+        for i in range(len(calcdNotMatching)):
+            nPt = calcdNotMatching[i]
+            if BSO.getDistanceOfPoint(pt, nPt) <= dist:
+                matchedIdx = i
+                break
+
+        if matchedIdx == None:
+            orgNotMatching.append(pt) 
+        else:
+            matching.append({'fixed': pt, 'changed': calcdNotMatching[matchedIdx]})
+            del calcdNotMatching[matchedIdx]
+
+    return matching, orgNotMatching, calcdNotMatching
