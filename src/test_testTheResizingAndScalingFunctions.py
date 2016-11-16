@@ -449,9 +449,15 @@ def test_TwoImagesWithMatchedTriangles():
     img3 = sd.drawKeypoints(img_change, temp1_, colour=(0,255,0))
 
     #TODODODODODODODODODODO
-    #orgImgTri = temp.getTrianglesMadeOfMatchingPointsForOriginalImageTriangles()
-    #orgImgTri = temp.getTrianglesMadeOfMatchingPointsForTransformedImageTriangles()
-    #orgImgTri = temp.getMatchingTrianglesMapByOrginalTriangles()
+    orgImgTri = temp.getTrianglesMadeOfMatchingPointsForOriginalImageTriangles()
+    print "The matching tris"
+    print orgImgTri
+    orgImgTri = temp.getTrianglesMadeOfMatchingPointsForTransformedImageTriangles()
+    print "The matching tris"
+    print orgImgTri
+    orgImgTri = temp.getMatchingTrianglesMapByOrginalTriangles()
+    print "The matching tris3"
+    print orgImgTri
     #TODODODODODODODODODODO
 
     cv2.imshow('d', img3)

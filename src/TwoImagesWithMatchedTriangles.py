@@ -83,7 +83,7 @@ class TwoImagesWithMatchedTriangles:
         #return the map
         pass
 
-    def getMatchingKeypointsMapByOriginalKeypoint2(self):
+    def getMatchingKeypointsMapByOriginalKeypoint2(self):#REMOVE THIS!!!
         mappedKeypoints = self.getKeypointsFromOriginalImageMappedToTransformedImage()
         return breakIntoMatchingAndNotMatching(self.transformedImageKeypoints, mappedKeypoints)
 
@@ -96,6 +96,30 @@ class TwoImagesWithMatchedTriangles:
         #now format the matching
         for v in matching:
             ret[str(v['fixed'])] = v['changed']
+
+        return ret
+
+    #TODO: rename
+    def getMatchingKeypointsForOriginalKeypoints(self):
+        mappedKeypoints = self.getKeypointsFromOriginalImageMappedToTransformedImage()
+        matching, orgNotMatching, calcdNotMatching = breakIntoMatchingAndNotMatching(self.transformedImageKeypoints, mappedKeypoints)
+
+        ret = []
+        #now format the matching
+        for v in matching:
+            ret.append( v['fixed'] )
+
+        return ret
+
+        #TODO: rename
+    def getMatchingKeypointsForTransformedKeypoints(self):
+        mappedKeypoints = self.getKeypointsFromOriginalImageMappedToTransformedImage()
+        matching, orgNotMatching, calcdNotMatching = breakIntoMatchingAndNotMatching(self.transformedImageKeypoints, mappedKeypoints)
+
+        ret = []
+        #now format the matching
+        for v in matching:
+            ret.append( v['changed'] )
 
         return ret
 
@@ -116,10 +140,66 @@ class TwoImagesWithMatchedTriangles:
         #get the triangles, check how many consist only of matching points
         pass
 
+    def getTrianglesMadeOfMatchingPointsForOriginalImageTriangles(self):
+        matchingKeypointMap = self.getMatchingKeypointsForOriginalKeypoints()
+        triangles = self.getAllTrianglesForOriginalImage()
+        ret = []
+        for t in triangles:
+            if isMadeUpOfMatchingPoints(matchingKeypointMap, t):
+                ret.append(t)
+        
+        return ret
+
+    def getTrianglesMadeOfMatchingPointsForTransformedImageTriangles(self):
+        matchingKeypoints = self.getMatchingKeypointsForTransformedKeypoints()
+        triangles = self.getAllTrianglesForTransformedImage()
+        ret = []
+        for t in triangles:
+            if isMadeUpOfMatchingPoints(matchingKeypoints, t):
+                ret.append(t)
+        
+        return ret
+
+    def getMatchingTrianglesMapByOrginalTriangles(self):
+        tris_org = self.getTrianglesMadeOfMatchingPointsForOriginalImageTriangles()
+        tris_trans = self.getTrianglesMadeOfMatchingPointsForTransformedImageTriangles()
+        mappedKeypoints = self.getMatchingKeypointsMapByOriginalKeypoint()
+
+        ret = []
+        #find the matching ones...
+        for t1 in tris_org:
+            matched = findMatching()
+            if not matched == None:
+                ret.append(matched)
+
+        return ret
 
 #################################
 #             PURE
 #################################
+
+def allPointsMatch(t1, t2, pointsMap):
+    #FIXME:doesn't check for duplicates
+    for pt in t1:
+        pt2 = pointsMap[str(pt)]
+        if not pt2 in t2:
+            return False
+
+    return True
+
+def findMatching(tri, tri_list, keypointMap):
+    for t2 in tri_list:
+        if allPointsMatch(tri, t2, keypointMap):
+            return t2
+    return None
+
+def isMadeUpOfMatchingPoints(matchingPoints, tri):
+    for pt in tri:
+        if not pt in matchingPoints:
+            return False
+    
+    return True
+
 def _fixKeypointsPosition(keypoints, scaleUsed, angleUsed, centerPointBeforeScaleAndRotation, centerPntAfter ):
     x_before, y_before = centerPointBeforeScaleAndRotation
     x_after, y_after = centerPntAfter
