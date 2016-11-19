@@ -463,6 +463,24 @@ def test_TwoImagesWithMatchedTriangles():
     cv2.imshow('d', img3)
     cv2.waitKey()
 
+def test_findMatching():
+    import TwoImagesWithMatchedTriangles as tw
+
+    matchingPoints = [
+                {'fixed':(1,1), 'changed':(0,0)}, 
+                {'fixed':(0,1), 'changed':(1,1)}, 
+                {'fixed':(0,0), 'changed':(2,0)} 
+            ]
+    matchingPointsMapByOrig = {
+        '(1, 1)': (0,0),
+        '(0, 1)': (1,1), 
+        '(0, 0)': (2,0)
+    }
+    tris_fixed = [ [(1,1),(0,1),(0,0)], [(0,0),(1,0),(0,1)] ]
+    tris_changed = [ [(0,0),(1,1),(2,0)], [(0,0), (0,1), (-1,-1)] ]
+
+    print tw.findMatching(tris_fixed[0], tris_changed, matchingPointsMapByOrig)
+
 
 
 #testTheScalingAndRotationFix()
@@ -474,7 +492,7 @@ def test_TwoImagesWithMatchedTriangles():
 #test_findingKeypoints()
 #test_breakIntoMatchingTrianglesAndNonMatchingPoints()
 #test_TwoImagesWithMatchedTrianglesClass()
-test_TwoImagesWithMatchedTriangles()
-
+#test_TwoImagesWithMatchedTriangles()
+test_findMatching()
 
 
