@@ -492,7 +492,7 @@ def test_findMatching():
 #test_findingKeypoints()
 #test_breakIntoMatchingTrianglesAndNonMatchingPoints()
 #test_TwoImagesWithMatchedTrianglesClass()
-#test_TwoImagesWithMatchedTriangles()
-test_findMatching()
+test_TwoImagesWithMatchedTriangles()
+#test_findMatching()
 
 

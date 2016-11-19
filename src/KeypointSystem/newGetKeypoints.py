@@ -19,6 +19,7 @@ def containsNoPoints(tri, points):
 	
 
 def isGoodFrag(tri):
+    return True
 	pt1 = tri[0]
 	pt2 = tri[1]
 	pt3 = tri[2]
@@ -125,9 +126,8 @@ def fromPointsToFramenets_justTriangles(points):
 	x = getTriangles(points)
 
 	for i in x:
-		if containsNoPoints(i, points):
-			if isGoodFrag(i):
-				ret.append(i)
+		if isGoodFrag(i):
+			ret.append(i)
 	return ret
 
 
