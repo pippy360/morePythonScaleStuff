@@ -60,25 +60,13 @@ def getDist(pnt1, pnt2):
 	return math.sqrt( (x2 - x1)**2 + (y2 - y1)**2 )
 
 
-def getClosesetXPoints(pnt, points, thresh=20):
-
-	if len(points) < thresh:
-		return points
-
+def getClosesetXPoints(pnt, points):
 	cpy = list(points)
 	ret = []
-	i = 0
-	count = 0
-	while i < len(points) and count < thresh:
-		idx = getIndexOfClosestPoint(pnt, cpy)
-
+	for pt in points:
 		#require the point to be a minimum distance away
-		if getDist(pnt, cpy[idx]) > 50:	
-			ret.append(cpy[idx])
-			cpy.pop(idx)
-			count += 1
-
-		i += 1
+		if getDist(pnt, pt) > 200 and getDist(pnt, pt) < 300:	
+			ret.append(pt)
 
 	return ret
 
@@ -94,6 +82,7 @@ def getIndexOfClosestPoint(pnt, points):
 	return retIndex
 
 def getTriangles(points):
+	#return itertools.combinations(points, 3)
 	
 	retTris = []
 	cpy = list(points)
@@ -122,16 +111,24 @@ def getTriangles(points):
 
 	return retTris
 
-def fromPointsToFramenets_justTriangles(points):
+def getFilteredTriangles(tris):
 	ret = []
-	x = getTriangles(points)
-
-	for i in x:
+    for i in tris:
 		if isGoodFrag(i):
 			ret.append(i)
-	#print "number of tris"
-	#print len(ret)
 	return ret
+
+def getFilteredPoints(points):
+	#TODO:
+	return points
+
+def fromPointsToFramenets_justTriangles(points):
+	#TODO: filter for each point
+	filteredPoints = getFilteredPoints(points)
+	triangles = getTriangles(filteredPoints)
+	filteredTriangles = getFilteredTriangles(triangles)
+
+	return filteredTriangles
 
 
 def getTheKeypoints_justPoints_inner(img):
