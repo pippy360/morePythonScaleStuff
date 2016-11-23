@@ -22,20 +22,6 @@ class TwoImagesWithMatchedTriangles:
         self.scaleUsed = scaleUsed
         self.rotationUsed = rotationUsed
 
-
-    def getKeypointsFromOriginalImageMappedToTransformedImage(self):
-        return _fixKeypointsPosition(self.originalImageKeypoints, self.scaleUsed, self.rotationUsed, 
-            self.originalImage.getCenterPoint(), self.transformedImage.getCenterPoint())
-
-    def getKeypointsFromOriginalImageMappedToTransformedImageMap(self):
-        transformedKeypoints = _fixKeypointsPosition(self.originalImageKeypoints, self.scaleUsed, self.rotationUsed, 
-            self.originalImage.getCenterPoint(), self.transformedImage.getCenterPoint())
-        ret = {}
-        for i in range(len(transformedKeypoints)):
-            ret[str(self.originalImageKeypoints[i])] = transformedKeypoints[i]
-
-        return ret
-
     def getKeypointsFromTransformedImageMappedToOriginalImage(self):
         
         print 'ERROR !!!!'

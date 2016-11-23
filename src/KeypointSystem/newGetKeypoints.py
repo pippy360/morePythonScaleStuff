@@ -129,8 +129,8 @@ def fromPointsToFramenets_justTriangles(points):
 	for i in x:
 		if isGoodFrag(i):
 			ret.append(i)
-	print "number of tris"
-	print len(ret)
+	#print "number of tris"
+	#print len(ret)
 	return ret
 
 
