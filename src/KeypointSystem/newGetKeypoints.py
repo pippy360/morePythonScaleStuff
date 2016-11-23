@@ -19,7 +19,8 @@ def containsNoPoints(tri, points):
 	
 
 def isGoodFrag(tri):
-    return True
+	return True
+	pass
 	pt1 = tri[0]
 	pt2 = tri[1]
 	pt3 = tri[2]
@@ -30,26 +31,26 @@ def isGoodFrag(tri):
 	minArea = 100
 	if dist1 > (mult*dist2) or dist2 > (mult*dist1):
 		return False
-	
+
 	if dist2 > (mult*dist3) or dist3 > (mult*dist2):
 		return False
-	
+
 	if dist1 > (mult*dist3) or dist3 > (mult*dist1):
 		return False
 
 	nextMult = 1.8
 	if float(dist1)*nextMult > dist2 + dist3:
 		return False
-	
+
 	if float(dist2)*nextMult > dist1 + dist2:
 		return False
-	
+
 	if float(dist3)*nextMult > dist1 + dist2:
 		return False
-	
+
 	if BSO.getAreaOfTriangle(tri) < minArea:
 		return False
-#
+	#
 	return True
 
 
@@ -128,6 +129,8 @@ def fromPointsToFramenets_justTriangles(points):
 	for i in x:
 		if isGoodFrag(i):
 			ret.append(i)
+	print "number of tris"
+	print len(ret)
 	return ret
 
 

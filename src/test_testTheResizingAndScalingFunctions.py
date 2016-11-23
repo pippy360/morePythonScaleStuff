@@ -432,15 +432,16 @@ def test_TwoImagesWithMatchedTriangles():
     newKeyPoints = temp.getKeypointsFromOriginalImageMappedToTransformedImage()
     matching = temp.getMatchingKeypointsMapByOriginalKeypoint2()
     img3 = sd.drawKeypoints(img_change, newKeyPoints, colour=(255,0,0))
-    img3 = sd.drawKeypoints(img_change, keypoints_changed, colour=(0,0,255))
+    #REPLACED keypoints_changed WITH temp.transformedImageKeypoints
+    img3 = sd.drawKeypoints(img_change, temp.transformedImageKeypoints, colour=(0,0,255))
 
     temp1_, temp2_ = splitMatching(matching[0])
     img3 = sd.drawKeypoints(img_change, temp1_, colour=(0,255,0))
     orgImgTri = temp.getMatchingKeypointsMapByOriginalKeypoint()
     orgImgTri = temp.getAllTrianglesForTransformedImage()
-    for tri in orgImgTri:
-        pass
-        sd.drawLines(tri, img_change)
+    #for tri in orgImgTri:
+    #    pass
+    #    sd.drawLines(tri, img_change)
 
     orgImgTri = temp.getAllTrianglesForOriginalImageMappedToTransformedImage()
     for tri in orgImgTri:
