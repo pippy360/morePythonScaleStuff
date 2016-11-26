@@ -152,4 +152,4 @@ def getAllTheHashesForImage(imgName, inputImage):
 
 	framgentObjsList = getFragmentObjs(imgName, triangles, fragmentHashsGroupOfThree, nonNormalisedFragments, normalisedFragmentsGroupOfThree)
 
-	return framgentObjsList
+	return framgentObjsList, len(triangles)

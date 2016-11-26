@@ -3,7 +3,6 @@ import cv2
 import getMinimumScaleForShape as g
 import shapeDrawerWithDebug as d
 import fragProcessing as fp
-import getTheFragments as gf
 import itertools
 import math
 from PIL import Image
@@ -48,21 +47,24 @@ def processImage(imgName):
 
 
 def addImageToDB(imgName):
-	values = processImage(imgName)
+	values, numberOfFragments = processImage(imgName)
 	r = redis.StrictRedis(host='localhost', port=6379, db=0)
 
+	print "about to add this amount of fragments to the DB"
+	print numberOfFragments 
 	count = 0
 	for fragment in values:    
 		inputImageFragmentHash = fragment.fragmentHash
 		inputImageFragmentShape = fragment.fragmentImageCoords
 
 		#DEBUG_PRINT
-		print inputImageFragmentHash
-		print inputImageFragmentShape
+		#print inputImageFragmentHash
+		#print inputImageFragmentShape
 		#\DEBUG_PRINT
 
 		r.lpush(inputImageFragmentHash, jh.getTheJsonString(imgName, inputImageFragmentHash, 10, inputImageFragmentShape) )
 		count += 1
+		print "finished fragment: " + str(count) + "/" + str(numberOfFragments)
 
 	print "added: "+ str(count)
 
@@ -180,7 +182,7 @@ def showMatches(imgName):
 	searchingImage = cv2.imread("../input/"+imgName+".jpg")
 	r = getRedisConnection()
 
-	searchingImageHashObjs = nm.getAllTheHashesForImage(imgName, searchingImage)	
+	searchingImageHashObjs, numberOfFragments = nm.getAllTheHashesForImage(imgName, searchingImage)	
 
 	tempList = getMatchesForAllHashes(searchingImageHashObjs)
 	tempList = organiseMatchedHashesByMatchedImageName(tempList)
