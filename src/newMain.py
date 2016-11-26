@@ -13,9 +13,9 @@ def getTheKeyPoints(img):
 	return gk.getTheKeyPoints(img)
 
 
-def getTheTriangles(keyPoints):
+def getTheTriangles(keyPoints, DEBUG_IMAGE=None, DEBUG_KEYPOINTS=None):
 	from KeypointSystem import newGetKeypoints as gk
-	return gk.getTheTriangles(keyPoints)
+	return gk.getTheTriangles(keyPoints, DEBUG_IMAGE=DEBUG_IMAGE, DEBUG_KEYPOINTS=DEBUG_KEYPOINTS)
 
 
 def getTheFragments(img, trianglesList):

@@ -111,22 +111,77 @@ def getTriangles(points):
 
 	return retTris
 
-def getFilteredTriangles(tris):
+def trianglesPostFiltering(tris):
 	ret = []
-    for i in tris:
-		if isGoodFrag(i):
-			ret.append(i)
+	for tri in tris:
+		if isGoodFrag(tri):
+			ret.append(tri)
 	return ret
 
-def getFilteredPoints(points):
-	#TODO:
-	return points
+def getAllValidPointsForTargetPoint(targetPoint, points, pointsToIgnore, lower=598, upper=600):
+	
+	ret = []
+	for point in points:
+		if point in pointsToIgnore:
+			continue
+		dist = getDist(point, targetPoint)
+#		print dist
+		if dist > lower and dist < upper:
+			ret.append(point)
+	return ret
 
-def fromPointsToFramenets_justTriangles(points):
-	#TODO: filter for each point
-	filteredPoints = getFilteredPoints(points)
-	triangles = getTriangles(filteredPoints)
-	filteredTriangles = getFilteredTriangles(triangles)
+def getAllTrianglesForTargetPoint(targetPoint, validPoints):
+	import itertools
+	trisMissingPnt = itertools.combinations(validPoints, 2)
+	ret = []
+	for tri in trisMissingPnt:
+		ret.append([tri[0], tri[1], targetPoint])
+
+	return ret
+
+
+def fromPointsToFramenets_justTriangles(points, DEBUG_IMAGE=None, DEBUG_KEYPOINTS=None):
+
+	#print "len of points"
+	#print len(points)
+	lower=200
+	upper=400
+
+	triangles = []
+	
+	excludeList = []
+	for targetPoint in points: 
+		DEBUG_IMAGE_copy = DEBUG_IMAGE.copy() if not DEBUG_IMAGE == None else None
+		excludeList.append(targetPoint)
+		validPoints = getAllValidPointsForTargetPoint(targetPoint, points, excludeList, lower=lower, upper=upper)
+		if not DEBUG_IMAGE_copy == None:
+			print "len validPoints"
+			print len(validPoints)
+			targetPoint_cpy = (int(targetPoint[0]), int(targetPoint[1]))
+			cv2.circle(DEBUG_IMAGE_copy, targetPoint_cpy, lower, (255,0,0))
+			cv2.circle(DEBUG_IMAGE_copy, targetPoint_cpy, upper, (255,0,0))
+			cv2.circle(DEBUG_IMAGE_copy, targetPoint_cpy, 10, (255,0,0), 10)
+			
+			for pt in validPoints:
+				cv2.line(DEBUG_IMAGE_copy, targetPoint_cpy, (int(pt[0]), int(pt[1])), (255,0,0))
+			
+			if not DEBUG_KEYPOINTS == None:
+				d.drawKeypoints_obj(DEBUG_IMAGE_copy, DEBUG_KEYPOINTS, (0,255,0))
+			
+			cv2.imshow('DEBUG_IMAGE_copy', DEBUG_IMAGE_copy)
+			cv2.waitKey()
+		tempTriangles = getAllTrianglesForTargetPoint(targetPoint, validPoints)
+		if not DEBUG_IMAGE_copy == None:
+			print "len tempTriangles"
+			print len(tempTriangles)
+			for tri in tempTriangles:
+				d.drawLines(tri, DEBUG_IMAGE_copy, (255,0,0))
+			cv2.imshow('DEBUG_IMAGE_copy', DEBUG_IMAGE_copy)
+			cv2.waitKey()
+    			
+		triangles.extend(tempTriangles)
+
+	filteredTriangles = trianglesPostFiltering(triangles)
 
 	return filteredTriangles
 
@@ -262,8 +317,8 @@ def recolour(img, gaussW=41):
 def getTheKeyPoints(img):
 	return getTheKeypoints_justPoints_inner(img)
 
-def getTheTriangles(points):
-	return fromPointsToFramenets_justTriangles(points)
+def getTheTriangles(points, DEBUG_IMAGE=None, DEBUG_KEYPOINTS=None):
+	return fromPointsToFramenets_justTriangles(points, DEBUG_IMAGE=DEBUG_IMAGE, DEBUG_KEYPOINTS=DEBUG_KEYPOINTS)
 
 def getTheFragments(img):
 	points = getTheKeypoints_justPoints_inner(img)

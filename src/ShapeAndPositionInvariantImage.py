@@ -10,3 +10,6 @@ class ShapeAndPositionInvariantImage:
     
     def getCenterPoint(self):
         return BSO.getCenterPointOfShape_float(self.shape)
+
+    def copy(self):
+        return ShapeAndPositionInvariantImage(self.imageData.copy(), self.shape)

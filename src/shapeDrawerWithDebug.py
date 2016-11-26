@@ -96,6 +96,11 @@ def drawShapeWithAllTheDistances(shape, colour):
 	drawTheDistaceLinesWithText(baseImg, centeredShape, colour)
 	return baseImg
 
+def drawKeypoints_obj(baseImg, keypoints_obj, colour=(0,0,255)):
+	for pt in keypoints_obj:
+    		drawPoint(baseImg, pt.pt, colour)
+	return baseImg    
+
 def drawKeypoints(baseImg, keypoints, colour=(0,0,255)):
 	for pt in keypoints:
 		drawPoint(baseImg, pt, colour)
