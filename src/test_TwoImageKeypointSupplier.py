@@ -34,10 +34,10 @@ def buildWithSameKeypoints(imgName, angleWereUsing = 45, scaleWereUsing = 2):
 
 def visualTest2():
     from TransformationObjects import Transformation
-    imgName = "../input/costanza_orginal_dots.jpg"
+    imgName = "../input/small_lenna1.jpg"
     inputImage = cv2.imread(imgName)
     inputImage_copy = cv2.imread(imgName)
-    angleWereUsing = 45
+    angleWereUsing = 145
     scaleWereUsing = 2
     print 'building'
     twoImage, transImage = buildWithSameKeypoints(imgName, angleWereUsing=angleWereUsing, scaleWereUsing=scaleWereUsing)

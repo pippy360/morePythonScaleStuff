@@ -18,10 +18,10 @@ class TwoImagesWithMatchedTriangles:
         #we should really write a get triangles that takes in our keypoints
         pts = _stripJustThePoints(self.keypointSupplier.originalImageKeypoints)
         org_key = self.keypointSupplier.originalImageKeypoints
-        #tris = newMain.getTheTriangles(pts, DEBUG_IMAGE=self.originalImage, DEBUG_KEYPOINTS=org_key)
+        tris = newMain.getTheTriangles(pts, DEBUG_IMAGE=self.originalImage, DEBUG_KEYPOINTS=org_key)
         tris = newMain.getTheTriangles(pts)
-#        print 'len of tris for org image'
-#        print len(tris)
+        #print 'len of tris for org image'
+        #print len(tris)
         return _makeKeypointsTriangles(tris)
 
     def getTransformedImageTriangles(self):
@@ -29,9 +29,9 @@ class TwoImagesWithMatchedTriangles:
         #we should really write a get triangles that takes in our keypoints
         pts = _stripJustThePoints(self.keypointSupplier.transformedImageKeypoints)
         #tris = newMain.getTheTriangles(pts, DEBUG_IMAGE=self.transformedImage)
-        tris = newMain.getTheTriangles(pts, DEBUG_IMAGE=None)
-#        print 'len of tris for trans image'
-#        print len(tris)
+        tris = newMain.getTheTriangles(pts)
+        #print 'len of tris for trans image'
+        #print len(tris)
         return _makeKeypointsTriangles(tris)
 
 

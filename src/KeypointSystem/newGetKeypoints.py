@@ -150,7 +150,8 @@ def fromPointsToFramenets_justTriangles(points, DEBUG_IMAGE=None, DEBUG_KEYPOINT
 	triangles = []
 	
 	excludeList = []
-	for targetPoint in points: 
+	for i in range(len(points)):
+		targetPoint = points[i]
 		DEBUG_IMAGE_copy = DEBUG_IMAGE.copy() if not DEBUG_IMAGE == None else None
 		excludeList.append(targetPoint)
 		validPoints = getAllValidPointsForTargetPoint(targetPoint, points, excludeList, lower=lower, upper=upper)
@@ -168,16 +169,15 @@ def fromPointsToFramenets_justTriangles(points, DEBUG_IMAGE=None, DEBUG_KEYPOINT
 			if not DEBUG_KEYPOINTS == None:
 				d.drawKeypoints_obj(DEBUG_IMAGE_copy, DEBUG_KEYPOINTS, (0,255,0))
 			
-			cv2.imshow('DEBUG_IMAGE_copy', DEBUG_IMAGE_copy)
-			cv2.waitKey()
+			cv2.imwrite('../frames/frame'+str(i*2)+".png", DEBUG_IMAGE_copy)
 		tempTriangles = getAllTrianglesForTargetPoint(targetPoint, validPoints)
 		if not DEBUG_IMAGE_copy == None:
 			print "len tempTriangles"
 			print len(tempTriangles)
 			for tri in tempTriangles:
 				d.drawLines(tri, DEBUG_IMAGE_copy, (255,0,0))
-			cv2.imshow('DEBUG_IMAGE_copy', DEBUG_IMAGE_copy)
-			cv2.waitKey()
+			cv2.imwrite('../frames/frame'+str((i*2)+1)+".png", DEBUG_IMAGE_copy)
+			#cv2.waitKey()
     			
 		triangles.extend(tempTriangles)
 
