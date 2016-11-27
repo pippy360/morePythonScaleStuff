@@ -9,12 +9,12 @@ import cv2
 
 
 def getTheKeyPoints(img):
-	from KeypointSystem import newGetKeypoints as gk
+	from KeypointSystem import getKeypoints as gk
 	return gk.getTheKeyPoints(img)
 
 
 def getTheTriangles(keyPoints, DEBUG_IMAGE=None, DEBUG_KEYPOINTS=None):
-	from KeypointSystem import newGetKeypoints as gk
+	from KeypointSystem import getKeypoints as gk
 	return gk.getTheTriangles(keyPoints, DEBUG_IMAGE=DEBUG_IMAGE, DEBUG_KEYPOINTS=DEBUG_KEYPOINTS)
 
 
@@ -95,10 +95,9 @@ def normaliseScaleAndRotationForAllFrags(inputFragmentsAndShapes):
 		yield normaliseFragmentScaleAndRotation(fragmentImageData)
 
 
-def getHashForSingleFragment(fragmentImageData, hash_size=6):
-	from PIL import Image
-	pythonImageObj = Image.fromarray(fragmentImageData.fragmentImage)
-	return ih.phash(pythonImageObj, hash_size)
+def getHashForSingleFragment(fragmentImageData):
+	import hashProvider
+	return hashProvider.getHash(fragmentImageData)
 
 
 #fragmentImages: array of the actual pixel matrix of a fragment  
@@ -133,16 +132,17 @@ def getFragmentObjs(imgName, imageFragmentCoords, fragmentHashsGroupOfThree, non
 ##################################################
 #the main wrapper function for processing an image
 #inputImage: opencv matrix for the image in colour
-def getAllTheHashesForImage(imgName, inputImage):
+def getAllTheHashesForImage(shapeAndPositionInvariantImage):
 
+	imageData = shapeAndPositionInvariantImage.imageData	
 	#get the keyPoints
-	keyPoints = getTheKeyPoints(inputImage)
+	keyPoints = getTheKeyPoints(imageData)
 
 	#turn the keyPoints into triangles	
 	triangles = getTheTriangles(keyPoints)
 
 	#turn the triangles into fragments of the image
-	nonNormalisedFragments = getTheFragments(inputImage, triangles)
+	nonNormalisedFragments = getTheFragments(imageData, triangles)
 
 	#normalise the scale and fragments
 	normalisedFragmentsGroupOfThree = normaliseScaleAndRotationForAllFrags(nonNormalisedFragments)
@@ -150,6 +150,7 @@ def getAllTheHashesForImage(imgName, inputImage):
 	#hash the fragments 
 	fragmentHashsGroupOfThree = getHashsForAllFragments_withThreeFragmentsPerElement(normalisedFragmentsGroupOfThree)
 
+	imgName = shapeAndPositionInvariantImage.imageName
 	framgentObjsList = getFragmentObjs(imgName, triangles, fragmentHashsGroupOfThree, nonNormalisedFragments, normalisedFragmentsGroupOfThree)
 
 	return framgentObjsList, len(triangles)

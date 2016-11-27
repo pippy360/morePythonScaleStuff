@@ -13,41 +13,29 @@ import redis
 import json	
 import jsonHandling as jh
 import os
-import newMain as nm
+import mainImageProcessingFunctions as nm
+from ShapeAndPositionInvariantImage import ShapeAndPositionInvariantImage
 
 isDebug = False
 
-def hex_to_hash(hexstr):
-	if isinstance(hexstr, ImageHash):
-    		hexstr = str(hexstr)
-			
-	l = []
 
-	if len(hexstr) != 8:
-		raise ValueError('The hex string has the wrong length')
-	for i in range(4):
-		h = hexstr[i*2:i*2+2]
-		v = int("0x" + h, 16)
-		l.append([v & 2**i > 0 for i in range(8)])
-	return ImageHash(np.array(l))
+######################################### 	
 
+def buildImage(fullImagePath):
+    import ImageLoaded
+    return ShapeAndPositionInvariantImage(fullImagePath, imageLoaded=ImageLoaded.loadImage)
 
-def processImage(imgName):
+def processImage(imageObj):
+
 	if isDebug:
-		if not os.path.exists('../output_debug/'+imgName+'/'):
-		    os.makedirs('../output_debug/'+imgName+'/')
+    		if not os.path.exists('../output_debug/'+imageObj.imageName+'/'):
+    		    os.makedirs('../output_debug/'+imageObj.imageName+'/')
 
-	rangeInput = [(0.,359.0), (1.,8.)]
+	return nm.getAllTheHashesForImage(imageObj)
 
-
-	img = cv2.imread("../input/"+imgName+".jpg")
-	return nm.getAllTheHashesForImage(imgName, img)
-
-	######################################### 	
-
-
-def addImageToDB(imgName):
-	values, numberOfFragments = processImage(imgName)
+def addImageToDB(fullImagePath):
+	imageObj = buildImage(fullImagePath)
+	values, numberOfFragments = processImage(imageObj)
 	r = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 	print "about to add this amount of fragments to the DB"
@@ -62,7 +50,7 @@ def addImageToDB(imgName):
 		#print inputImageFragmentShape
 		#\DEBUG_PRINT
 
-		r.lpush(inputImageFragmentHash, jh.getTheJsonString(imgName, inputImageFragmentHash, 10, inputImageFragmentShape) )
+		r.lpush(inputImageFragmentHash, jh.getTheJsonString(imageObj.imageName, inputImageFragmentHash, 10, inputImageFragmentShape) )
 		count += 1
 		print "finished fragment: " + str(count) + "/" + str(numberOfFragments)
 
@@ -72,7 +60,6 @@ def addImageToDB(imgName):
 def handleMatchedFragment(inputImage, matchedJsonObj, matchedImg, inputImageFragmentShape):
 	
 	print "matched"
-
 	matchedCoords = matchedJsonObj['coords']
 
 	col = (randint(0,255),randint(0,255),randint(0,255))
@@ -103,12 +90,13 @@ def parseResults(jsonObjs):
 	return matchedImages
 
 def findMatchesForHash_in_db(inputImageFragmentHash, threshold=1):
+	import hashProvider
 	r = getRedisConnection()
 	listKeys = r.keys()
 	ret = []
 	for akey in listKeys:
 		try:
-			diff = hex_to_hash(akey) - hex_to_hash(inputImageFragmentHash)
+			diff = hashProvider.strHashToHashObj(akey) - hashProvider.strHashToHashObj(inputImageFragmentHash)
 			#print akey+" with diff: " + str(diff)
 			if(diff < threshold):
 				print 'match found'
@@ -116,8 +104,8 @@ def findMatchesForHash_in_db(inputImageFragmentHash, threshold=1):
 		except ValueError:
 			pass
 			#print 'failed for :' + akey
+
 	ret = parseResults(ret)
-	#x = ret['somefafdsaf']
 	if ret == []:
 		return None
 	elif ret == {}:
@@ -127,10 +115,6 @@ def findMatchesForHash_in_db(inputImageFragmentHash, threshold=1):
 
 def getRedisConnection():
 	return redis.StrictRedis(host='localhost', port=6379, db=0)
-
-
-def getMatchForHash(hashObj):
-	pass#TODO
 
 
 def organiseMatchedHashesByMatchedImageName(listOfShapesAndTheirMatchedFragments):
@@ -153,16 +137,18 @@ def getSearchingImageMatchFragmentObj(searchingImageFragmentShape, matchedImageF
 		'matchedImageFragmentObjs': matchedImageFragmentsObj
 		}
 
-def getMatchesForAllHashes(searchingImageHashObjs):
+def getMatchesForAllHashes(searchingImageHashObjs, numberOfFragments):
 	tempList = []
+	count = 0
 	for fragment in searchingImageHashObjs:
+		count += 1
+		print "Checking for match " + str(count) + "/" + str(numberOfFragments)
 		inputImageFragmentHash = fragment.fragmentHash
 		inputImageFragmentShape = fragment.fragmentImageCoords
 		matchedJsonObjs = findMatchesForHash_in_db(inputImageFragmentHash)
 		if matchedJsonObjs != None:
     			for matchedObj in matchedJsonObjs:
     					tempList.append( getSearchingImageMatchFragmentObj(inputImageFragmentShape, matchedJsonObjs) )
-
 	return tempList
 
 def printNumberOfMatches(inputList):
@@ -171,20 +157,21 @@ def printNumberOfMatches(inputList):
 
 def handleTheMatchedItemsAndSaveTheImages(inputList, searchingImage):
 	for matchedImageName, matchedJsonObjs in inputList.iteritems():
-		matchedImg = cv2.imread("../input/"+ matchedImageName +".jpg")
-		handleMatchedFragments(searchingImage, matchedJsonObjs, matchedImg, None)
+		matchedImg = buildImage(toFullPath2(matchedImageName))
+		handleMatchedFragments(searchingImage.imageData, matchedJsonObjs, matchedImg.imageData, None)
 
-		cv2.imwrite('../matched'+matchedImageName+'.jpg', searchingImage)
-		cv2.imwrite('../matched'+matchedImageName+'_2.jpg', matchedImg)
+		cv2.imwrite('../matched'+matchedImageName+'.jpg', searchingImage.imageData)
+		cv2.imwrite('../matched'+matchedImageName+'_2.jpg', matchedImg.imageData)
 
 
-def showMatches(imgName):
-	searchingImage = cv2.imread("../input/"+imgName+".jpg")
+
+
+def showMatches(fullImagePath):
 	r = getRedisConnection()
+	searchingImage = buildImage(fullImagePath)
+	searchingImageHashObjs, numberOfFragments = nm.getAllTheHashesForImage(searchingImage)	
 
-	searchingImageHashObjs, numberOfFragments = nm.getAllTheHashesForImage(imgName, searchingImage)	
-
-	tempList = getMatchesForAllHashes(searchingImageHashObjs)
+	tempList = getMatchesForAllHashes(searchingImageHashObjs, numberOfFragments)
 	tempList = organiseMatchedHashesByMatchedImageName(tempList)
 	#DEBUG
 	#printNumberOfMatches(tempList)
@@ -198,7 +185,11 @@ def showMatches(imgName):
 ######################################################################################
 
 
+def toFullPath(imgName):
+	return "../input/"+imgName+".jpg"
 
+def toFullPath2(imgName):
+	return "../input/"+imgName
 
 
 
@@ -235,7 +226,7 @@ name8 = "rick4"
 #showMatches(name2, name1)
 #showMatches(name5)
 #showMatches(name4)
-addImageToDB(name4)
+addImageToDB(toFullPath(name4))
 
 
 #from KeypointSystem import newGetKeypoints as gk
@@ -244,7 +235,7 @@ addImageToDB(name4)
 #img = cv2.imread("../input/"+name4+".jpg")
 #gk.getTheKeyPoints(img)
 #cv2.waitKey()
-showMatches(name3)
+showMatches(toFullPath(name3))
 
 #showMatches("lennaWithGreenDotsInTriangle2", "lennaWithGreenDotsInTriangle3")
 

@@ -13,52 +13,16 @@ import time
 #####rules
 import keypoints as kp
 
-
-def containsNoPoints(tri, points):
-	return True
 	
 
 def isGoodFrag(tri):
 	return True
-	pass
-	pt1 = tri[0]
-	pt2 = tri[1]
-	pt3 = tri[2]
-	dist1 = BSO.dist(pt1, pt2)
-	dist2 = BSO.dist(pt2, pt3)
-	dist3 = BSO.dist(pt3, pt1)
-	mult = 2
-	minArea = 100
-	if dist1 > (mult*dist2) or dist2 > (mult*dist1):
-		return False
-
-	if dist2 > (mult*dist3) or dist3 > (mult*dist2):
-		return False
-
-	if dist1 > (mult*dist3) or dist3 > (mult*dist1):
-		return False
-
-	nextMult = 1.8
-	if float(dist1)*nextMult > dist2 + dist3:
-		return False
-
-	if float(dist2)*nextMult > dist1 + dist2:
-		return False
-
-	if float(dist3)*nextMult > dist1 + dist2:
-		return False
-
-	if BSO.getAreaOfTriangle(tri) < minArea:
-		return False
-	#
-	return True
-
 
 def getDist(pnt1, pnt2):
 	x1, y1 = pnt1
 	x2, y2 = pnt2
 	return math.sqrt( (x2 - x1)**2 + (y2 - y1)**2 )
-
+	
 
 def getClosesetXPoints(pnt, points):
 	cpy = list(points)
@@ -130,12 +94,17 @@ def getAllValidPointsForTargetPoint(targetPoint, points, pointsToIgnore, lower=5
 			ret.append(point)
 	return ret
 
-def getAllTrianglesForTargetPoint(targetPoint, validPoints):
+def getAllTrianglesForTargetPoint(pt1, validPoints, lowerUsed, upperUsed):
 	import itertools
-	trisMissingPnt = itertools.combinations(validPoints, 2)
+	
 	ret = []
-	for tri in trisMissingPnt:
-		ret.append([tri[0], tri[1], targetPoint])
+	for pt2 in validPoints:
+		validPoints2nd = getAllValidPointsForTargetPoint(pt2, validPoints, [pt2], lower=lowerUsed, upper=upperUsed)
+		tempTris = []
+		for pt3 in validPoints2nd:
+			tempTris.append( [pt1, pt2, pt3] )
+		
+		ret.extend( tempTris )
 
 	return ret
 
@@ -144,8 +113,8 @@ def fromPointsToFramenets_justTriangles(points, DEBUG_IMAGE=None, DEBUG_KEYPOINT
 
 	#print "len of points"
 	#print len(points)
-	lower=200
-	upper=400
+	lower=150
+	upper=300
 
 	triangles = []
 	
@@ -170,14 +139,17 @@ def fromPointsToFramenets_justTriangles(points, DEBUG_IMAGE=None, DEBUG_KEYPOINT
 				d.drawKeypoints_obj(DEBUG_IMAGE_copy, DEBUG_KEYPOINTS, (0,255,0))
 			
 			cv2.imwrite('../frames/frame'+str(i*2)+".png", DEBUG_IMAGE_copy)
-		tempTriangles = getAllTrianglesForTargetPoint(targetPoint, validPoints)
+			cv2.imshow("DEBUG_IMAGE_copy", DEBUG_IMAGE_copy)
+			cv2.waitKey()
+		tempTriangles = getAllTrianglesForTargetPoint(targetPoint, validPoints, lowerUsed=lower, upperUsed=upper)
 		if not DEBUG_IMAGE_copy == None:
 			print "len tempTriangles"
 			print len(tempTriangles)
 			for tri in tempTriangles:
 				d.drawLines(tri, DEBUG_IMAGE_copy, (255,0,0))
 			cv2.imwrite('../frames/frame'+str((i*2)+1)+".png", DEBUG_IMAGE_copy)
-			#cv2.waitKey()
+			cv2.imshow("DEBUG_IMAGE_copy", DEBUG_IMAGE_copy)
+			cv2.waitKey()
     			
 		triangles.extend(tempTriangles)
 

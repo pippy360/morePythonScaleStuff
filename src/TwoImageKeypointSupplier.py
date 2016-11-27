@@ -1,4 +1,4 @@
-import newMain
+import mainImageProcessingFunctions
 from utils import basicShapeOperations as BSO
 from Keypoint import Keypoint 
 
@@ -143,10 +143,17 @@ def getMatchingKeypointsMapByGroup1Keypoint(keypointGroup1, keypointGroup2, dist
         
 def getTheKeypoints(img):
     imageData = img.imageData
-    keypts = newMain.getTheKeyPoints(imageData)
+    keypts = mainImageProcessingFunctions.getTheKeyPoints(imageData)
     ret = []
     id = 0
     for pt in keypts:
         ret.append(Keypoint(id, pt))
         id += 1
+    return ret
+
+def stip_org(dictMap):
+    ret = []
+    for di in dictMap:
+        t = di['originalImageKeypoint']
+        ret.append(t.pt)
     return ret

@@ -1,5 +1,5 @@
 import cv2
-import newMain
+import mainImageProcessingFunctions as newMain
 import sys
 import shapeDrawerWithDebug as sd
 import cv2
@@ -9,7 +9,7 @@ from utils import basicShapeOperations as BSO
 from Fragment import NormalisedFragment, FragmentImageData
 import shapeDrawerWithDebug as sd
 from ast import literal_eval as make_tuple
-from TwoImagesWithMatchedTriangles_new import TwoImagesWithMatchedTriangles
+from TwoImagesWithMatchedTriangles import TwoImagesWithMatchedTriangles
 
 def buildWithSameKeypoints(imgName, angleWereUsing = 45, scaleWereUsing = 2):
     from ShapeAndPositionInvariantImage import ShapeAndPositionInvariantImage
@@ -22,8 +22,8 @@ def buildWithSameKeypoints(imgName, angleWereUsing = 45, scaleWereUsing = 2):
 
     trans = Transformation(scaleWereUsing, angleWereUsing, angleWereUsing, transpose=(0,0))
 
-    img1 = ShapeAndPositionInvariantImage(img_org, shape1)
-    img2 = ShapeAndPositionInvariantImage(img_change, shape2)
+    img1 = ShapeAndPositionInvariantImage(imgName, image=img_org, shape=shape1)
+    img2 = ShapeAndPositionInvariantImage(imgName, image=img_change, shape=shape2)
 
     ret = TwoImageKeypointSupplier(img1, img2, trans)
     stripMe = ret.getOriginalImageKeypointsMappedToTransformedImage()
@@ -32,11 +32,17 @@ def buildWithSameKeypoints(imgName, angleWereUsing = 45, scaleWereUsing = 2):
 
     return ret, img_change
 
+def halfsize(img):
+    h, w, c = img.shape
+    return img#cv2.resize(img, (int(float(w)/2.5), int(float(h)/2.5)))
+
 def visualTest2():
     from TransformationObjects import Transformation
     imgName = "../input/small_lenna1.jpg"
     inputImage = cv2.imread(imgName)
     inputImage_copy = cv2.imread(imgName)
+    inputImage = halfsize(inputImage)
+    inputImage_copy = halfsize(inputImage_copy)
     angleWereUsing = 145
     scaleWereUsing = 2
     print 'building'
@@ -58,11 +64,11 @@ def visualTest2():
     trans = Transformation(scaleWereUsing, angleWereUsing, angleWereUsing, transpose=(0,0))
 
     temp = TwoImagesWithMatchedTriangles(inputImage_copy, transImage, trans, twoImage)
-    print "len(temp.getMatchingTriangles())"
-    tris = temp.getMatchingTriangles()
-    print len(temp.getMatchingTriangles())
+    print "len(temp.getMatchingTriangles()), org, trans"
     print len(temp.getOriginalImageTriangles())
     print len(temp.getTransformedImageTriangles())
+    print "The matching triangles: " + str(len(temp.getMatchingTriangles()))
+    tris = temp.getMatchingTriangles()
     for shape in tris:
         tri = toPoints(shape['transformedImageTriangle'])
         sd.drawLines(tri, inputImage, (255,0,0))
@@ -107,6 +113,7 @@ def fixKeypointsPosition(keypoints, scaleUsed, angleUsed, centerPointBeforeScale
 
 def getTwoImagesAndTheirKeypoints(imgName, angleWereUsing = 45,  scaleWereUsing = 2):
     inputImage = cv2.imread(imgName)
+    inputImage = halfsize(inputImage)
     img = inputImage
     shape = [(0,0), (img.shape[1],0), (img.shape[1], img.shape[0]), (0,img.shape[0])]
     old_shape = [(0,0), (img.shape[1],0), (img.shape[1], img.shape[0]), (0,img.shape[0])]    
