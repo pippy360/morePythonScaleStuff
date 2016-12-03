@@ -20,7 +20,7 @@ def getCenterPointOfImage(image):
 	return (x/2, y/2)
 
 def drawLinesColour(points, img, col):
-	drawLinesColourAlsoWidth(points, img, col, 1)
+	return drawLinesColourAlsoWidth(points, img, col, 1)
 
 
 def drawLinesColourAlsoWidth(points, img, col, wid):
@@ -33,9 +33,10 @@ def drawLinesColourAlsoWidth(points, img, col, wid):
 		#print str(points[i]) +","+str(points[i+1])
 		cv2.line(img, points[i], points[i+1], col, wid)
 	cv2.line(img, points[len(points)-1], points[0], col, wid)
+	return img
 	
 def drawLines(points, img, colour=(0,0,255)):
-	drawLinesColour(points, img, colour)
+	return drawLinesColour(points, img, colour)
 
 def getAmountToAddOnToEachPoint(image, shape):
 	c_image = getCenterPointOfImage(image)

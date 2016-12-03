@@ -5,7 +5,7 @@ class Keypoint:
         self.pt = pt
 
     def __str__(self):
-        return str(self.pt)
+        return "Keypoint(" + str(self.pt) + ")"
         
     def __repr__(self):
-        return str(self.pt)
+        return "Keypoint(" + str(self.pt) + ")"

@@ -11,24 +11,17 @@ class TwoImageKeypointSupplier:
 
         self.transformationObj = transformationObj
 
-    def getOriginalImageKeypointsMappedToTransformedImage(self):
-        return self._getOriginalImageKeypointsMappedToTransformedImage(switchKeyAndValue=False)
+    def getOriginalImageKeypointsProjectedOnTransformedImage(self):
+        return self._getOriginalImageKeypointsMappedToTransformedImage()
     
-    def getOriginalImageKeypointsMappedToTransformedImage(self):
-        return self._getOriginalImageKeypointsMappedToTransformedImage(switchKeyAndValue=True)
+    def getTransformedImageKeypointsProjectedOnOriginalImage(self):
+        raise ValueError("Not supported yet")
 
     #Private
     #TODO: What's an alternative to the switchKeyAndValue here?
-    def _getOriginalImageKeypointsMappedToTransformedImage(self, switchKeyAndValue=False):    
-        retMap = _fixKeypointsPosition(self.originalImageKeypoints, self.transformationObj.scaleValue, self.transformationObj.rotation, 
+    def _getOriginalImageKeypointsMappedToTransformedImage(self):    
+        return _fixKeypointsPosition(self.originalImageKeypoints, self.transformationObj.scaleValue, self.transformationObj.rotation, 
             self.originalImage.getCenterPoint(), self.transformedImage.getCenterPoint())
-
-        return retMap
-
-    #returns map by transformed image keypoint
-    def getTransformedImageKeypointsMappedToOriginalImage(self):
-        raise ValueError("Not supported yet")
-        pass
 
     def getMatchingKeypoints(self):
         return self.getMatchingKeypointsVerbose()
@@ -47,7 +40,7 @@ class TwoImageKeypointSupplier:
     #and the intermediate keypoint
     def getMatchingKeypointsVerbose(self):
         
-        transformedKeypointsCombined = self.getOriginalImageKeypointsMappedToTransformedImage()
+        transformedKeypointsCombined = self.getOriginalImageKeypointsProjectedOnTransformedImage()
         orgkeypoints, transformedKeypoints = stripOutputKeypoints(transformedKeypointsCombined)
         matching = getMatchingKeypointsMapByGroup1Keypoint(self.transformedImageKeypoints, transformedKeypoints)
 
