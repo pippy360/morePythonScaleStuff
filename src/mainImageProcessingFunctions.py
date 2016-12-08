@@ -120,19 +120,19 @@ def getTransformationMatrix(fragmentImageShape, DEBUG_IMAGE=None):
 		[0,0,1]
 	])
 
-	print "rotationAndScaleMatrix"
-	print rotationAndScaleMatrix
-	print translationMatrix
+	#print "rotationAndScaleMatrix"
+	#print rotationAndScaleMatrix
+	#print translationMatrix
 	res = np.matmul(translationMatrix,rotationAndScaleMatrix)
 	res = np.matmul(rotationAndScaleMatrix,translationMatrix)
-	print "res"
-	print res
+	#print "res"
+	#print res
 	res = np.float32([
 		[res.item(0),res.item(1),res.item(2)],
 		[res.item(3),res.item(4),res.item(5)]
 	])
-	print "res"
-	print res
+	#print "res"
+	#print res
 	return res
 
 #Code by Rosca
@@ -169,14 +169,19 @@ def applyTransformationMatrixToFragment(fragment, transformationMatrix):
 #	cv2.waitKey()
 	#now fix the shape
 	shape = fragment.fragmentImageShape
-	print "np.matrix(shape)"
+	#print "np.matrix(shape)"
 	t = transformationMatrix
 	m = np.matrix(((t.item(0), t.item(1)),(t.item(3), t.item(4))))
-	fixedShape = m*(np.matrix(shape).transpose())
+	#print "m"
+	#print m
+	fixedShape = [(0,0), (100,200*0.83666003), (200,0)]
+	import shapeDrawerWithDebug as shapeDrawerWithDebug
+	shapeDrawerWithDebug.drawLines(fixedShape, imgFixed)
 	#TODO: FIXME:
-	print 'd here:'
-	shapeFixed = shape
-	return FragmentImageData(imgFixed, shapeFixed)
+	#print 'd here:'
+	#shapeFixed = shape
+	#imgFixed = imgFixed[0:200,0:int((200*83666003)+1)]#BIO.cropImageAroundPoint(imgFixed, 200, 200*0.83666003, (100,100))
+	return FragmentImageData(imgFixed, fixedShape)
 	#return a whole new fragment
 
 def normaliseScaleForSingleFrag(inputFrag):
@@ -194,8 +199,8 @@ def normaliseScaleForSingleFrag(inputFrag):
 	ret = applyTransformationMatrixToFragment(inputFrag, transformationMatrix)
 	end = time.time()
 	#print "normaliseScaleForSingleFrag2: " + str(end - start)
-	cv2.imshow('b', ret.fragmentImage)
-	cv2.waitKey()
+	#cv2.imshow('b', ret.fragmentImage)
+	#cv2.waitKey()
 	return ret
 
 def normaliseScaleAndRotationForSingleFrag(inputFrag):
@@ -215,6 +220,8 @@ def fitTrianglesIntoImage(theThreeTrianglesAndShapes):
 	for fragmentImageData in theThreeTrianglesAndShapes:
 		fragImageWithScaleAndRotationFix, shapeWithScaleAndRotationFix = fragmentImageData.fragmentImage, fragmentImageData.fragmentImageShape
 		fittedShape, fittedImage = fp.fitFragTightToImage(shapeWithScaleAndRotationFix, fragImageWithScaleAndRotationFix);
+		#cv2.imshow('f', fittedImage)
+		#cv2.waitKey()
 		ret.append( FragmentImageData(fittedImage, fittedShape) )
 
 	return ret
