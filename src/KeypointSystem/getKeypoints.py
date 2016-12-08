@@ -166,8 +166,8 @@ def getTheKeypoints_justPoints_inner(img):
 	b, g, r = cv2.split(img)
 	#img = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
 	img = b
-	cv2.imshow('b',b)
-	cv2.waitKey()
+	#cv2.imshow('b',b)
+	#cv2.waitKey()
 	points1 = []
 	points1.extend(getTheKeypoints_justPoints_inner_inner(b, img2))
 #	points1.extend(getTheKeypoints_justPoints_inner_inner(g, img2))

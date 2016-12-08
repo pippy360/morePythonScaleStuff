@@ -22,10 +22,10 @@ def getTheTriangles(keyPoints, DEBUG_IMAGE=None, DEBUG_KEYPOINTS=None):
 def getTheFragments(img, trianglesList):
 	import fragProcessing as fs
 	for triangle in trianglesList:
-		start = time.time()
+		#start = time.time()
 		fragmentCoords, fragmentImage = fs.cutOutTheFrag(triangle, img)
-		end = time.time()
-		#print "cut out the frag: " + str(end - start)
+		#end = time.time()
+		##print "cut out the frag: " + str(end - start)
 		yield FragmentImageData(fragmentImage, fragmentCoords)
 
 
@@ -88,27 +88,56 @@ def arrangePointsForTransformation(movedTri):
 def prepShapeForCalculationOfTranslationMatrix(fragmentImageShape):
 	#get the point closest to zero
 	import numpy as np
-	closestPoint = getPointClosestToZero(fragmentImageShape)
-	movedTri = []
-	for pt in fragmentImageShape:
-		if pt == closestPoint:
-			continue
 
-		temp_pt = (pt[0] - closestPoint[0], pt[1] - closestPoint[1])
-		movedTri.append(temp_pt)
+	tri = fragmentImageShape
+	x_trans = tri[0][0]
+	y_trans = tri[0][1]
+	pt1 = (tri[1][0] - x_trans, tri[1][1] - y_trans)
+	pt2 = (tri[2][0] - x_trans, tri[2][1] - y_trans)
 
-	return np.matrix(movedTri[0]).T, np.matrix(movedTri[1]).T
+	return np.matrix(pt1).T, np.matrix(pt2).T, -x_trans, -y_trans
 
 def getTransformationMatrix(fragmentImageShape, DEBUG_IMAGE=None):
 	import numpy as np
-	b, c = prepShapeForCalculationOfTranslationMatrix(fragmentImageShape)
-	t = makeT(b, c)
-	transformationMatrix = np.float32([[t.item(0),t.item(1),0],[t.item(2),t.item(3),0]])
-	return transformationMatrix
+	b, c, x_translation, y_translation = prepShapeForCalculationOfTranslationMatrix(fragmentImageShape)
+	area = BSO.getAreaOfTriangle(fragmentImageShape)
+	translationMatrix = np.float32([
+			[1,0,x_translation],
+			[0,1,y_translation],
+			[0,0,1]
+		])
+
+	t = calcTransformationMat(b, c, area)
+	rotationAndScaleMatrix = np.float32([
+		[t.item(0),t.item(1),0],
+		[t.item(2),t.item(3),0],
+		[0,0,1]
+	])
+	
+	rotationAndScaleMatrix2 = np.float32([
+		[1,0,0],
+		[0,1,0],
+		[0,0,1]
+	])
+
+	print "rotationAndScaleMatrix"
+	print rotationAndScaleMatrix
+	print translationMatrix
+	res = np.matmul(translationMatrix,rotationAndScaleMatrix)
+	res = np.matmul(rotationAndScaleMatrix,translationMatrix)
+	print "res"
+	print res
+	res = np.float32([
+		[res.item(0),res.item(1),res.item(2)],
+		[res.item(3),res.item(4),res.item(5)]
+	])
+	print "res"
+	print res
+	return res
 
 #Code by Rosca
 #No need to pass in point A because it MUST always be (0,0)
-def makeT(pt1, pt2):
+def calcTransformationMat(pt1, pt2, area):
 	import numpy as np
 	#T       A         B
 	#[a b]   [pt1.x pt2.x]   [0.5 1]
@@ -119,7 +148,10 @@ def makeT(pt1, pt2):
 	#TI = B*A^-1
 
 	#TODO: fix scaling!
-	scaleMat = np.matrix(((100, 0), (0, 100)))
+	areaOfTargetTriangle = 0.418330015
+	#scale = np.sqrt( (area/areaOfTargetTriangle) )
+	scale = 200
+	scaleMat = np.matrix(((scale, 0), (0, scale)))
 
 	A = np.matrix(np.concatenate((pt1, pt2), axis=1))
 	B = np.matrix(((0.5, 1), (0.83666003, 0)))#np.sqrt(0.7) == 0.83666003
@@ -137,8 +169,13 @@ def applyTransformationMatrixToFragment(fragment, transformationMatrix):
 #	cv2.waitKey()
 	#now fix the shape
 	shape = fragment.fragmentImageShape
+	print "np.matrix(shape)"
+	t = transformationMatrix
+	m = np.matrix(((t.item(0), t.item(1)),(t.item(3), t.item(4))))
+	fixedShape = m*(np.matrix(shape).transpose())
 	#TODO: FIXME:
-	shapeFixed = shape 
+	print 'd here:'
+	shapeFixed = shape
 	return FragmentImageData(imgFixed, shapeFixed)
 	#return a whole new fragment
 
@@ -148,21 +185,28 @@ def normaliseScaleForSingleFrag(inputFrag):
 	start = time.time()    	
 	#angle, scalar = g.getValuesToNormaliseScale(inputFrag.fragmentImageShape)
 	transformationMatrix = getTransformationMatrix(inputFrag.fragmentImageShape, DEBUG_IMAGE=inputFrag.fragmentImage)
-	#print "transformationMatrix"
+	##print "transformationMatrix"
 	#print transformationMatrix
 	end = time.time()
-	#print "normaliseScaleForSingleFrag: " + str(end - start)
+	#print "normaliseScaleForSingleFrag1: " + str(end - start)
 	#ret = _rotateAndScaleFragAndShape(inputFrag, angle, scalar)
+	start = time.time()    	
 	ret = applyTransformationMatrixToFragment(inputFrag, transformationMatrix)
-	
+	end = time.time()
+	#print "normaliseScaleForSingleFrag2: " + str(end - start)
+	cv2.imshow('b', ret.fragmentImage)
+	cv2.waitKey()
 	return ret
 
 def normaliseScaleAndRotationForSingleFrag(inputFrag):
 	start = time.time()
 	fragWithScaleFix = normaliseScaleForSingleFrag(inputFrag)
 	end = time.time()
+	#print "normaliseScaleAndRotationForSingleFrag1: " + str(end - start)
+	start = time.time()
 	ret = normaliseRotationForSingleFrag(fragWithScaleFix)
-	#print "normaliseScaleAndRotationForSingleFrag: " + str(end - start)
+	end = time.time()
+	#print "normaliseScaleAndRotationForSingleFrag2: " + str(end - start)
 	return ret
 
 
@@ -195,10 +239,10 @@ def normaliseScaleAndRotationForAllFrags(inputFragmentsAndShapes):
 
 def getHashForSingleFragment(fragmentImageData):
 	import hashProvider
-	start = time.time()
+	#start = time.time()
 	hash = hashProvider.getHash(fragmentImageData)
-	end = time.time()
-	#print "getHash: " + str(end - start)
+	#end = time.time()
+	##print "getHash: " + str(end - start)
 	return hash
 
 
