@@ -32,14 +32,32 @@ def buildTwoImagesWithMatchedTriangles(imgName):
     ret = TwoImagesWithMatchedTriangles(imageOrg.imageData, imageChanged.imageData, trans, kpSupplier)
     return ret
 
+def toSimpleTri(tri):
+    ret = []
+    for kpt in tri:
+        ret.append(kpt.pt)
+    return ret
+
+def getTheTriCollection(tri):
+    org_tri = [toSimpleTri(tri)]
+    org_frag_list = getTheFragments(img, org_tri)
+    normFrag = normaliseScaleAndRotationForAllFrags(org_frag_list)[0]
+    return normFrag
+
 def test():
     imgName = '../input/costanza_orginal_dots.jpg'
     twoImagesWithMatchedTriangles = buildTwoImagesWithMatchedTriangles(imgName)
     print '#########test#########'
-    #print twoImagesWithMatchedTriangles.getMatchingTriangles()
-    #"transformedImageTriangle"
-    #"originalImageTriangle"
+    tris = twoImagesWithMatchedTriangles.getMatchingTriangles()
+    for triObj in tris:
+        #grab the actual frag from each
+        #and assert that they match!!
+        #"transformedImageTriangle"
+        #"originalImageTriangle"
 
+        org_tri = [toSimpleTri(triObj['transformedImageTriangle'])]
+        org_frag = getTheFragments(twoImagesWithMatchedTriangles.transformedImage, org_tri)[0]
+        triCollection = getTheTriCollection(triObj['originalImageTriangle'], twoImagesWithMatchedTriangles.originalImage)
 
 
 test()
