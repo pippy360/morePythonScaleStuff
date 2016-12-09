@@ -19,7 +19,7 @@ class TwoImagesWithMatchedTriangles:
         #org_key = self.keypointSupplier.originalImageKeypoints
         org_key = self.keypointSupplier.getMatchingKeypoints()
         org_key = _stripOriginalPoints(org_key)
-        tris = mainImageProcessingFunctions.getTheTriangles(pts, DEBUG_IMAGE=self.originalImage, DEBUG_KEYPOINTS=org_key)
+        #tris = mainImageProcessingFunctions.getTheTriangles(pts, DEBUG_IMAGE=self.originalImage, DEBUG_KEYPOINTS=org_key)
         tris = mainImageProcessingFunctions.getTheTriangles(pts)
         #print 'len of tris for org image'
         #print len(tris)

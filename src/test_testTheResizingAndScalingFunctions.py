@@ -1,5 +1,5 @@
 import cv2
-import newMain
+import mainImageProcessingFunctions
 import sys
 import shapeDrawerWithDebug as sd
 import cv2
@@ -24,11 +24,11 @@ def testTheScalingAndRotationFix():
     sd.drawShapeWithAllTheDistances_withBaseImage(rotImg, newShape)
     cv2.imshow('rot', rotImg)
     
-    #outFrag = newMain._rotateAndScaleFragAndShape(frag, 0, 1)
+    #outFrag = mainImageProcessingFunctions._rotateAndScaleFragAndShape(frag, 0, 1)
     #cv2.imshow('b', outFrag.fragmentImage)
     cv2.waitKey()
     #res = sd.drawShapeWithAllTheDistances_withBaseImage(img, shape, colour=(0,0,255)):
-    #newMain.getAllTheHashesForImage('som', img)
+    #mainImageProcessingFunctions.getAllTheHashesForImage('som', img)
 
 
 def test_rotateAndScaleByNumbers():
@@ -44,15 +44,15 @@ def test_rotateAndScaleByNumbers():
 def test_gettingTheFragments():
     inputImage = cv2.imread("../input/costanza_orginal_dots.jpg")
 
-    import newMain
+    import mainImageProcessingFunctions
 
-    keyPoints = newMain.getTheKeyPoints(inputImage)
+    keyPoints = mainImageProcessingFunctions.getTheKeyPoints(inputImage)
 
     #turn the keyPoints into triangles	
-    triangles = newMain.getTheTriangles(keyPoints)
+    triangles = mainImageProcessingFunctions.getTheTriangles(keyPoints)
     #turn the triangles into fragments of the image
-    nonNormalisedFragments = newMain.getTheFragments(inputImage, triangles)
-    normalisedFragmentsGroupOfThree = newMain.normaliseScaleAndRotationForAllFrags(nonNormalisedFragments)
+    nonNormalisedFragments = mainImageProcessingFunctions.getTheFragments(inputImage, triangles)
+    normalisedFragmentsGroupOfThree = mainImageProcessingFunctions.normaliseScaleAndRotationForAllFrags(nonNormalisedFragments)
 #    sys.exit()
     frags = []
     for f, k in zip(nonNormalisedFragments, normalisedFragmentsGroupOfThree):
@@ -169,8 +169,8 @@ def test_KeypointsMatching():
     shape = [(0,0), (img.shape[1],0), (img.shape[1], img.shape[0]), (0,img.shape[0])]
     import shapeDrawerWithDebug as sd
 
-    import newMain
-    keypoints = newMain.getTheKeyPoints(inputImage)    
+    import mainImageProcessingFunctions
+    keypoints = mainImageProcessingFunctions.getTheKeyPoints(inputImage)    
 
     c_pnt1 = BSO.getCenterPointOfShape_int(shape)
 
@@ -185,7 +185,7 @@ def test_KeypointsMatching():
     #get the new keypoints
     orgKeyPoints = fixKeypointsPosition(keypoints, scaleWereUsing, angleWereUsing, c_pnt1, c_pnt2)
     #
-    calcdKeyPoints = newMain.getTheKeyPoints(frag)
+    calcdKeyPoints = mainImageProcessingFunctions.getTheKeyPoints(frag)
     matching, orgNotMatching, calcdNotMatching = breakIntoMatchingAndNotMatching(frag, orgKeyPoints, calcdKeyPoints)
     #frag = sd.drawShapeWithAllTheDistances_withBaseImage(frag, shape)
     #sd.drawKeypoints(frag, calcdNotMatching, colour=(0,0,255))
@@ -207,7 +207,7 @@ def getTwoImagesAndTheirKeypoints(angleWereUsing = 45,  scaleWereUsing = 2):
     old_shape = [(0,0), (img.shape[1],0), (img.shape[1], img.shape[0]), (0,img.shape[0])]    
    
 
-    keypoints = newMain.getTheKeyPoints(inputImage)
+    keypoints = mainImageProcessingFunctions.getTheKeyPoints(inputImage)
     c_pnt1 = BSO.getCenterPointOfShape_int(shape)
     #now make the next image
     shape, img = BIO.rotateAndFitFragmentWhileKeepingShapeCenterAtTheCenterOfTheImage(inputImage, angleWereUsing, shape)
@@ -216,7 +216,7 @@ def getTwoImagesAndTheirKeypoints(angleWereUsing = 45,  scaleWereUsing = 2):
 
     c_pnt2 = BSO.getCenterPointOfShape_int(shape)
     fixedKeyPoints = fixKeypointsPosition(keypoints, scaleWereUsing, angleWereUsing, c_pnt1, c_pnt2)
-    calcdKeyPoints = newMain.getTheKeyPoints(frag)
+    calcdKeyPoints = mainImageProcessingFunctions.getTheKeyPoints(frag)
     
     return inputImage, old_shape, keypoints, frag, shape, calcdKeyPoints, fixedKeyPoints
 
@@ -297,7 +297,7 @@ def breakIntoMatchingTrianglesAndNonMatchingPoints(tris_all_fixed, tris_all_chan
     
     transformKeypointsFromImage2ToImage1(keypointsFromImage1, keypointsFromImage2, scaleUsed, rotationUsed)
 
-    keypoints = newMain.getTheKeyPoints(inputImage)
+    keypoints = mainImageProcessingFunctions.getTheKeyPoints(inputImage)
     c_pnt1 = BSO.getCenterPointOfShape_int(shape)
     #now make the next image
     shape, img = BIO.rotateAndFitFragmentWhileKeepingShapeCenterAtTheCenterOfTheImage(inputImage, angleWereUsing, shape)
@@ -306,7 +306,7 @@ def breakIntoMatchingTrianglesAndNonMatchingPoints(tris_all_fixed, tris_all_chan
 
     c_pnt2 = BSO.getCenterPointOfShape_int(shape)
     fixedKeyPoints = fixKeypointsPosition(keypoints, scaleWereUsing, angleWereUsing, c_pnt1, c_pnt2)
-    calcdKeyPoints = newMain.getTheKeyPoints(frag)
+    calcdKeyPoints = mainImageProcessingFunctions.getTheKeyPoints(frag)
 
     #now remove all the triangle that matched
 
@@ -341,7 +341,7 @@ def splitMatching(matching):
 def test_triangleMatching():
 
     import shapeDrawerWithDebug as sd
-    import newMain
+    import mainImageProcessingFunctions
 
     junk1, junk2, img_change, keypoints_changed, keypoints_fixed = getTwoImagesAndTheirKeypoints()
     matchingKeypoints, notMatching_fixed, notMatching_changed = breakIntoMatchingAndNotMatching_two(img_change, keypoints_changed, keypoints_fixed)
@@ -354,7 +354,7 @@ def test_triangleMatching():
     #cv2.waitKey()
 
     ###################################################
-    #now lets test the newMain.getTheTriangles function
+    #now lets test the mainImageProcessingFunctions.getTheTriangles function
     #find all the triangles that match
     import itertools
 
@@ -371,8 +371,8 @@ def test_triangleMatching():
     print len(matching_changed)
     print len(tris_match_changed)
 
-    tris_all_fixed = newMain.getTheTriangles(keypoints_fixed)
-    tris_all_changed = newMain.getTheTriangles(keypoints_changed)
+    tris_all_fixed = mainImageProcessingFunctions.getTheTriangles(keypoints_fixed)
+    tris_all_changed = mainImageProcessingFunctions.getTheTriangles(keypoints_changed)
 
     matchedTris, notMatchingTris_fixed, notMatchingTris_changed = breakIntoMatchingTrianglesAndNonMatchingPoints(
         tris_all_fixed, tris_all_changed, tris_match_fixed, tris_match_changed
@@ -383,8 +383,8 @@ def test_findingKeypoints():
     img = inputImage
     shape = [(0,0), (img.shape[1],0), (img.shape[1], img.shape[0]), (0,img.shape[0])]
 
-    import newMain
-    keypoints = newMain.getTheKeyPoints(inputImage)    
+    import mainImageProcessingFunctions
+    keypoints = mainImageProcessingFunctions.getTheKeyPoints(inputImage)    
 
     c_pnt1 = BSO.getCenterPointOfShape_int(shape)
 
@@ -399,7 +399,7 @@ def test_findingKeypoints():
     #get the new keypoints
     orgKeyPoints = fixKeypointsPosition(keypoints, scaleWereUsing, angleWereUsing, c_pnt1, c_pnt2)
     #
-    calcdKeyPoints = newMain.getTheKeyPoints(frag)
+    calcdKeyPoints = mainImageProcessingFunctions.getTheKeyPoints(frag)
     #cv2.waitKey()
     matching, orgNotMatching, calcdNotMatching = breakIntoMatchingAndNotMatching(frag, orgKeyPoints, calcdKeyPoints)
     #frag = sd.drawShapeWithAllTheDistances_withBaseImage(frag, shape)

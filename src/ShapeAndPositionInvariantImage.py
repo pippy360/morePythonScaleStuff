@@ -4,13 +4,12 @@ import os
 class ShapeAndPositionInvariantImage:
 
     #either image or imageLoaded must be non-None
-    def __init__(self, imageFullPath, image=None, shape=None, imageLoaded=None):
-        self.imageFullPath = imageFullPath
-
-        self.imageName = os.path.split(imageFullPath)[1]
+    def __init__(self, imageFullPathOrName, image=None, shape=None, imageLoaded=None):
+        self.imageFullPathOrName = imageFullPathOrName
+        self.imageName = os.path.split(imageFullPathOrName)[1]
 
         if image == None:
-            image = imageLoaded(imageFullPath)
+            image = imageLoaded(imageFullPathOrName)
         self.imageData = image
 
         if shape == None:
