@@ -46,6 +46,8 @@ def getTheTriCollection(tri, img):
     return normFrag
 
 def test():
+    import cv2
+    from hashProvider import getHash
     imgName = '../input/costanza_orginal_dots.jpg'
     twoImagesWithMatchedTriangles = buildTwoImagesWithMatchedTriangles(imgName)
     print '#########test#########'
@@ -60,9 +62,12 @@ def test():
         triCollection_trans = getTheTriCollection(triObj['transformedImageTriangle'], twoImagesWithMatchedTriangles.transformedImage)
 
         #NOW TEST THAT THEY MATCH 
-        for col in triCollection_org:
-            print col
-        for col in triCollection_trans:
-            print col
-
+        for list1, list2 in zip(triCollection_org, triCollection_trans):
+            print list1
+            im1 = list1[0]
+            im2 = list2[0]
+            cv2.imshow('1', im1.fragmentImage)
+            cv2.imshow('2', im2.fragmentImage)
+            print getHash(im1) - getHash(im2) 
+            cv2.waitKey()
 test()
