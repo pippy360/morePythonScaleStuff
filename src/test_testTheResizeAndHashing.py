@@ -38,10 +38,11 @@ def toSimpleTri(tri):
         ret.append(kpt.pt)
     return ret
 
-def getTheTriCollection(tri):
+def getTheTriCollection(tri, img):
+    import mainImageProcessingFunctions as mp
     org_tri = [toSimpleTri(tri)]
-    org_frag_list = getTheFragments(img, org_tri)
-    normFrag = normaliseScaleAndRotationForAllFrags(org_frag_list)[0]
+    org_frag_list = mp.getTheFragments(img, org_tri)
+    normFrag = mp.normaliseScaleAndRotationForAllFrags(org_frag_list)
     return normFrag
 
 def test():
@@ -55,9 +56,13 @@ def test():
         #"transformedImageTriangle"
         #"originalImageTriangle"
 
-        org_tri = [toSimpleTri(triObj['transformedImageTriangle'])]
-        org_frag = getTheFragments(twoImagesWithMatchedTriangles.transformedImage, org_tri)[0]
-        triCollection = getTheTriCollection(triObj['originalImageTriangle'], twoImagesWithMatchedTriangles.originalImage)
+        triCollection_org = getTheTriCollection(triObj['originalImageTriangle'], twoImagesWithMatchedTriangles.originalImage)
+        triCollection_trans = getTheTriCollection(triObj['transformedImageTriangle'], twoImagesWithMatchedTriangles.transformedImage)
 
+        #NOW TEST THAT THEY MATCH 
+        for col in triCollection_org:
+            print col
+        for col in triCollection_trans:
+            print col
 
 test()
