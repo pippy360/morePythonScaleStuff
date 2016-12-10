@@ -88,20 +88,41 @@ def parseResults(jsonObjs):
 
 	return matchedImages
 
-def findMatchesForHash_in_db(inputImageFragmentHash, threshold=10):
+def doDirectLookup(inputImageFragmentHash):
+	import jsonHandling
+	r = getRedisConnection()
+	theList = r.lrange(str(inputImageFragmentHash), 0, -1)
+	ret = []
+	for theString in theList:
+		ret.append(jsonHandling.getTheJsonObjFromString(theString))
+	if ret == []:
+		return None
+	ret = parseResults(ret)
+	if ret == []:
+		return None
+	elif ret == {}:
+		return None
+	else:
+		return ret
+
+def findMatchesForHash_in_db(inputImageFragmentHash, threshold=1):
+	if threshold == 1:
+		return doDirectLookup(inputImageFragmentHash)
+
 	import hashProvider
 	r = getRedisConnection()
 	listKeys = r.keys()
 	ret = []
 	for akey in listKeys:
 		try:
-			diff = hashProvider.strHashToHashObj(akey) - hashProvider.strHashToHashObj(inputImageFragmentHash)
-			#print akey+" with diff: " + str(diff)
+			hash1 = hashProvider.strHashToHashObj(akey)
+			hash2 = inputImageFragmentHash
+			diff = hash1 - hash2
 			if(diff < threshold):
 				print 'match found'
 				ret.extend(jh.getTheJsonObjs(akey, r))
-		except ValueError:
-			pass
+		except ValueError as val:
+			raise ValueError(val)
 			#print 'failed for :' + akey
 
 	ret = parseResults(ret)
@@ -143,8 +164,8 @@ def getMatchesForAllHashes(searchingImageHashObjs, numberOfFragments):
 		count += 1
 		print "Checking for match " + str(count) + "/" + str(numberOfFragments) + ' - ' + str(fragment.fragmentHash)
 		inputImageFragmentHash = fragment.fragmentHash
-		cv2.imshow('currentTestingFrag', fragment.normalisedFragment.fragmentImage)
-		cv2.waitKey()
+		#cv2.imshow('currentTestingFrag', fragment.normalisedFragment.fragmentImage)
+		#cv2.waitKey()
 		inputImageFragmentShape = fragment.fragmentImageCoords
 		matchedJsonObjs = findMatchesForHash_in_db(inputImageFragmentHash)
 		if matchedJsonObjs != None:

@@ -32,7 +32,7 @@ def findAMatchingHash(iter2, map1, iter2ImagePath, map1ImagePath):
             print 'hash:'
             print img1_hash
             print img2_hash
-            cv2.waitKey()
+            #cv2.waitKey()
 
 
 
