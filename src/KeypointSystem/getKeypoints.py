@@ -112,7 +112,7 @@ def fromPointsToFramenets_justTriangles(points, DEBUG_IMAGE=None, DEBUG_KEYPOINT
 
 	#print "len of points"
 	#print len(points)
-	lower=150
+	lower=200
 	upper=300
 
 	triangles = []
@@ -206,6 +206,7 @@ def getTheKeypoints_justPoints_inner_inner(channel, img2):
 
 	#print "len(contours):" + str(len(contours))
 	for i in range(len(contours)):
+		#continue
 		cnt = contours[i]
 		#print "cnt"
 		#print cnt
@@ -216,7 +217,7 @@ def getTheKeypoints_justPoints_inner_inner(channel, img2):
 
 		#print ret
 		xcoords, ycoords = kp.genImagesWithDisplayFix( np.array(ret) )
-#		print "shape"+str(i)+" = " + str(ret)
+	#		print "shape"+str(i)+" = " + str(ret)
 		#print xcoords[0]
 		#print ycoords[0]
 

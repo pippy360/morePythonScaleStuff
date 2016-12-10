@@ -248,7 +248,7 @@ name8 = "rick4"
 #showMatches(name2, name1)
 #showMatches(name5)
 #showMatches(name4)
-#addImageToDB(toFullPath('img1'))
+addImageToDB(toFullPath('rick1'))
 
 
 #from KeypointSystem import newGetKeypoints as gk
@@ -257,7 +257,8 @@ name8 = "rick4"
 #img = cv2.imread("../input/"+name4+".jpg")
 #gk.getTheKeyPoints(img)
 #cv2.waitKey()
-showMatches(toFullPath('img2'))
+showMatches(toFullPath('rick2'))
+#showMatches(toFullPath(name4))
 
 #showMatches("lennaWithGreenDotsInTriangle2", "lennaWithGreenDotsInTriangle3")
 
