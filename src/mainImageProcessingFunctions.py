@@ -6,12 +6,14 @@ from Fragment import NormalisedFragment, FragmentImageData
 #DEBUG IMPORTS#
 import cv2
 import time
+import sys
 #\DEBUG IMPORTS#
 
 
 def getTheKeyPoints(img):
 	from KeypointSystem import getKeypoints as gk
-	return gk.getTheKeyPoints(img)
+	k = gk.getTheKeyPoints(img)
+	return k
 
 
 def getTheTriangles(keyPoints, DEBUG_IMAGE=None, DEBUG_KEYPOINTS=None):

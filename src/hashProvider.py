@@ -4,7 +4,7 @@ from imagehash import ImageHash
 def getHash(fragmentImage):
     from PIL import Image
     pythonImageObj = Image.fromarray(fragmentImage.fragmentImage)
-    return ih.phash(pythonImageObj)
+    return ih.dhash(pythonImageObj)
 
 def strHashToHashObj(strHash):
     return hex_to_hash(strHash)

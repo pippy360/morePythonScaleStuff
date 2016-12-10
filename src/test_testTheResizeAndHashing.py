@@ -4,6 +4,7 @@ def getImageAndMatchingChangedImage(imgName, angleWereUsing = 45,  scaleWereUsin
     import cv2
     from utils import basicImageOperations as BIO
     originalImage = cv2.imread(imgName)
+    print 'we just read the image... '+imgName
     im = originalImage
     originalImageShape = [(0,0), (im.shape[1],0), (im.shape[1], im.shape[0]), (0,im.shape[0])]
 
@@ -45,10 +46,32 @@ def getTheTriCollection(tri, img):
     normFrag = mp.normaliseScaleAndRotationForAllFrags(org_frag_list)
     return normFrag
 
+def getDiffHash(tri1, tri2):
+    from hashProvider import getHash
+    return getHash(tri1) - getHash(tri2)
+
+def getTheMatchingOnesBasedOnHash(list1, list2):
+    list2Popped = list(list2)
+    ret = []
+    for tri in list1:
+        matchIdx = 0
+        closest = getDiffHash(list2Popped[0], tri)
+        for i in range(len(list2Popped)):
+            diffHash = getDiffHash(list2Popped[i], tri)
+            if diffHash < closest:
+                matchIdx = i
+                closest = diffHash 
+
+        t = (tri, list2Popped[matchIdx])
+        ret.append(t)
+        #del list2Popped[matchIdx]
+        
+    return ret
+
 def test():
     import cv2
     from hashProvider import getHash
-    imgName = '../input/costanza_orginal_dots.jpg'
+    imgName = '../input/img1.jpg'
     twoImagesWithMatchedTriangles = buildTwoImagesWithMatchedTriangles(imgName)
     print '#########test#########'
     tris = twoImagesWithMatchedTriangles.getMatchingTriangles()
@@ -63,11 +86,12 @@ def test():
 
         #NOW TEST THAT THEY MATCH 
         for list1, list2 in zip(triCollection_org, triCollection_trans):
-            print list1
-            im1 = list1[0]
-            im2 = list2[0]
-            cv2.imshow('1', im1.fragmentImage)
-            cv2.imshow('2', im2.fragmentImage)
-            print getHash(im1) - getHash(im2) 
-            cv2.waitKey()
+            arrangedTris = getTheMatchingOnesBasedOnHash(list1, list2)
+            for x in arrangedTris:
+                im1 = x[0]
+                im2 = x[1]
+                print "Distance: " + str(getHash(im1) - getHash(im2)) + " Hash img1: " + str(getHash(im1)) + " - Hash img2: " + str(getHash(im2)) 
+                cv2.imshow('1', im1.fragmentImage)
+                cv2.imshow('2', im2.fragmentImage)
+                cv2.waitKey()
 test()

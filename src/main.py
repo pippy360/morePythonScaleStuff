@@ -52,7 +52,7 @@ def addImageToDB(fullImagePath):
 
 		r.lpush(inputImageFragmentHash, jh.getTheJsonString(imageObj.imageName, inputImageFragmentHash, 10, inputImageFragmentShape) )
 		count += 1
-		print "finished fragment: " + str(count) + "/" + str(numberOfFragments)
+		print "finished fragment: " + str(count) + "/" + str(numberOfFragments) + ' - ' + str(inputImageFragmentHash)
 
 	print "added: "+ str(count)
 
@@ -89,7 +89,7 @@ def parseResults(jsonObjs):
 
 	return matchedImages
 
-def findMatchesForHash_in_db(inputImageFragmentHash, threshold=1):
+def findMatchesForHash_in_db(inputImageFragmentHash, threshold=10):
 	import hashProvider
 	r = getRedisConnection()
 	listKeys = r.keys()
@@ -142,8 +142,9 @@ def getMatchesForAllHashes(searchingImageHashObjs, numberOfFragments):
 	count = 0
 	for fragment in searchingImageHashObjs:
 		count += 1
-		print "Checking for match " + str(count) + "/" + str(numberOfFragments)
+		#print "Checking for match " + str(count) + "/" + str(numberOfFragments)
 		inputImageFragmentHash = fragment.fragmentHash
+
 		inputImageFragmentShape = fragment.fragmentImageCoords
 		matchedJsonObjs = findMatchesForHash_in_db(inputImageFragmentHash)
 		if matchedJsonObjs != None:
@@ -226,7 +227,7 @@ name8 = "rick4"
 #showMatches(name2, name1)
 #showMatches(name5)
 #showMatches(name4)
-addImageToDB(toFullPath(name4))
+addImageToDB(toFullPath('img1'))
 
 
 #from KeypointSystem import newGetKeypoints as gk
@@ -235,7 +236,7 @@ addImageToDB(toFullPath(name4))
 #img = cv2.imread("../input/"+name4+".jpg")
 #gk.getTheKeyPoints(img)
 #cv2.waitKey()
-showMatches(toFullPath(name3))
+#showMatches(toFullPath('img2'))
 
 #showMatches("lennaWithGreenDotsInTriangle2", "lennaWithGreenDotsInTriangle3")
 
