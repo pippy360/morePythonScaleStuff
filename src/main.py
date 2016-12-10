@@ -1,6 +1,5 @@
 import numpy as np
 import cv2
-import getMinimumScaleForShape as g
 import shapeDrawerWithDebug as d
 import fragProcessing as fp
 import itertools
@@ -142,9 +141,10 @@ def getMatchesForAllHashes(searchingImageHashObjs, numberOfFragments):
 	count = 0
 	for fragment in searchingImageHashObjs:
 		count += 1
-		#print "Checking for match " + str(count) + "/" + str(numberOfFragments)
+		print "Checking for match " + str(count) + "/" + str(numberOfFragments) + ' - ' + str(fragment.fragmentHash)
 		inputImageFragmentHash = fragment.fragmentHash
-
+		cv2.imshow('currentTestingFrag', fragment.normalisedFragment.fragmentImage)
+		cv2.waitKey()
 		inputImageFragmentShape = fragment.fragmentImageCoords
 		matchedJsonObjs = findMatchesForHash_in_db(inputImageFragmentHash)
 		if matchedJsonObjs != None:
@@ -227,7 +227,7 @@ name8 = "rick4"
 #showMatches(name2, name1)
 #showMatches(name5)
 #showMatches(name4)
-addImageToDB(toFullPath('img1'))
+#addImageToDB(toFullPath('img1'))
 
 
 #from KeypointSystem import newGetKeypoints as gk
@@ -236,7 +236,7 @@ addImageToDB(toFullPath('img1'))
 #img = cv2.imread("../input/"+name4+".jpg")
 #gk.getTheKeyPoints(img)
 #cv2.waitKey()
-#showMatches(toFullPath('img2'))
+showMatches(toFullPath('img2'))
 
 #showMatches("lennaWithGreenDotsInTriangle2", "lennaWithGreenDotsInTriangle3")
 

@@ -1,6 +1,5 @@
 import numpy as np
 import cv2
-import getMinimumScaleForShape as g
 import shapeDrawerWithDebug as d
 from utils import basicImageOperations as BIO
 from utils import basicShapeOperations as BSO

@@ -1,0 +1,89 @@
+integral took 0.005 seconds
+integral took 0.010 seconds
+integral took 0.023 seconds
+integral took 0.062 seconds
+integral took 0.008 seconds
+integral took 0.028 seconds
+about to add this amount of fragments to the DB
+5084
+finished fragment: 1/5084 - 93bc0dc26d8e659a
+finished fragment: 2/5084 - 9bf23c4bcc88c738
+finished fragment: 3/5084 - 99d637205c8ee669
+finished fragment: 4/5084 - 13bc8dc26d4e658e
+finished fragment: 5/5084 - 19f23c43dc86cf34
+finished fragment: 6/5084 - 899e37227588cecd
+finished fragment: 7/5084 - 13bc8dc6654a76a9
+finished fragment: 8/5084 - 19f23c43dc83fe09
+finished fragment: 9/5084 - 899c37627d82cccd
+finished fragment: 10/5084 - 99de258ad6255ea1
+finished fragment: 11/5084 - b3708c22cea3dce3
+finished fragment: 12/5084 - 391287687e8cd3e9
+finished fragment: 13/5084 - 91dc86c27d266d66
+finished fragment: 14/5084 - 33f03648c6caec9b
+finished fragment: 15/5084 - 39969da87666cc89
+finished fragment: 16/5084 - 99d896e26d067d26
+finished fragment: 17/5084 - 39f63c08cea2f689
+finished fragment: 18/5084 - 83dc9da27666cc89
+finished fragment: 19/5084 - 999896e276626d66
+finished fragment: 20/5084 - 3116344addcaf58b
+finished fragment: 21/5084 - bbd41f88762266c9
+finished fragment: 22/5084 - 937c0d867d86659a
+finished fragment: 23/5084 - 99f23c08c79ce798
+finished fragment: 24/5084 - 89d6b7205c8ee669
+finished fragment: 25/5084 - 93bc8dc66d0a678a
+finished fragment: 26/5084 - 19f23c43dea8c738
+finished fragment: 27/5084 - 89dcb7225c8cecc9
+finished fragment: 28/5084 - 93bc0d82662bd66e
+finished fragment: 29/5084 - 23729c23dc837e9c
+finished fragment: 30/5084 - 999aa7285e8ccb63
+finished fragment: 31/5084 - 93fc0de27d86650a
+finished fragment: 32/5084 - 9bf23c48c798e718
+finished fragment: 33/5084 - 99d637205c8ee669
+finished fragment: 34/5084 - 93bc8dc66d0a7629
+finished fragment: 35/5084 - 09723c61dea9c73c
+finished fragment: 36/5084 - 999e37625c8ccec1
+finished fragment: 37/5084 - 93b88dc6652dd629
+finished fragment: 38/5084 - 09723c62dce3de98
+finished fragment: 39/5084 - 999c37625c8eccc9
+finished fragment: 40/5084 - 93bc0dc2654e76a9
+finished fragment: 41/5084 - 1bf23c43cc83ee29
+finished fragment: 42/5084 - 99d627627c8ec649
+finished fragment: 43/5084 - 13bc8dc2754a768d
+finished fragment: 44/5084 - 19f23c43dc83fc26
+finished fragment: 45/5084 - 999e376267888ccd
+finished fragment: 46/5084 - 9b9c8cc6770c76a1
+finished fragment: 47/5084 - 09723c6adcc37cc3
+finished fragment: 48/5084 - 999ca7625c83ecc9
+finished fragment: 49/5084 - 89de27885e267c4b
+finished fragment: 50/5084 - b378a428668bfca3
+finished fragment: 51/5084 - 39b28ec8762c73c9
+finished fragment: 52/5084 - 03dc8dc2754e768d
+finished fragment: 53/5084 - 9b723cc2dcc2fc06
+finished fragment: 54/5084 - 9996b7626409e6cd
+finished fragment: 55/5084 - 99d88ce6f54c7681
+finished fragment: 56/5084 - 89722cc85eeb7c83
+finished fragment: 57/5084 - 193cb7664c8b66cc
+finished fragment: 58/5084 - 895a97cc66236d63
+finished fragment: 59/5084 - 23da346cc7a8cd8b
+finished fragment: 60/5084 - 31b2878c77e67483
+finished fragment: 61/5084 - 93bc8dc2654ef548
+finished fragment: 62/5084 - 19f23c43dc87cc2b
+finished fragment: 63/5084 - 89de3722740cc6ed
+finished fragment: 64/5084 - 93bc8cc2f54a7689
+finished fragment: 65/5084 - 19f23ccbdc837c03
+finished fragment: 66/5084 - 899ea7626e8276cc
+finished fragment: 67/5084 - 9bd88cc6f54c66a1
+finished fragment: 68/5084 - 89723cca5cc37cc3
+finished fragment: 69/5084 - 899c37666c2366cd
+finished fragment: 70/5084 - 93bc0dc2e54eb54a
+finished fragment: 71/5084 - b9323c43cc83ceb9
+finished fragment: 72/5084 - 89d6b7227d09c665
+finished fragment: 73/5084 - 13bc8ec2fd42b54a
+finished fragment: 74/5084 - b9323c0bdc87dc26
+finished fragment: 75/5084 - 89deb7227729162c
+finished fragment: 76/5084 - 139c8ce6f54ab54a
+finished fragment: 77/5084 - b9323c03dc87f48b
+finished fragment: 78/5084 - 89dc97227d83764c
+finished fragment: 79/5084 - 83dc8fa26466cda6
+finished fragment: 80/5084 - 33f22e0acc86dd2e
+finished fragment: 81/5084 - 19d6ad0af66e4c83

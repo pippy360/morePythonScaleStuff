@@ -24,6 +24,17 @@ class NormalisedFragment:
     #FragmentImageData  @croppedFragment -> a non-normalised copy of the fragment (just cropped from the image, the rotation and scale have not yet been fixed)
     #FragmentImageData  @normalisedFragment -> the normalised version of the fragment (after the scale and rotation have been 'fixed')
     def __init__(self, imageName, fragmentImageCoords, fragmentHash, croppedFragment, normalisedFragment):
+        #DEBUG
+        from hashProvider import getHashPlain
+        #/DEBUG
+        if not normalisedFragment == None:
+            if str(getHashPlain(normalisedFragment.fragmentImage)) == str(fragmentHash):
+                pass
+            else:
+                print '############## ERROR: HASHES DIDN\'T MATCH ####################'
+                print str(fragmentHash)
+                print str(getHashPlain(normalisedFragment.fragmentImage))
+                raise ValueError('############## ERROR: HASHES DIDN\'T MATCH ####################')
         self.imageName = imageName
         self.fragmentImageCoords = fragmentImageCoords
         self.fragmentHash = fragmentHash

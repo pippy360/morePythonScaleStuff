@@ -91,6 +91,15 @@ def applyTransformToAllPoints(tetha, normX, normY, points):
 	
 	return ret
 
+def getAngleBetweenTwoPoints(pt1, pt2):
+	from math import atan2, degrees, pi
+	dx = pt2[0] - pt1[0]
+	dy = pt2[1] - pt1[1]
+	rads = atan2(-dy,dx)
+	#print rads
+	rads %= 2*pi
+	degs = degrees(rads)
+	return degs
 
 def getTheRotationWeNeedToMakeTheLineFlat(line):
 	P1_x, P1_y = line[0]

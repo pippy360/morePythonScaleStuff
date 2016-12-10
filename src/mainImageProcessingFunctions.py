@@ -21,14 +21,15 @@ def getTheTriangles(keyPoints, DEBUG_IMAGE=None, DEBUG_KEYPOINTS=None):
 	return gk.getTheTriangles(keyPoints, DEBUG_IMAGE=DEBUG_IMAGE, DEBUG_KEYPOINTS=DEBUG_KEYPOINTS)
 
 
-def getTheFragments(img, trianglesList):
+def buildNonNormalisedFragments(imgName, img, trianglesList):
 	import fragProcessing as fs
 	for triangle in trianglesList:
 		#start = time.time()
 		fragmentCoords, fragmentImage = fs.cutOutTheFrag(triangle, img)
 		#end = time.time()
 		##print "cut out the frag: " + str(end - start)
-		yield FragmentImageData(fragmentImage, fragmentCoords)
+		nonNormFrag = FragmentImageData(fragmentImage, fragmentCoords)
+		yield NormalisedFragment(imgName, triangle, None, nonNormFrag, None)
 
 
 def _weNeedToAdd180(rot, shape):
@@ -52,13 +53,13 @@ def getNormalisedFragmentForRotation(fragImageWithScaleFix, shapeWithScaleFix, r
 	return BIO.rotateAndFitFragmentWhileKeepingShapeCenterAtTheCenterOfTheImage(fragImageWithScaleFix, rotation, shapeWithScaleFix)
 
 
-def normaliseRotationForSingleFrag(inputFrag):
+def normaliseRotationForSingleFrag(inputImageData, inputShape):
 	#returns the 3 rotation required to make the triangle sit on it's sides
-	rotations = BSO.getFlatRotations(inputFrag.fragmentImageShape)
+	rotations = BSO.getFlatRotations(inputShape)
 
 	fragmentImageDataList = []
 	for rotation in rotations:
-		rotatedShape, rotatedFrag = getNormalisedFragmentForRotation(inputFrag.fragmentImage, inputFrag.fragmentImageShape, rotation)
+		rotatedShape, rotatedFrag = getNormalisedFragmentForRotation(inputImageData, inputShape, rotation)
 		fragmentImageData = FragmentImageData(rotatedFrag, rotatedShape)
 		fragmentImageDataList.append( fragmentImageData )
 
@@ -89,6 +90,7 @@ def arrangePointsForTransformation(movedTri):
 
 def prepShapeForCalculationOfTranslationMatrix(fragmentImageShape):
 	#get the point closest to zero
+	from utils import basicShapeOperations as BSO
 	import numpy as np
 
 	tri = fragmentImageShape
@@ -96,10 +98,22 @@ def prepShapeForCalculationOfTranslationMatrix(fragmentImageShape):
 	y_trans = tri[0][1]
 	pt1 = (tri[1][0] - x_trans, tri[1][1] - y_trans)
 	pt2 = (tri[2][0] - x_trans, tri[2][1] - y_trans)
+	ang1 = BSO.getAngleBetweenTwoPoints(pt1, (0,0))
+	ang2 = BSO.getAngleBetweenTwoPoints(pt2, (0,0))
 
-	return np.matrix(pt1).T, np.matrix(pt2).T, -x_trans, -y_trans
+	import math
+	t1 = math.atan2(pt1[1], pt1[0])
+	t1 %= 2*math.pi
+	#print t1
+	t2 = math.atan2(pt2[1], pt2[0])
+	t2 %= 2*math.pi
+	#print t2
+	if t1 < t2:
+		return np.matrix(pt1).T, np.matrix(pt2).T, -x_trans, -y_trans
+	else:
+		return np.matrix(pt2).T, np.matrix(pt1).T, -x_trans, -y_trans
 
-def getTransformationMatrix(fragmentImageShape, DEBUG_IMAGE=None):
+def getTransformationMatrix(fragmentImageShape):
 	import numpy as np
 	b, c, x_translation, y_translation = prepShapeForCalculationOfTranslationMatrix(fragmentImageShape)
 	area = BSO.getAreaOfTriangle(fragmentImageShape)
@@ -116,25 +130,13 @@ def getTransformationMatrix(fragmentImageShape, DEBUG_IMAGE=None):
 		[0,0,1]
 	])
 	
-	rotationAndScaleMatrix2 = np.float32([
-		[1,0,0],
-		[0,1,0],
-		[0,0,1]
-	])
-
-	#print "rotationAndScaleMatrix"
-	#print rotationAndScaleMatrix
-	#print translationMatrix
-	res = np.matmul(translationMatrix,rotationAndScaleMatrix)
 	res = np.matmul(rotationAndScaleMatrix,translationMatrix)
-	#print "res"
-	#print res
+	
 	res = np.float32([
 		[res.item(0),res.item(1),res.item(2)],
 		[res.item(3),res.item(4),res.item(5)]
 	])
-	#print "res"
-	#print res
+
 	return res
 
 #Code by Rosca
@@ -163,58 +165,27 @@ def calcTransformationMat(pt1, pt2, area):
 	return T
 
 
-def applyTransformationMatrixToFragment(fragment, transformationMatrix):
+def applyTransformationMatrixToFragment(inputImageData, transformationMatrix):
 	import numpy as np
-	fragmentImageData = fragment.fragmentImage
-	imgFixed = cv2.warpAffine(fragmentImageData, transformationMatrix, (500,500))
-#	cv2.imshow('d', imgFixed)
-#	cv2.waitKey()
+
+	imgFixed = cv2.warpAffine(inputImageData, transformationMatrix, (500,500))
+
 	#now fix the shape
-	shape = fragment.fragmentImageShape
-	#print "np.matrix(shape)"
+
 	t = transformationMatrix
 	m = np.matrix(((t.item(0), t.item(1)),(t.item(3), t.item(4))))
-	#print "m"
-	#print m
+
 	fixedShape = [(0,0), (100,200*0.83666003), (200,0)]
-	import shapeDrawerWithDebug as shapeDrawerWithDebug
-	shapeDrawerWithDebug.drawLines(fixedShape, imgFixed)
-	#TODO: FIXME:
-	#print 'd here:'
-	#shapeFixed = shape
-	#imgFixed = imgFixed[0:200,0:int((200*83666003)+1)]#BIO.cropImageAroundPoint(imgFixed, 200, 200*0.83666003, (100,100))
-	return FragmentImageData(imgFixed, fixedShape)
-	#return a whole new fragment
 
-def normaliseScaleForSingleFrag(inputFrag):
-	import numpy as np
-	import getMinimumScaleForShape as g
-	start = time.time()    	
-	#angle, scalar = g.getValuesToNormaliseScale(inputFrag.fragmentImageShape)
-	transformationMatrix = getTransformationMatrix(inputFrag.fragmentImageShape, DEBUG_IMAGE=inputFrag.fragmentImage)
-	##print "transformationMatrix"
-	#print transformationMatrix
-	end = time.time()
-	#print "normaliseScaleForSingleFrag1: " + str(end - start)
-	#ret = _rotateAndScaleFragAndShape(inputFrag, angle, scalar)
-	start = time.time()    	
-	ret = applyTransformationMatrixToFragment(inputFrag, transformationMatrix)
-	end = time.time()
-	#print "normaliseScaleForSingleFrag2: " + str(end - start)
-	#cv2.imshow('b', ret.fragmentImage)
-	#cv2.waitKey()
-	return ret
+	return imgFixed, fixedShape
 
-def normaliseScaleAndRotationForSingleFrag(inputFrag):
-	start = time.time()
-	fragWithScaleFix = normaliseScaleForSingleFrag(inputFrag)
-	end = time.time()
-	#print "normaliseScaleAndRotationForSingleFrag1: " + str(end - start)
-	start = time.time()
-	ret = normaliseRotationForSingleFrag(fragWithScaleFix)
-	end = time.time()
-	#print "normaliseScaleAndRotationForSingleFrag2: " + str(end - start)
-	return ret
+
+def normaliseScaleForSingleFrag(inputImageData, inputShape):
+	transformationMatrix = getTransformationMatrix(inputShape)
+
+	scaledImage, scaledShape = applyTransformationMatrixToFragment(inputImageData, transformationMatrix)
+
+	return scaledImage, scaledShape
 
 
 def fitTrianglesIntoImage(theThreeTrianglesAndShapes):
@@ -229,21 +200,33 @@ def fitTrianglesIntoImage(theThreeTrianglesAndShapes):
 	return ret
 
 
-def normaliseFragmentScaleAndRotation(fragmentObj):
-	start1 = time.time()
-	theThreeTrianglesAndShapes = normaliseScaleAndRotationForSingleFrag(fragmentObj)
-	start2 = time.time()
+def normaliseFragmentScaleAndRotationAndHash(fragmentObj, hashProvider):
+	inputImageData = fragmentObj.croppedFragment.fragmentImage
+	inputShape = fragmentObj.croppedFragment.fragmentImageShape
+
+	scaledImage, scaledShape = normaliseScaleForSingleFrag(inputImageData, inputShape)
+
+	theThreeTrianglesAndShapes = normaliseRotationForSingleFrag(scaledImage, scaledShape)
+
 	#Fit the fragments as best we can into the square images
 	theThreeTrianglesAndShapes = fitTrianglesIntoImage(theThreeTrianglesAndShapes)
-	end = time.time()
-	#print "normaliseFragmentScaleAndRotation1: " + str(end - start1)
-	#print "normaliseFragmentScaleAndRotation2: " + str(end - start2)
-	return theThreeTrianglesAndShapes
 
-#returns list of list of 3 ( [[o1,o2,o3],...], one for each different rotation) 
-def normaliseScaleAndRotationForAllFrags(inputFragmentsAndShapes):
-	for fragmentImageData in inputFragmentsAndShapes:
-		yield normaliseFragmentScaleAndRotation(fragmentImageData)
+	ret = []
+	for miniFrag in theThreeTrianglesAndShapes:
+		imageName 			= fragmentObj.imageName
+		fragmentImageCoords = fragmentObj.fragmentImageCoords
+		fragmentHash 		= hashProvider.getHashPlain(miniFrag.fragmentImage)
+		croppedFragment 	= fragmentObj.croppedFragment
+		normalisedFragment	= miniFrag
+		t = NormalisedFragment(imageName, fragmentImageCoords, fragmentHash, croppedFragment, normalisedFragment)
+		ret.append(t)
+
+	return t
+
+#returns list of list of 3 ( [[o1,o2,o3],[o1,o2,o3],...], one for each different rotation) 
+def finishBuildingFragments(inputFragmentsAndShapes, hashProvider):
+	for fragment in inputFragmentsAndShapes:
+		yield normaliseFragmentScaleAndRotationAndHash(fragment, hashProvider)
 
 
 def getHashForSingleFragment(fragmentImageData):
@@ -254,33 +237,16 @@ def getHashForSingleFragment(fragmentImageData):
 	##print "getHash: " + str(end - start)
 	return hash
 
-
-#fragmentImages: array of the actual pixel matrix of a fragment  
-#fragmentTriangles: the triangles/shapes associated with each fragment...
-#...(we used this to know which part of the fragmentImage actually contains image data)
-#returns list of list of 3 ( [[o1,o2,o3],...], one for each different rotation)
-def	getHashsForAllFragments_withThreeFragmentsPerElement(normalisedFragmentsGroupOfThree):
-	for eachGroupOf3 in normalisedFragmentsGroupOfThree:
-		threeHashes = []
-		for fragment in eachGroupOf3:
-			hash = getHashForSingleFragment(fragment)
-			threeHashes.append(hash)
-		
-		yield threeHashes
-
-
-def getFragmentObjs(imgName, imageFragmentCoords, fragmentHashsGroupOfThree, nonNormalisedFragments, normalisedFragmentsGroupOfThree):
-	from itertools import izip
-
-	zip = izip(fragmentHashsGroupOfThree, imageFragmentCoords, nonNormalisedFragments, normalisedFragmentsGroupOfThree)
-
-	#for each fragment...
-	for fragmentHashList, originalShape, nonNormalisedFragment, normalisedFragmentsList in zip:
-
-		#...in each rotation
-		for hash, normalisedFragment in izip(fragmentHashList, normalisedFragmentsList):
-			yield NormalisedFragment(imgName, originalShape, hash, nonNormalisedFragment, normalisedFragment)
 	
+def buildFragmentObjects(imgName, imageData, triangles):
+	#turn the triangles into fragments of the image
+	nonNormalisedFragments = buildNonNormalisedFragments(imgName, imageData, triangles)
+
+	#normalise the scale and fragments
+	import hashProvider
+	framgentObjsList = finishBuildingFragments(nonNormalisedFragments, hashProvider)
+
+	return framgentObjsList
 
 ##################################################
 #	public Fragment[] getAllTheHashesForImage
@@ -296,16 +262,16 @@ def getAllTheHashesForImage(shapeAndPositionInvariantImage):
 	#turn the keyPoints into triangles	
 	triangles = getTheTriangles(keyPoints)
 
-	#turn the triangles into fragments of the image
-	nonNormalisedFragments = getTheFragments(imageData, triangles)
-
-	#normalise the scale and fragments
-	normalisedFragmentsGroupOfThree = normaliseScaleAndRotationForAllFrags(nonNormalisedFragments)
-
-	#hash the fragments 
-	fragmentHashsGroupOfThree = getHashsForAllFragments_withThreeFragmentsPerElement(normalisedFragmentsGroupOfThree)
-
-	imgName = shapeAndPositionInvariantImage.imageName
-	framgentObjsList = getFragmentObjs(imgName, triangles, fragmentHashsGroupOfThree, nonNormalisedFragments, normalisedFragmentsGroupOfThree)
-
+	framgentObjsList = buildFragmentObjects(shapeAndPositionInvariantImage.imageName, imageData, triangles)
 	return framgentObjsList, len(triangles)
+
+def buildImageFragmentsMapByHash(shapeAndPositionInvariantImage):
+	frags, size = getAllTheHashesForImage(shapeAndPositionInvariantImage)
+	ret = {}
+	i = 0
+	for frag in frags:
+		i = i + 1
+		ret[str(frag.fragmentHash)] = frag
+		print 'finished: ' + str(i) + '/' + str(size)
+
+	return ret

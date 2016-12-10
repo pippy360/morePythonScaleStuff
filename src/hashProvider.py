@@ -2,8 +2,11 @@ import imagehash as ih
 from imagehash import ImageHash
 
 def getHash(fragmentImage):
+    return getHashPlain(fragmentImage.fragmentImage)
+
+def getHashPlain(fragmentImage):
     from PIL import Image
-    pythonImageObj = Image.fromarray(fragmentImage.fragmentImage)
+    pythonImageObj = Image.fromarray(fragmentImage)
     return ih.dhash(pythonImageObj)
 
 def strHashToHashObj(strHash):
